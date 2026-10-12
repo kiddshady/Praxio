@@ -208,9 +208,13 @@ function rpe(r, duplicado) {
 
 /* La estructura de la RPE —caja del paciente, caja de cobertura, Rp/ con
    envases, hueco de firma— vestida de recetario de imprenta: lo que vendría
-   impreso en el talonario (rótulos, Rp/, membrete) va en Bitter con tinta
-   verde, y lo que se completa va en Courier Prime, como tipeado a máquina.
-   Salió de la maqueta de octubre de 2026; los valores están en hoja.css.
+   impreso en el talonario (rótulos, Rp/, membrete) va en Courier Prime con
+   tinta verde, y lo que se completa va en Source Sans 3. Salió de la maqueta
+   de octubre de 2026; los valores están en hoja.css.
+
+   Los medicamentos no se numeran y los envases no tienen columna: van pegados
+   a la presentación («Comprimidos x 21 x 1 env.»), o al nombre si no hay
+   presentación. Lejos a la derecha, el número se leía suelto.
 
    Es la única que lleva membrete y número de receta: el resto no los imprime.
    Los dos son opcionales, porque un profesional sin cargar o una receta sin
@@ -273,17 +277,18 @@ function retro(r, duplicado) {
 
   h += `<div class="encabezado-rp"><div class="rp">Rp/</div>`;
   if (duplicado) h += `<div class="sello">DUPLICADO</div>`;
-  h += `<div class="rot">Envases</div></div>`;
+  h += `</div>`;
 
   items.forEach((it, i) => {
-    if (i) h += `<div class="ornamento"><span></span><i></i><span></span></div>`;
-    h += `<div class="item"><div class="num">${i + 1}.</div><div class="principal">`;
-    h += `<div class="dato t1">${esc(it.nombre || '—')}</div>`;
-    if (it.dosis) h += `<div class="dato t1">${esc(it.dosis)}</div>`;
+    if (i) h += `<div class="separador"></div>`;
+    const env = ` <span class="env">x ${esc(it.envases || 1)} env.</span>`;
+    h += `<div class="item"><div class="principal">`;
+    h += `<div class="dato t1">${esc(it.nombre || '—')}${it.dosis ? '' : env}</div>`;
+    if (it.dosis) h += `<div class="dato t1">${esc(it.dosis)}${env}</div>`;
     if (it.marca) h += `<div class="det"><span class="rot">Marca sugerida:</span> <span class="dato t1">${esc(it.marca)}</span></div>`;
     if (it.diagnostico) h += `<div class="det"><span class="rot">Diagnóstico:</span> <span class="dato">${esc(it.diagnostico)}</span></div>`;
     if (it.indicaciones) h += `<div class="det"><span class="rot">Indicaciones:</span> <span class="dato">${esc(it.indicaciones)}</span></div>`;
-    h += `</div><div class="env dato t1">${esc(it.envases || 1)}</div></div>`;
+    h += `</div></div>`;
   });
 
   h += `<div class="hueco-firma"></div>`;

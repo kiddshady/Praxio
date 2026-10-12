@@ -126,13 +126,19 @@ normal, y ahí el único límite es el físico de la hoja.
 
 ### La plantilla retro
 
-La estructura de la RPE (caja del paciente, caja de cobertura, Rp/ con
-envases, hueco de firma) vestida de recetario de imprenta: lo que vendría
-impreso en el talonario va en Bitter con tinta verde, y lo que se completa va
-en Courier Prime, como tipeado a máquina. Los valores salieron de una maqueta
-con perillas (oct 2026) y están fijos en `hoja.css`: con dos medicamentos,
-membrete y cobertura sobran unos 3 mm, así que agrandar una letra la puede
-tirar a dos páginas.
+La estructura de la RPE (caja del paciente, caja de cobertura, Rp/, hueco de
+firma) vestida de recetario de imprenta: lo que vendría impreso en el
+talonario va en Courier Prime con tinta verde, y lo que se completa va en
+Source Sans 3. Los valores salieron de una maqueta con perillas (oct 2026) y
+están fijos en `hoja.css`: con dos medicamentos, membrete y cobertura sobran
+unos 7 mm sobre el hueco mínimo de firma, así que agrandar una letra o
+alargar mucho las indicaciones la puede tirar a dos páginas.
+
+Los medicamentos no van numerados y los envases no tienen columna propia:
+salen pegados a la presentación («Comprimidos x 21 x 1 env.»), o al nombre si
+no hay presentación. En una columna aparte, lejos a la derecha, el número se
+leía suelto. Entre medicamentos va una raya doble, y el DUPLICADO es un sello
+de goma negro, derecho.
 
 Es la única que imprime **membrete** (nombre, especialidad, matrícula,
 domicilio y teléfono del profesional) y el **número de receta**. Los dos son
