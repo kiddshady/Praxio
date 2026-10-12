@@ -8,7 +8,7 @@ import { exit, bindSwitcher, reconcile, swap } from '../motion.js';
 import { campoFecha, cablearFechas } from '../campo-fecha.js';
 import { S, fecha, hoyISO, edad } from '../tienda.js';
 import { plural } from '../format.js';
-import { hoja } from '../hoja.js';
+import { hoja, PLANTILLAS, CON_NUMERO } from '../hoja.js';
 
 const rx = window.rx;
 
@@ -65,7 +65,8 @@ export async function vistaReceta(pacienteId = null) {
   const E = {
     paciente: null,
     fecha: hoyISO(),
-    plantilla: S.ajustes?.plantillaPorDefecto === 'rpe' ? 'rpe' : 'clasica',
+    plantilla: PLANTILLAS.some(([v]) => v === S.ajustes?.plantillaPorDefecto)
+      ? S.ajustes.plantillaPorDefecto : 'clasica',
     numero: '',
     items: [itemVacio()],
   };
@@ -98,13 +99,11 @@ export async function vistaReceta(pacienteId = null) {
           <div class="ox-field">
             <label class="ox-field__label">Plantilla</label>
             <div class="ox-segmented" id="r-plantilla">
-              <button class="ox-segmented__opt${E.plantilla === 'clasica' ? ' is-active' : ''}"
-                      data-value="clasica">Clásica</button>
-              <button class="ox-segmented__opt${E.plantilla === 'rpe' ? ' is-active' : ''}"
-                      data-value="rpe">RPE</button>
+              ${PLANTILLAS.map(([v, n]) => `<button class="ox-segmented__opt${E.plantilla === v ? ' is-active' : ''}"
+                      data-value="${v}">${n}</button>`).join('')}
             </div>
           </div>
-          <div class="ox-field" id="r-numero-campo" ${E.plantilla === 'rpe' ? '' : 'hidden'}>
+          <div class="ox-field" id="r-numero-campo" ${CON_NUMERO.includes(E.plantilla) ? '' : 'hidden'}>
             <label class="ox-field__label" for="r-numero">Nº de receta</label>
             <input class="ox-input ox-input--mono" id="r-numero" spellcheck="false" value="">
           </div>
@@ -304,11 +303,13 @@ export async function vistaReceta(pacienteId = null) {
   const campoNumero = document.getElementById('r-numero-campo');
   bindSwitcher(document.getElementById('r-plantilla'), (valor) => {
     E.plantilla = valor;
-    campoNumero.hidden = valor !== 'rpe';
+    campoNumero.hidden = !CON_NUMERO.includes(valor);
     pintarPrevia();
   });
+  /* La retro imprime el número en el membrete, así que la previa lo sigue. */
   document.getElementById('r-numero').addEventListener('input', (e) => {
     E.numero = e.target.value;
+    pintarPrevia();
   });
 
   elAgregar.onclick = () => {

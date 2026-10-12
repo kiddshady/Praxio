@@ -74,7 +74,7 @@ renderer/
   imprimir.html   El documento que se imprime. Sin nada inline (ver CSP).
   css/hoja.css    Las hojas. Las cargan la app Y la impresión.
   js/
-    hoja.js       Las plantillas clásica y RPE; la orden reutiliza la RPE.
+    hoja.js       Las plantillas clásica, RPE y retro; la orden reutiliza la RPE.
     actualizacion.js Estado, statusbar, aviso y controles del auto-update.
     desbloqueo.js La cerradura.
     campo-fecha.js Campo de fecha propio, sin el <input type=date> de Chromium.
@@ -123,6 +123,32 @@ impresora.
 
 La orden de estudios **no** tiene tope: pedir diez prácticas de laboratorio es
 normal, y ahí el único límite es el físico de la hoja.
+
+### La plantilla retro
+
+La estructura de la RPE (caja del paciente, caja de cobertura, Rp/ con
+envases, hueco de firma) vestida de recetario de imprenta: lo que vendría
+impreso en el talonario va en Bitter con tinta verde, y lo que se completa va
+en Courier Prime, como tipeado a máquina. Los valores salieron de una maqueta
+con perillas (oct 2026) y están fijos en `hoja.css`: con dos medicamentos,
+membrete y cobertura sobran unos 3 mm, así que agrandar una letra la puede
+tirar a dos páginas.
+
+Es la única que imprime **membrete** (nombre, especialidad, matrícula,
+domicilio y teléfono del profesional) y el **número de receta**. Los dos son
+opcionales: si no están cargados, la hoja sale sin ellos.
+
+Las fuentes viajan con la app (`renderer/fonts/`, OFL, licencias al lado) y se
+declaran en `hoja.css`, no en `fonts.css`: la ventana de impresión no carga
+`fonts.css`. El sello de DUPLICADO se gasta con una máscara,
+`renderer/img/desgaste.png`, que sale de `tools/desgaste.mjs` con semilla fija.
+Va como archivo porque `imprimir.html` no admite `data:`, y por eso su CSP
+lleva `img-src 'self'`: sin eso, el sello sale sin gastar y sin avisar.
+
+Las plantillas válidas viven en `PLANTILLAS` de `db.cjs`, que decide qué se
+guarda, y en `PLANTILLAS` de `hoja.js`, que da los nombres. La columna no
+tiene CHECK, así que sumar una plantilla no migra nada; pero si falta en la
+lista de `db.cjs`, se guarda como clásica sin avisar.
 
 ### La orden de estudios usa la plantilla RPE
 
@@ -202,6 +228,8 @@ sino:
   `SQLite format 3`, y ni el apellido ni la alergia aparecen en crudo);
 - que una contraseña equivocada **no** abra;
 - que la receta y la orden emitidas no cambien cuando cambian los datos vivos;
+- que la plantilla retro se guarde con su número, y que una desconocida caiga
+  en clásica;
 - que una receta de **tres** medicamentos sea rechazada, que dos entren, y que
   ese tope **no** se le aplique a la orden de estudios;
 - que el respaldo salga cifrado y se pueda reabrir;

@@ -129,6 +129,25 @@ app.whenReady().then(async () => {
     db.recetas.remove(r.id);   // no ensucia el conteo de los tests que siguen
   });
 
+  /* La columna no tiene CHECK: lo que filtra es PLANTILLAS en db.cjs. Una
+     plantilla nueva que no se suma ahí se guardaría como clásica sin avisar. */
+  await prueba('guarda la plantilla retro con su número, y lo desconocido cae en clásica', () => {
+    const p = db.pacientes.list()[0];
+    const r = db.recetas.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'retro', numero: '0001-00000042',
+      items: [{ nombre: 'Uno' }],
+    });
+    assert.equal(r.plantilla, 'retro');
+    assert.equal(r.numero, '0001-00000042');
+    const otra = db.recetas.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'inventada',
+      items: [{ nombre: 'Uno' }],
+    });
+    assert.equal(otra.plantilla, 'clasica');
+    db.recetas.remove(r.id);
+    db.recetas.remove(otra.id);
+  });
+
   await prueba('el tope NO se aplica a la orden de estudios', () => {
     const p = db.pacientes.list()[0];
     const o = db.ordenes.emitir({

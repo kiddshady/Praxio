@@ -508,6 +508,11 @@ const CAMPOS_ITEM = ['nombre', 'marca', 'dosis', 'diagnostico', 'indicaciones'];
    por la impresora, y el limite es sobre lo que se emite de acá en adelante. */
 const MAX_MEDICAMENTOS = 2;
 
+/* Las hojas que sabe pintar hoja.js. Lo que no esté acá se guarda como
+   'clasica', que es lo que pinta hoja() ante una plantilla que no conoce. La
+   columna es TEXT sin CHECK a propósito: sumar una plantilla no migra nada. */
+const PLANTILLAS = ['clasica', 'rpe', 'retro'];
+
 const recetas = {
   /** Emite una receta: la congela con su instantánea y suma uso al catálogo.
       Todo en una transacción — una receta a medio guardar no puede existir. */
@@ -544,7 +549,7 @@ const recetas = {
          VALUES (@id, @paciente_id, @fecha, @plantilla, @numero, @snapshot, @creado)`,
       ).run({
         id: rid, paciente_id: pid, fecha, snapshot, creado,
-        plantilla: datos?.plantilla === 'rpe' ? 'rpe' : 'clasica',
+        plantilla: PLANTILLAS.includes(datos?.plantilla) ? datos.plantilla : 'clasica',
         numero: String(datos?.numero ?? '').trim(),
       });
 
@@ -753,5 +758,5 @@ function resumen() {
 module.exports = {
   abrir, cerrar, abierta, recifrar, respaldar, normalizar, hoyLocal,
   medico, pacientes, evoluciones, medicamentos, recetas, estudios, ordenes, resumen,
-  ESQUEMA, MAX_MEDICAMENTOS,
+  ESQUEMA, MAX_MEDICAMENTOS, PLANTILLAS,
 };

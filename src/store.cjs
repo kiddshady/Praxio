@@ -62,7 +62,7 @@ const DEFAULT_SETTINGS = {
   schema: SCHEMA,
   /** Minutos de inactividad antes de bloquear solo. 0 lo desactiva. */
   bloqueoInactividad: 15,
-  /** Con cuál de las dos hojas arranca una receta nueva. */
+  /** Con cuál de las plantillas arranca una receta nueva. */
   plantillaPorDefecto: 'clasica',
   ultimaVista: null,
 };

@@ -6,6 +6,7 @@ import { paint, head, esc, empty, attempt } from '../ui.js';
 import { campoFecha, cablearFechas, isoDe } from '../campo-fecha.js';
 import { S, fecha, edad, hoyISO, validarDNI, validarCUIL } from '../tienda.js';
 import { plural } from '../format.js';
+import { nombrePlantilla } from '../hoja.js';
 
 const rx = window.rx;
 
@@ -393,7 +394,7 @@ export async function vistaFicha(id) {
             <div class="ox-listitem__main">
               <div class="ox-listitem__title ox-truncate">${esc(r.detalle || '—')}</div>
               <div class="ox-listitem__sub">${plural(r.items, 'medicamento')} ·
-                plantilla ${esc(r.plantilla === 'rpe' ? 'RPE' : 'Clásica')}</div>
+                plantilla ${esc(nombrePlantilla(r.plantilla))}</div>
             </div>
             <div class="ox-listitem__aside ox-num">${esc(fecha(r.fecha))}</div>
           </div>`).join('')}</div>`}

@@ -5,6 +5,7 @@ import { paint, head, esc, attempt } from '../ui.js';
 import { bindSwitcher, frase } from '../motion.js';
 import { campoFecha, cablearFechas, isoDe } from '../campo-fecha.js';
 import { S } from '../tienda.js';
+import { PLANTILLAS } from '../hoja.js';
 import Router from '../router.js';
 import {
   estadoActualizacion, describirEstado, buscarActualizacion,
@@ -120,13 +121,15 @@ export async function vistaAjustes() {
       <div class="ox-section">
         <div class="ox-section__head"><div class="ox-section__title">Recetas</div></div>
         <div class="ox-card"><div class="ox-card__body">
-          <div class="ox-field" style="max-width:260px">
+          <div class="ox-field" style="max-width:320px">
             <label class="ox-field__label">Plantilla por defecto</label>
             <div class="ox-segmented" id="a-plantilla">
-              <button class="ox-segmented__opt${ajustes.plantillaPorDefecto !== 'rpe' ? ' is-active' : ''}"
-                      data-value="clasica">Clásica</button>
-              <button class="ox-segmented__opt${ajustes.plantillaPorDefecto === 'rpe' ? ' is-active' : ''}"
-                      data-value="rpe">RPE</button>
+              ${PLANTILLAS.map(([v, n], i) => {
+                const activa = PLANTILLAS.some(([x]) => x === ajustes.plantillaPorDefecto)
+                  ? ajustes.plantillaPorDefecto === v : i === 0;
+                return `<button class="ox-segmented__opt${activa ? ' is-active' : ''}"
+                      data-value="${v}">${n}</button>`;
+              }).join('')}
             </div>
           </div>
         </div></div>
