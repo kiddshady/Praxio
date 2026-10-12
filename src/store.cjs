@@ -64,6 +64,8 @@ const DEFAULT_SETTINGS = {
   bloqueoInactividad: 15,
   /** Con cuál de las plantillas arranca una receta nueva. */
   plantillaPorDefecto: 'clasica',
+  /** Si la retro lleva el membrete del profesional. Lo deja la última receta. */
+  membreteRetro: true,
   ultimaVista: null,
 };
 

@@ -214,7 +214,10 @@ function rpe(r, duplicado) {
 
    Es la única que lleva membrete y número de receta: el resto no los imprime.
    Los dos son opcionales, porque un profesional sin cargar o una receta sin
-   número tienen que seguir saliendo. */
+   número tienen que seguir saliendo. Además el membrete se apaga a mano
+   (`membrete: false`, congelado en la instantánea); el número sale igual,
+   solo en su renglón. Apagado NO reserva lugar arriba: no sirve para
+   imprimir sobre una hoja con el membrete ya impreso. */
 
 /** Un dato vacío conserva su renglón: en la retro el punteado ES el campo. */
 function campoRetro(rotulo, valor, clase = '') {
@@ -226,6 +229,12 @@ function membreteRetro(m, numero) {
   const sello = [m.especialidad, m.matricula ? `Mat. ${m.matricula}` : ''].filter(Boolean).join(' · ');
   const dir = [m.domicilio, m.telefono].filter(Boolean).join(' · ');
   if (!m.apellido_nombre && !numero) return '';
+  /* Sin profesional el número no se viste de membrete: la raya doble debajo
+     de un renglón con solo el número parece un encabezado vacío. */
+  if (!m.apellido_nombre) {
+    return `<header class="membrete membrete--solo-numero"><div class="numero">`
+      + `<span class="rot">Receta Nº</span><span class="dato">${esc(numero)}</span></div></header>`;
+  }
   let h = `<header class="membrete"><div class="prof">`;
   if (m.apellido_nombre) h += `<div class="prof-nombre">${esc(m.apellido_nombre)}</div>`;
   if (sello) h += `<div class="prof-sello rot">${esc(sello)}</div>`;
@@ -242,7 +251,7 @@ function retro(r, duplicado) {
   const items = r.items || [];
 
   let h = `<section class="rx-hoja rx-hoja--retro">`;
-  h += membreteRetro(m, String(r.numero || '').trim());
+  h += membreteRetro(r.membrete === false ? {} : m, String(r.numero || '').trim());
 
   h += `<div class="caja caja-paciente"><div class="campos">`;
   if (p.apellido_nombre) {
@@ -328,7 +337,8 @@ function orden(o) {
  * Sin `tipo`, es una receta — es lo que había antes de que existiera la orden
  * y lo que sigue llegando desde los snapshots viejos.
  *
- * @param {object} d  receta {paciente, medico, items, fecha, plantilla, numero}
+ * @param {object} d  receta {paciente, medico, items, fecha, plantilla, numero,
+ *                            membrete}
  *                    u orden {tipo:'orden', paciente, medico, items, fecha,
  *                             diagnostico}
  * @param {{duplicado?: boolean}} opts

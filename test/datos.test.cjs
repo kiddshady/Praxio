@@ -148,6 +148,23 @@ app.whenReady().then(async () => {
     db.recetas.remove(otra.id);
   });
 
+  /* Reimprimir tiene que salir igual: el membrete apagado viaja congelado. */
+  await prueba('el membrete apagado queda en la instantánea, y por defecto va prendido', () => {
+    const p = db.pacientes.list()[0];
+    const sin = db.recetas.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'retro', membrete: false,
+      items: [{ nombre: 'Uno' }],
+    });
+    assert.equal(sin.snapshot.membrete, false);
+    const con = db.recetas.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'retro',
+      items: [{ nombre: 'Uno' }],
+    });
+    assert.equal(con.snapshot.membrete, true);
+    db.recetas.remove(sin.id);
+    db.recetas.remove(con.id);
+  });
+
   await prueba('el tope NO se aplica a la orden de estudios', () => {
     const p = db.pacientes.list()[0];
     const o = db.ordenes.emitir({

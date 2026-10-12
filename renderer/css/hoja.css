@@ -352,6 +352,12 @@
 .rx-hoja--retro .numero { text-align: right; line-height: 1.2; }
 .rx-hoja--retro .numero .rot { display: block; font-size: calc(var(--retro-t2) * .8); }
 .rx-hoja--retro .numero .dato { letter-spacing: .04em; }
+.rx-hoja--retro .membrete--solo-numero {
+  display: flex; justify-content: flex-end;
+  margin-bottom: 2mm; padding-bottom: 0; border-bottom: 0;
+}
+.rx-hoja--retro .membrete--solo-numero .numero { display: flex; align-items: baseline; gap: 2mm; }
+.rx-hoja--retro .membrete--solo-numero .numero .rot { display: inline; }
 
 /* Cajas: rótulo chico arriba, dato sobre un renglón punteado. */
 .rx-hoja--retro .caja {

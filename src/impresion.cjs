@@ -40,6 +40,7 @@ function datosDeReceta(r) {
     fecha: r.fecha,
     plantilla: r.plantilla,
     numero: r.numero,
+    membrete: s.membrete,
   };
 }
 

@@ -4,13 +4,14 @@ import { Modal, Toast, Menu } from '../overlays.js';
 import { Icons } from '../icons.js';
 import Router from '../router.js';
 import { paint, head, esc, empty, attempt } from '../ui.js';
-import { exit, bindSwitcher, reconcile, swap } from '../motion.js';
+import { exit, bindSwitcher, reconcile, swap, asentarPlegables } from '../motion.js';
 import { campoFecha, cablearFechas } from '../campo-fecha.js';
 import { S, fecha, hoyISO, edad } from '../tienda.js';
 import { plural } from '../format.js';
 import { hoja, PLANTILLAS, CON_NUMERO } from '../hoja.js';
 
 const rx = window.rx;
+const onyx = window.onyx;
 
 /* ══ Nueva receta ════════════════════════════════════════════════════════════ */
 
@@ -68,6 +69,7 @@ export async function vistaReceta(pacienteId = null) {
     plantilla: PLANTILLAS.some(([v]) => v === S.ajustes?.plantillaPorDefecto)
       ? S.ajustes.plantillaPorDefecto : 'clasica',
     numero: '',
+    membrete: S.ajustes?.membreteRetro !== false,
     items: [itemVacio()],
   };
   if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId);
@@ -107,6 +109,17 @@ export async function vistaReceta(pacienteId = null) {
             <label class="ox-field__label" for="r-numero">Nº de receta</label>
             <input class="ox-input ox-input--mono" id="r-numero" spellcheck="false" value="">
           </div>
+        </div>
+
+        <div class="ox-row ox-plegable" id="r-membrete-campo"
+             style="gap:var(--ox-3);align-items:center;--ox-plegable-gap:var(--ox-4)"
+             ${E.plantilla === 'retro' ? '' : 'hidden'}>
+          <div class="ox-grow">
+            <div>Membrete del profesional</div>
+            <div class="ox-meta">Nombre, especialidad, matrícula y domicilio arriba de la hoja. El número de receta sale igual.</div>
+          </div>
+          <button type="button" class="ox-switch${E.membrete ? ' is-on' : ''}" id="r-membrete"
+                  role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"><span></span></button>
         </div>
 
         <div class="ox-section">
@@ -149,6 +162,7 @@ export async function vistaReceta(pacienteId = null) {
       fecha: E.fecha,
       plantilla: E.plantilla,
       numero: E.numero,
+      membrete: E.membrete,
     };
   }
 
@@ -301,11 +315,24 @@ export async function vistaReceta(pacienteId = null) {
   });
 
   const campoNumero = document.getElementById('r-numero-campo');
+  const campoMembrete = document.getElementById('r-membrete-campo');
+  asentarPlegables(campoMembrete);
   bindSwitcher(document.getElementById('r-plantilla'), (valor) => {
     E.plantilla = valor;
     campoNumero.hidden = !CON_NUMERO.includes(valor);
+    campoMembrete.hidden = valor !== 'retro';
     pintarPrevia();
   });
+  /* Queda como estaba para la próxima receta: quien no lo quiere lo apaga una
+     vez y no en cada receta. */
+  const elMembrete = document.getElementById('r-membrete');
+  elMembrete.onclick = async () => {
+    E.membrete = !E.membrete;
+    elMembrete.classList.toggle('is-on', E.membrete);
+    elMembrete.setAttribute('aria-checked', String(E.membrete));
+    pintarPrevia();
+    S.ajustes = await onyx.settings.save({ membreteRetro: E.membrete });
+  };
   /* La retro imprime el número en el membrete, así que la previa lo sigue. */
   document.getElementById('r-numero').addEventListener('input', (e) => {
     E.numero = e.target.value;
@@ -331,6 +358,7 @@ export async function vistaReceta(pacienteId = null) {
       fecha: E.fecha,
       plantilla: E.plantilla,
       numero: E.numero,
+      membrete: E.membrete,
       items,
       desdeCatalogo: items.map((i) => i.desde).filter(Boolean),
     }), { errorTitle: 'No se pudo emitir la receta' });
@@ -516,6 +544,7 @@ async function verReceta(id) {
     fecha: r.fecha,
     plantilla: r.plantilla,
     numero: r.numero,
+    membrete: r.snapshot?.membrete,
   };
 
   const caja = document.createElement('div');

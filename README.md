@@ -138,6 +138,15 @@ Es la única que imprime **membrete** (nombre, especialidad, matrícula,
 domicilio y teléfono del profesional) y el **número de receta**. Los dos son
 opcionales: si no están cargados, la hoja sale sin ellos.
 
+El membrete además se apaga con el interruptor «Membrete del profesional» del
+formulario, que aparece solo con la retro. El número de receta sale igual,
+solo en su renglón y sin la raya doble. Apagado **no reserva lugar** arriba:
+el paciente sube, así que no sirve para imprimir sobre papel que ya trae un
+membrete impreso. La elección se congela en la instantánea
+(`membrete: false`), así que reimprimir sale como salió; las recetas de antes
+no lo tienen y salen con membrete, como salieron. Y queda guardada en los
+ajustes (`membreteRetro`) para la receta siguiente: se apaga una sola vez.
+
 Las fuentes viajan con la app (`renderer/fonts/`, OFL, licencias al lado) y se
 declaran en `hoja.css`, no en `fonts.css`: la ventana de impresión no carga
 `fonts.css`. El sello de DUPLICADO se gasta con una máscara,

@@ -541,7 +541,10 @@ const recetas = {
     const prof = medico.get();
     const rid = id();
     const creado = ahora();
-    const snapshot = JSON.stringify({ paciente, medico: prof, items, fecha });
+    /* El membrete apagado se congela con la receta: reimprimirla sale sin él
+       aunque después se vuelva a prender. Hoy solo lo lee la retro. */
+    const membrete = datos?.membrete !== false;
+    const snapshot = JSON.stringify({ paciente, medico: prof, items, fecha, membrete });
 
     const guardar = c.transaction(() => {
       c.prepare(
