@@ -1,7 +1,7 @@
 {
   "name": "quirotech",
   "productName": "Quirotech",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Historia clínica, recetas y órdenes de estudios para consultorio. Datos cifrados en disco, firma manuscrita.",
   "main": "main.cjs",
   "author": "Francisco Pavez",

@@ -210,7 +210,7 @@ export async function vistaAjustes() {
       </div>
 
       <div class="op-meta" style="padding:var(--op-4) 0">
-        Rx v${esc(S.info?.version || '')} · Electron ${esc(S.info?.electron || '')} ·
+        Quirotech v${esc(S.info?.version || '')} · Electron ${esc(S.info?.electron || '')} ·
         esquema ${esc(S.info?.esquema || '')}<br>
         Datos en <span class="op-mono op-copyable">${esc(sesion.carpeta || '')}</span>
       </div>
