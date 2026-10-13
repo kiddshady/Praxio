@@ -103,9 +103,15 @@ app.whenReady().then(async () => {
   });
 
   await prueba('el .node quedó FUERA del asar', () => {
-    const nodo = path.join(DESEMPACADO, 'node_modules', 'better-sqlite3-multiple-ciphers',
-      'build', 'Release', 'better_sqlite3.node');
-    assert.ok(fs.existsSync(nodo), 'no está en app.asar.unpacked: adentro del asar no carga');
+    /* Desde la 13 la librería trae su binario Node-API en prebuilds/, uno por
+       plataforma. El instalador es x64: va ese solo, sin el fuente en C (14 MB)
+       ni los de Mac y Linux (build.files los excluye). */
+    const mod = path.join(DESEMPACADO, 'node_modules', 'better-sqlite3-multiple-ciphers');
+    assert.ok(fs.existsSync(path.join(mod, 'prebuilds', 'win32-x64.node')),
+      'no está en app.asar.unpacked: adentro del asar no carga');
+    const sobran = fs.readdirSync(path.join(mod, 'prebuilds')).filter((f) => f !== 'win32-x64.node');
+    assert.deepEqual(sobran, [], `viajan binarios de otras plataformas: ${sobran.join(', ')}`);
+    assert.ok(!fs.existsSync(path.join(mod, 'deps')), 'viaja el fuente en C de SQLite (deps/)');
   });
 
   /* Esta es la prueba que vale: se carga el módulo TAL COMO SE ENVÍA y se le

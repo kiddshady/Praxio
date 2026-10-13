@@ -341,6 +341,8 @@ export async function vistaFicha(id) {
   ].filter(Boolean);
 
   const alergia = String(p.alergias || '').trim();
+  /* La ficha trae hasta 50 recetas y 50 órdenes: con más, la pestaña dice
+     "50+" en vez de un 50 que parecería el total. */
   const tab = (v, rotulo, n) => `<button class="op-tab${pestana === v ? ' is-active' : ''}" data-value="${v}">
     ${esc(rotulo)}${n != null ? `<span class="op-tab__count op-num">${n}</span>` : ''}</button>`;
 
@@ -379,8 +381,8 @@ export async function vistaFicha(id) {
     <div class="op-tabs rx-tabs" id="f-tabs">
       ${tab('clinica', 'Ficha clínica')}
       ${tab('evoluciones', 'Evoluciones', evoluciones.length)}
-      ${tab('recetas', 'Recetas', recetas.length)}
-      ${tab('ordenes', 'Órdenes', ordenes.length)}
+      ${tab('recetas', 'Recetas', recetas.length >= 50 ? '50+' : recetas.length)}
+      ${tab('ordenes', 'Órdenes', ordenes.length >= 50 ? '50+' : ordenes.length)}
     </div>
 
     <div class="op-scroll op-grow op-scroll--line-top op-scroll--line-bottom rx-panes">

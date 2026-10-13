@@ -786,8 +786,15 @@ function recetasPorDia(c, dias) {
   return out;
 }
 
+/** PRAGMA integrity_check: ['ok'] si la base está sana, o la lista de lo que
+    encontró roto. Lo usa la prueba de compatibilidad después de actualizar la
+    librería de cifrado. */
+function integridad() {
+  return conexion().pragma('integrity_check').map((r) => r.integrity_check);
+}
+
 module.exports = {
-  abrir, cerrar, abierta, recifrar, respaldar, normalizar, hoyLocal,
+  abrir, cerrar, abierta, recifrar, respaldar, normalizar, hoyLocal, integridad,
   medico, pacientes, evoluciones, medicamentos, recetas, estudios, ordenes, resumen,
   ESQUEMA, MAX_MEDICAMENTOS, PLANTILLAS,
 };

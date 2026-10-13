@@ -19,6 +19,7 @@ y el anti-flash vale acá; esto documenta lo que Quirotech agrega encima.
 npm run dev            # con la consola del renderer saliendo por la terminal
 npm test               # tokens, almacenamiento y formato (node pelado)
 npm run test:datos     # la base cifrada de punta a punta (necesita Electron)
+npm run test:compat    # una base hecha por la librería vieja abre con la de ahora
 npm run humo           # monta la app, la desbloquea y la recorre entera
 
 npm run icon           # regenera el ícono en todos sus tamaños (build/icono.mjs)
@@ -287,13 +288,28 @@ Instalador NSIS, no `oneClick`: deja elegir carpeta y se instala por usuario
 1. `asarUnpack` lo saca del asar. Un `.node` **no se puede cargar desde adentro
    de un asar**: la app abriría bien y moriría recién al intentar descifrar la
    base, o sea al desbloquear.
-2. `npmRebuild: false`, porque el binario ya viene compilado contra Electron 40
-   por `npm run rebuild:nativos`. Dejar que electron-builder lo reconstruya
-   obligaría a tener MSVC instalado para nada.
+2. `npmRebuild: false`. Desde la 0.2.1 la librería
+   (`better-sqlite3-multiple-ciphers` 13) trae su binario ya compilado con
+   Node-API, que sirve para cualquier Electron: no hay nada que reconstruir, y
+   dejar que electron-builder lo intente obligaría a tener MSVC para nada.
+   Hasta la 0.2.0 (la 12, Electron 40) había que correr `rebuild:nativos`
+   contra el ABI de cada Electron; ese paso ya no existe.
 
-> **Si subís de versión de Electron:** correr `npm run rebuild:nativos` (con el
-> `--target` nuevo) ANTES de empaquetar. Un binario con el ABI viejo falla al
-> cargar, y el mensaje no dice "ABI": dice que el módulo no se pudo abrir.
+### Actualizar Electron o la librería de cifrado
+
+Las dos versiones van fijas en `package.json`, sin `^`, a propósito: del otro
+lado hay historias clínicas reales y un cambio de librería no puede entrar solo
+con un `npm install`. Antes de publicar, **`npm run test:compat`**: abre
+`test/fixtures/base-v12`, una base que hizo la librería vieja (la 12.11.1 en
+Electron 40; ver su `LEEME.txt`), con la que esté instalada ahora, y comprueba
+que se lee entera, con los acentos intactos, que se puede seguir escribiendo y
+que `integrity_check` da `ok`. Ese fixture no se regenera nunca: su valor es
+que lo hizo la versión vieja.
+
+Para el salto a Electron 44 (oct 2026) además se probó, una sola vez y fuera
+del repo, una copia de una `%APPDATA%\Rx` real: misma cantidad de filas y el
+mismo hash del contenido en las diez tablas antes y después, y la clave de
+«recordar en esta PC» guardada con Electron 40 se leyó con la 44.
 
 `test:paquete` contesta las dos preguntas que un test del fuente no puede:
 

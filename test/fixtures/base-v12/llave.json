@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "kdf": "scrypt",
+  "N": 131072,
+  "r": 8,
+  "p": 1,
+  "sal": "yC5m4RosGXV4s0WzCiw12w==",
+  "recordada": null
+}

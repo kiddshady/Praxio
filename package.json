@@ -1,7 +1,7 @@
 {
   "name": "quirotech",
   "productName": "Quirotech",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Historia clínica, recetas y órdenes de estudios para consultorio. Datos cifrados en disco, firma manuscrita.",
   "main": "main.cjs",
   "author": "Francisco Pavez",
@@ -11,18 +11,18 @@
     "dev": "electron . --dev",
     "test": "node test/tokens.test.mjs && node test/store.test.mjs && node test/format.test.mjs",
     "test:datos": "electron test/datos.test.cjs",
-    "rebuild:nativos": "prebuild-install -C node_modules/better-sqlite3-multiple-ciphers --runtime=electron --target=40.10.6 --dist-url=https://electronjs.org/headers",
+    "test:compat": "electron test/compat.test.cjs",
     "humo": "electron test/humo.test.cjs",
     "icon": "electron build/make-icon.cjs",
     "build": "electron-builder --win --publish never",
     "test:paquete": "electron test/empaquetado.test.cjs"
   },
   "devDependencies": {
-    "electron": "40.10.6",
+    "electron": "44.5.1",
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
-    "better-sqlite3-multiple-ciphers": "^12.11.1",
+    "better-sqlite3-multiple-ciphers": "13.0.3",
     "electron-updater": "^6.8.9"
   },
   "build": {
@@ -39,7 +39,11 @@
       "src/**/*",
       "renderer/**/*",
       "package.json",
-            "!data/**",
+      "!data/**",
+      "!node_modules/better-sqlite3-multiple-ciphers/deps/**",
+      "!node_modules/better-sqlite3-multiple-ciphers/src/**",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/{darwin,linux,linuxmusl}-*.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/win32-arm64.node",
       "!test/**",
       "!dist/**"
     ],
