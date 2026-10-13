@@ -90,14 +90,21 @@
   --qt-ambar-ring: rgb(var(--qt-ambar-rgb) / .32);
 }
 
-/* ── Los modales: hojas sólidas del tono de la app ──────────────────────────
-   Opal los hace de vidrio (--op-s3 con blur), y sobre el papel oscuro eso daba
-   un gris neutro (29 32 34) que no era de la familia de las hojas de la vista
-   (15 20 22). Pedido de Fran (13 oct 2026): sólidos, del color del fondo. Son
-   el fondo de la app aclarado lo mismo que se ve aclarada la hoja de la vista,
-   con el matiz del fondo; opacos, así que el blur no tiene nada que hacer. El
-   canto iluminado y la sombra larga se quedan: es lo que los despega del velo. */
-.op-modal {
-  background: oklch(from var(--op-bg) calc(l + .042) c h);
+/* ── Lo que flota: hojas sólidas del tono de la app ─────────────────────────
+   Opal hace de vidrio todo lo que flota (modal, tooltip, aviso, menú), y sobre
+   el papel oscuro eso daba un gris neutro (el modal, 29 32 34) que no era de la
+   familia de las hojas de la vista (15 20 22); sobre la hoja blanca de la
+   receta, el aviso quedaba de vidrio lavado. Pedido de Fran (13 oct 2026):
+   sólidos, del color del fondo. Primero los modales (0.2.2), después el resto.
+   Son el fondo de la app aclarado lo mismo que se ve aclarada la hoja de la
+   vista, con el matiz del fondo; opacos, así que el blur no tiene nada que
+   hacer (y no deja ver lo de atrás en el canto mientras se mueven). El canto
+   iluminado y la sombra larga se quedan: es lo que los despega de lo que tapan. */
+:root { --qt-flota: oklch(from var(--op-bg) calc(l + .042) c h); }
+.op-modal,
+.op-tooltip,
+.op-toast,
+.op-menu {
+  background: var(--qt-flota);
   backdrop-filter: none;
 }
