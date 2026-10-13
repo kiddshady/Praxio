@@ -8,8 +8,8 @@ que dependa de un servicio de nadie.
 Se llamó **Rx** hasta la 0.1.12. El nombre viene de Quirón, el centauro que le
 enseñó medicina a Asclepio; el ícono es la vara de este último. Por dentro
 muchas cosas siguen diciendo `rx` (el prefijo de las clases propias, el puente
-`window.rx`, la carpeta de datos) y está bien que así sea: ver «Los datos
-siguen en %APPDATA%\Rx», más abajo.
+`window.rx`, el archivo `rx.db`) y está bien que así sea. La carpeta de datos
+fue `%APPDATA%\Rx` hasta la 0.2.3: ver «La mudanza de los datos», más abajo.
 
 Construida sobre [Opal](../Opal), la plantilla de vidrio (hasta la 0.1.12 fue
 Onyx). Todo lo que dice el README de Opal sobre el shell, los tokens, las hojas
@@ -322,19 +322,30 @@ mismo hash del contenido en las diez tablas antes y después, y la clave de
   `<i data-icon>` sean SVG. El `<title>` **no** alcanza — una pantalla en blanco
   también tiene título.
 
-Los datos de la app instalada van a `%APPDATA%\Rx`, no al lado del ejecutable:
+Los datos de la app instalada van a `%APPDATA%\Quirotech`, no al lado del ejecutable:
 esa carpeta es de solo lectura y además una actualización la reemplaza entera.
 `RX_DATA` manda sobre todo, y sirve para correr una copia contra datos falsos.
 
-### Los datos siguen en %APPDATA%\Rx
+### La mudanza de los datos (de Rx a Quirotech)
 
-Electron deriva `userData` del nombre de la app, así que con el nombre nuevo
-iría a `%APPDATA%\Quirotech`. `main.cjs` lo fija en `%APPDATA%\Rx` antes de
-cargar nada: ahí están la base cifrada, la sal, y la llave de «recordar en esta
-PC» (safeStorage la guarda en `Local State`). Sin eso, quien actualiza desde Rx
-abriría la app vacía y sin su contraseña recordada. Por lo mismo el `appId`
-sigue siendo `com.kiddshady.rx`: es lo que hace que el instalador reemplace a
-Rx en vez de instalarse al lado.
+Hasta la 0.2.3, `main.cjs` fijaba `userData` en `%APPDATA%\Rx` para que quien
+actualizaba desde Rx no abriera la app vacía. Desde la 0.2.4 los datos viven en
+`%APPDATA%\Quirotech` (lo que Electron deriva solo del nombre), y quien viene
+de antes **se muda al arrancar**: `src/carpeta.cjs` renombra la carpeta entera,
+antes de que Chromium escriba nada. Renombrar y no copiar es lo que hace que
+la base cifrada, la sal, los respaldos y la llave de «recordar en esta PC»
+(safeStorage la guarda en `Local State`) viajen juntas.
+
+Ningún caso abre la app vacía: si el renombre falla, esa vez usa Rx y lo
+reintenta en el próximo arranque; si ya hay una `Quirotech` con datos, manda
+esa; si hay una con algo que no son datos, usa Rx y no pisa nada.
+`test/carpeta.test.mjs` arma cada caso con carpetas temporales. Para la 0.2.4
+se probó además que una clave recordada sigue leyéndose después de renombrar
+la carpeta (Electron 44), y el paquete de punta a punta: una `Rx` con clave
+recordada se mudó y la app entró sola.
+
+El `appId` sigue siendo `com.kiddshady.rx`: es lo que hace que el instalador
+reemplace a Rx en vez de instalarse al lado.
 
 ### Actualizaciones
 

@@ -34,17 +34,18 @@
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
 
-/* Quirotech se llamó Rx hasta la 0.1.12, y sus datos se quedan donde estaban.
-   La base cifrada, la sal y la llave de «recordar en esta PC» (safeStorage la
-   ata a `Local State`) viven en %APPDATA%\Rx, y Electron deriva userData del
-   nombre de la app: sin esto, quien actualiza abriría Quirotech vacía y sin
-   su contraseña recordada. Va antes de cargar el store, que calcula su raíz
-   al requerirse. En desarrollo los datos van a data/ y esto no toca nada.
-   Tampoco pisa a quien pide otra carpeta a propósito: un --user-data-dir
-   explícito o RX_DATA (los tests del paquete corren así, aislados de los
-   datos de verdad). */
+/* Quirotech se llamó Rx hasta la 0.1.12, y hasta la 0.2.3 sus datos siguieron
+   en %APPDATA%\Rx. Desde la 0.2.4 viven en %APPDATA%\Quirotech, y quien viene
+   de antes se muda acá, al arrancar: la carpeta entera se renombra, así la
+   base, la sal y la llave de «recordar en esta PC» (safeStorage la ata a
+   `Local State`) viajan juntas. Si no se puede mudar, esta vez se usa Rx: nunca
+   se abre vacía (src/carpeta.cjs). Va antes de cargar el store, que calcula su
+   raíz al requerirse, y antes de que Chromium escriba nada en userData. En
+   desarrollo los datos van a data/ y esto no toca nada. Tampoco pisa a quien
+   pide otra carpeta a propósito: un --user-data-dir explícito o RX_DATA (los
+   tests del paquete corren así, aislados de los datos de verdad). */
 if (app.isPackaged && !process.env.RX_DATA && !app.commandLine.hasSwitch('user-data-dir')) {
-  app.setPath('userData', path.join(app.getPath('appData'), 'Rx'));
+  app.setPath('userData', require('./src/carpeta.cjs').elegir(app.getPath('appData')).dir);
 }
 const ipc = require('./src/ipc.cjs');
 const store = require('./src/store.cjs');
