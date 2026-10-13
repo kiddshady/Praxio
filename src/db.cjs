@@ -225,7 +225,7 @@ function migrar(conn) {
   if (version === ESQUEMA) return;
   if (version > ESQUEMA) {
     throw new Error(
-      `Estos datos son de una versión más nueva de Rx (esquema ${version}, esta app entiende ${ESQUEMA}). ` +
+      `Estos datos son de una versión más nueva de Quirotech (esquema ${version}, esta app entiende ${ESQUEMA}). ` +
       'Actualizá la app antes de abrirlos.',
     );
   }
@@ -246,7 +246,7 @@ function migrar(conn) {
 /**
  * Abre (o crea) la base con la clave dada.
  * @param {Buffer} clave 32 bytes derivados por el llavero.
- * @throws si la clave es incorrecta o el archivo no es una base de Rx.
+ * @throws si la clave es incorrecta o el archivo no es una base de Quirotech (ni de Rx, su nombre anterior).
  */
 function abrir(clave) {
   if (db) cerrar();
@@ -755,7 +755,35 @@ function resumen() {
     ordenes: c.prepare('SELECT count(*) AS n FROM orden').get().n,
     evoluciones: c.prepare('SELECT count(*) AS n FROM evolucion').get().n,
     ultimasRecetas: recetas.list({ limite: 6 }),
+    recetasPorDia: recetasPorDia(c, 30),
+    /* Los atendidos de hoy son las evoluciones con fecha de hoy. La hora sale
+       de `creado`, que es cuando se anotó: es lo más parecido a un turno que
+       hay, porque la agenda quedó afuera a propósito. */
+    atendidosHoy: c.prepare(`
+      SELECT e.id, e.paciente_id, e.motivo, e.creado, p.apellido_nombre AS paciente
+      FROM evolucion e LEFT JOIN paciente p ON p.id = e.paciente_id
+      WHERE e.fecha = ? ORDER BY e.creado`).all(hoy),
   };
+}
+
+/** Cuántas recetas hubo cada uno de los últimos `dias` días, hoy incluido y
+    de más viejo a más nuevo. Los días sin recetas van en cero: la curva del
+    tablero los necesita para no unir dos días que no son vecinos. */
+function recetasPorDia(c, dias) {
+  const p = (n) => String(n).padStart(2, '0');
+  const iso = (d) => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  const desde = new Date();
+  desde.setDate(desde.getDate() - (dias - 1));
+  const cuenta = new Map(c.prepare(
+    'SELECT fecha, count(*) AS n FROM receta WHERE fecha >= ? GROUP BY fecha',
+  ).all(iso(desde)).map((r) => [r.fecha, r.n]));
+  const out = [];
+  for (let i = 0; i < dias; i++) {
+    const d = new Date(desde);
+    d.setDate(desde.getDate() + i);
+    out.push({ fecha: iso(d), n: cuenta.get(iso(d)) || 0 });
+  }
+  return out;
 }
 
 module.exports = {

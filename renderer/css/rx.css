@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Rx — lo propio de esta app
+   Quirotech — lo propio de esta app (prefijo `rx-`, de cuando se llamaba Rx)
 
-   Todo lo genérico ya está en `ox-`. Acá va solo lo que Onyx no tiene: la
+   Todo lo genérico ya está en `op-`. Acá va solo lo que Onyx no tiene: la
    cerradura, la vista previa de la hoja, y los dos o tres layouts de dominio.
    Prefijo `rx-`, para que se note de un vistazo qué es del framework y qué es
    de la app.
@@ -15,12 +15,13 @@
   z-index: 900;
   display: grid;
   place-items: center;
-  background: var(--ox-bg);
-  animation: rx-cerradura-entra var(--ox-t-4) var(--ox-ease) both;
+  /* La misma niebla y el mismo papel de electro que la app (quirotech.css). */
+  background: var(--op-sustrato), var(--op-bg);
+  animation: rx-cerradura-entra var(--op-t-4) var(--op-ease) both;
 }
 .rx-cerradura[hidden] { display: none; }
 .rx-cerradura[data-state="closing"] {
-  animation: rx-cerradura-sale var(--ox-t-3) var(--ox-ease-in) both;
+  animation: rx-cerradura-sale var(--op-t-3) var(--op-ease-in) both;
 }
 
 @keyframes rx-cerradura-entra { from { opacity: 0 } to { opacity: 1 } }
@@ -30,46 +31,44 @@
 }
 
 .rx-cerradura__caja {
-  width: min(400px, calc(100vw - var(--ox-8)));
+  width: min(400px, calc(100vw - var(--op-8)));
+  /* Una hoja de vidrio sobre la niebla: la cerradura es lo primero que se ve
+     y tiene que ser la app, no una pantalla de sistema. */
+  padding: var(--op-7) var(--op-7) var(--op-6);
+  border-radius: var(--op-r-xl);
+  background: var(--op-s2);
+  box-shadow: var(--op-sheet), var(--op-e4);
+  backdrop-filter: var(--op-glass);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--ox-3);
-  animation: rx-caja-sube var(--ox-t-4) var(--ox-ease) both .06s;
+  gap: var(--op-3);
+  animation: rx-caja-sube var(--op-t-4) var(--op-ease) both .06s;
 }
 @keyframes rx-caja-sube {
   from { opacity: 0; transform: translateY(10px) }
   to   { opacity: 1; transform: none }
 }
 
-/* `color` además de `stroke`: la cabeza de la serpiente es un punto macizo con
-   fill="currentColor", y sin esto tomaría el color de texto heredado, que no
-   es el mismo que el del trazo. */
+/* El ícono de la app, con la sombra larga de lo que flota. */
 .rx-cerradura__marca {
-  /* Un poco más grande y con más trazo que el splash: acá la marca está sola
-     en el medio de una pantalla vacía, y a 40/1.1 se veía enclenque. */
-  width: 46px; height: 46px;
-  stroke: var(--ox-text);
-  color: var(--ox-text);
-  fill: none;
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  margin-bottom: var(--ox-1);
+  width: 76px; height: 76px;
+  margin-bottom: var(--op-1);
+  filter: drop-shadow(0 12px 26px rgb(0 0 0 / .6));
 }
 
 .rx-cerradura__titulo {
-  font-size: var(--ox-fs-20);
-  font-weight: var(--ox-w-semi);
-  letter-spacing: var(--ox-track-tight);
-  color: var(--ox-text);
+  font-size: var(--op-fs-19);
+  font-weight: var(--op-w-semi);
+  letter-spacing: var(--op-track-tight);
+  color: var(--op-text);
 }
 .rx-cerradura__sub {
-  font-size: var(--ox-fs-13);
-  color: var(--ox-text-3);
+  font-size: var(--op-fs-13);
+  color: var(--op-text-3);
   text-align: center;
   line-height: 1.55;
-  margin-bottom: var(--ox-2);
+  margin-bottom: var(--op-2);
   max-width: 34ch;
 }
 
@@ -77,7 +76,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--ox-3);
+  gap: var(--op-3);
 }
 
 /* El aviso de "si la perdés, no hay forma de recuperar los datos". Va una sola
@@ -85,28 +84,28 @@
    en vez de ser una notita gris al pie. */
 .rx-aviso {
   display: flex;
-  gap: var(--ox-2);
-  padding: var(--ox-3);
-  border-radius: var(--ox-r-md);
-  background: var(--ox-s2);
-  box-shadow: var(--ox-hairline);
-  font-size: var(--ox-fs-12);
+  gap: var(--op-2);
+  padding: var(--op-3);
+  border-radius: var(--op-r-md);
+  background: var(--op-s2);
+  box-shadow: var(--op-hairline);
+  font-size: var(--op-fs-12);
   line-height: 1.55;
-  color: var(--ox-text-2);
+  color: var(--op-text-2);
   transition: var(--tr-surface);
 }
-.rx-aviso .ox-icon { flex: none; margin-top: 1px; color: var(--ox-text-3); }
-.rx-aviso strong { color: var(--ox-text); font-weight: var(--ox-w-semi); }
+.rx-aviso .op-icon { flex: none; margin-top: 1px; color: var(--op-text-3); }
+.rx-aviso strong { color: var(--op-text); font-weight: var(--op-w-semi); }
 
 /* El error de contraseña. Aparece y desaparece con transición, y no empuja el
    formulario: ocupa su lugar siempre. */
 .rx-cerradura__error {
   min-height: 18px;
-  font-size: var(--ox-fs-12);
-  color: var(--ox-danger);
+  font-size: var(--op-fs-12);
+  color: var(--op-danger);
   text-align: center;
   opacity: 0;
-  transition: opacity var(--ox-t-2) var(--ox-ease);
+  transition: opacity var(--op-t-2) var(--op-ease);
 }
 .rx-cerradura__error.is-visible { opacity: 1; }
 
@@ -114,9 +113,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ox-2);
-  font-size: var(--ox-fs-12);
-  color: var(--ox-text-3);
+  gap: var(--op-2);
+  font-size: var(--op-fs-12);
+  color: var(--op-text-3);
 }
 
 /* ── Vista previa de la hoja ─────────────────────────────────────────────── */
@@ -125,29 +124,29 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border-radius: var(--ox-r-lg);
-  background: var(--ox-sunken);
-  box-shadow: var(--ox-hairline);
+  border-radius: var(--op-r-lg);
+  background: var(--op-sunken);
+  box-shadow: var(--op-hairline);
   overflow: hidden;
 }
 
 .rx-previa__head {
   display: flex;
   align-items: center;
-  gap: var(--ox-2);
-  padding: var(--ox-2) var(--ox-3);
-  font-size: var(--ox-fs-11);
-  letter-spacing: var(--ox-track-caps);
+  gap: var(--op-2);
+  padding: var(--op-2) var(--op-3);
+  font-size: var(--op-fs-11);
+  letter-spacing: var(--op-track-caps);
   text-transform: uppercase;
-  color: var(--ox-text-3);
-  box-shadow: inset 0 -1px 0 var(--ox-line);
+  color: var(--op-text-3);
+  box-shadow: inset 0 -1px 0 var(--op-line);
 }
 
 /* Cuando el pedido no entra en la hoja, el rótulo del panel lo dice. No va en
    rojo: que un pedido largo ocupe dos hojas no es una falla, es un dato — y el
    rojo de esta app está reservado al fallo y a la advertencia clínica. Sube de
    la escalera de grises al texto primario, que ya alcanza para que se note. */
-.rx-previa__alerta { color: var(--ox-text); transition: var(--tr-color); }
+.rx-previa__alerta { color: var(--op-text); transition: var(--tr-color); }
 
 /* El papel corta contra el borde del panel arriba y abajo (el head y el propio
    redondeo), así que NO lleva esfumado: la línea ya es el límite. */
@@ -155,11 +154,11 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--ox-4);
+  padding: var(--op-4);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--ox-4);
+  gap: var(--op-4);
 }
 
 /* `zoom` y no `transform: scale()`: zoom reflowea de verdad, así que el
@@ -176,7 +175,7 @@
   flex: none;
   width: fit-content;
   box-shadow: 0 8px 28px rgb(0 0 0 / .45);
-  transition: zoom var(--ox-t-2) var(--ox-ease);
+  transition: zoom var(--op-t-2) var(--op-ease);
 }
 
 /* ── Layout de la receta ─────────────────────────────────────────────────── */
@@ -184,7 +183,7 @@
 .rx-receta {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-  gap: var(--ox-5);
+  gap: var(--op-5);
   min-height: 0;
   flex: 1;
 }
@@ -197,7 +196,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--ox-4);
+  gap: var(--op-4);
 }
 /* `min-height: 0` es lo que deja que la columna mida lo que mide la fila y
    no lo que miden las dos hojas. Sin él, el mínimo automático del ítem de
@@ -213,13 +212,13 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--ox-3);
-  padding: var(--ox-3);
-  border-radius: var(--ox-r-md);
-  background: var(--ox-s2);
-  box-shadow: var(--ox-hairline);
+  gap: var(--op-3);
+  padding: var(--op-3);
+  border-radius: var(--op-r-md);
+  background: var(--op-s2);
+  box-shadow: var(--op-hairline);
   transition: var(--tr-surface);
-  animation: rx-item-entra var(--ox-t-3) var(--ox-ease) both;
+  animation: rx-item-entra var(--op-t-3) var(--op-ease) both;
 }
 @keyframes rx-item-entra {
   from { opacity: 0; transform: translateY(-6px) }
@@ -228,13 +227,13 @@
 /* La salida de una fila la hace reconcile() (vistas/recetas.js y ordenes.js):
    sale desde donde estaba, fuera del flujo, y las de abajo viajan a su lugar. */
 
-.rx-item__campos { display: flex; flex-direction: column; gap: var(--ox-2); min-width: 0; }
+.rx-item__campos { display: flex; flex-direction: column; gap: var(--op-2); min-width: 0; }
 .rx-item__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--ox-2);
+  gap: var(--op-2);
 }
-.rx-item__acciones { display: flex; flex-direction: column; gap: var(--ox-1); }
+.rx-item__acciones { display: flex; flex-direction: column; gap: var(--op-1); }
 
 /* La variante de una sola línea, que es la del estudio: sus dos campos entran
    en un renglón, así que los botones se acuestan en vez de apilarse. Apilados,
@@ -248,10 +247,10 @@
    enciende: si entrara y saliera del flujo, empujaría el botón de al lado cada
    vez que se agrega o se saca un medicamento. */
 .rx-limite {
-  font-size: var(--ox-fs-11);
-  color: var(--ox-text-3);
+  font-size: var(--op-fs-11);
+  color: var(--op-text-3);
   opacity: 0;
-  transition: opacity var(--ox-t-2) var(--ox-ease);
+  transition: opacity var(--op-t-2) var(--op-ease);
 }
 .rx-limite.is-visible { opacity: 1; }
 
@@ -260,71 +259,171 @@
 .rx-ficha {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--ox-3);
+  gap: var(--op-3);
 }
 .rx-ficha--ancho { grid-template-columns: minmax(0, 1fr); }
 
 /* Alergias: es lo único de la ficha que tiene que saltar a la vista antes de
-   recetar, así que se sale de la escalera de grises. El rojo acá NO es un
-   fallo del sistema, es una advertencia clínica — que es el otro uso legítimo
-   del único color fuerte de la app. */
+   recetar, así que se sale de la escalera de grises. Va en ÁMBAR: en
+   Quirotech, como en Beacon, el rojo dice que algo falló, y una alergia no es
+   una falla del sistema sino una advertencia clínica. */
 .rx-alergias {
   display: flex;
   align-items: flex-start;
-  gap: var(--ox-2);
-  padding: var(--ox-2) var(--ox-3);
-  border-radius: var(--ox-r-md);
-  background: var(--ox-danger-wash);
-  box-shadow: inset 0 0 0 1px var(--ox-danger-ring);
-  color: var(--ox-text);
-  font-size: var(--ox-fs-13);
+  gap: var(--op-2);
+  padding: var(--op-2) var(--op-3);
+  border-radius: var(--op-r-md);
+  background: var(--qt-ambar-wash);
+  box-shadow: inset 0 0 0 1px var(--qt-ambar-ring);
+  color: var(--op-text);
+  font-size: var(--op-fs-13);
   transition: var(--tr-surface);
 }
-.rx-alergias .ox-icon { flex: none; margin-top: 2px; color: var(--ox-danger); }
+.rx-alergias .op-icon { flex: none; margin-top: 2px; color: var(--qt-ambar); }
 .rx-alergias__rotulo {
-  font-size: var(--ox-fs-11);
-  letter-spacing: var(--ox-track-caps);
+  font-size: var(--op-fs-11);
+  letter-spacing: var(--op-track-caps);
   text-transform: uppercase;
-  color: var(--ox-danger);
+  color: var(--qt-ambar);
   margin-bottom: 2px;
 }
 
 /* El campo de alergias cuando tiene algo cargado. Mismo lenguaje que el cartel
    de la receta, pero sobre el control que se edita: un solo lugar. */
-.rx-campo-alerta .ox-field__label {
-  color: var(--ox-danger);
-  font-size: var(--ox-fs-11);
-  letter-spacing: var(--ox-track-caps);
+.rx-campo-alerta .op-field__label {
+  color: var(--qt-ambar);
+  font-size: var(--op-fs-11);
+  letter-spacing: var(--op-track-caps);
   text-transform: uppercase;
 }
-.rx-campo-alerta .ox-textarea {
-  background: var(--ox-danger-wash);
-  box-shadow: inset 0 0 0 1px var(--ox-danger-ring);
+.rx-campo-alerta .op-textarea {
+  background: var(--qt-ambar-wash);
+  box-shadow: inset 0 0 0 1px var(--qt-ambar-ring);
 }
-.rx-campo-alerta .ox-textarea:focus {
-  box-shadow: inset 0 0 0 1px var(--ox-danger), 0 0 0 3px var(--ox-danger-wash);
+.rx-campo-alerta .op-textarea:focus {
+  box-shadow: inset 0 0 0 1px var(--qt-ambar), 0 0 0 3px var(--qt-ambar-wash);
 }
 
-/* ── Evoluciones ─────────────────────────────────────────────────────────── */
+/* ── Encabezado del paciente ─────────────────────────────────────────────────
+   El hexágono con las iniciales es la "foto" del paciente: un pozo con el
+   canto menta (la ley del énfasis), no un círculo de color. */
+.rx-pac {
+  display: flex;
+  align-items: center;
+  gap: var(--op-4);
+  padding: 20px var(--op-6) var(--op-4);
+}
+.rx-pac__avatar {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-weight: var(--op-w-semi);
+  font-size: 17px;
+  letter-spacing: -.02em;
+  color: var(--op-text);
+}
+.rx-pac__avatar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rx-pac__avatar path { fill: var(--op-deep); stroke: var(--op-rim-2); stroke-width: 1.2; }
+.rx-pac__avatar span { position: relative; }
+.rx-pac__txt { flex: 1; min-width: 0; }
+.rx-pac__nombre {
+  font-size: var(--op-fs-19);
+  font-weight: var(--op-w-semi);
+  letter-spacing: var(--op-track-tight);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+.rx-pac__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--op-4);
+  margin-top: 4px;
+  font-size: var(--op-fs-12);
+  color: var(--op-text-2);
+}
+.rx-pac__meta i { font-style: normal; color: var(--op-text-3); }
+.rx-pac__chips { display: flex; flex-wrap: wrap; gap: var(--op-2); margin-top: var(--op-2); }
+.rx-pac__acciones { align-self: flex-start; padding-top: 20px; }
 
+/* La alergia, resumida en un chip ámbar con su rombo. El texto entero está en
+   el tooltip y en la pestaña "Ficha clínica". */
+.rx-chip-alerta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 420px;
+  height: 24px;
+  padding: 0 var(--op-3);
+  border-radius: var(--op-r-pill);
+  font-size: var(--op-fs-12);
+  color: var(--qt-ambar);
+  background: var(--qt-ambar-wash);
+  box-shadow: inset 0 0 0 1px var(--qt-ambar-ring);
+}
+.rx-chip-alerta svg { width: 10px; height: 10px; flex: none; fill: currentColor; }
+
+/* ── Pestañas de la ficha ────────────────────────────────────────────────── */
+.rx-tabs { margin: 0 var(--op-6); }
+.rx-panes { padding-inline: var(--op-6); }
+.rx-pane.is-entrando { animation: rx-aflora var(--op-t-3) var(--op-ease) both; }
+@keyframes rx-aflora { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── Evoluciones: una línea de tiempo ────────────────────────────────────────
+   La fecha a la izquierda, un punto sobre la línea, la consulta en su hoja.
+   El punto de la más nueva se enciende: es la que se lee primero. */
+.rx-linea { position: relative; display: flex; flex-direction: column; gap: var(--op-2); }
+.rx-linea::before {
+  content: '';
+  position: absolute;
+  left: 102px;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: var(--op-line-2);
+}
 .rx-evolucion {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--ox-3);
-  padding: var(--ox-3) 0;
+  grid-template-columns: 88px 28px minmax(0, 1fr);
+  align-items: start;
 }
-.rx-evolucion + .rx-evolucion { box-shadow: inset 0 1px 0 var(--ox-line); }
-
 .rx-evolucion__fecha {
-  min-width: 88px;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--ox-fs-12);
-  color: var(--ox-text-3);
+  font-size: var(--op-fs-12);
+  color: var(--op-text-2);
+  text-align: right;
+  padding-top: 13px;
 }
-.rx-evolucion__cuerpo { min-width: 0; display: flex; flex-direction: column; gap: var(--ox-1); }
-.rx-evolucion__motivo { font-weight: var(--ox-w-medium); color: var(--ox-text); }
-.rx-evolucion__notas { color: var(--ox-text-2); white-space: pre-wrap; line-height: 1.6; }
-.rx-evolucion__signos { display: flex; flex-wrap: wrap; gap: var(--ox-1) var(--ox-3); }
+.rx-evolucion__punto { display: grid; justify-items: center; padding-top: 17px; }
+.rx-evolucion__punto i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--op-bg);
+  box-shadow: inset 0 0 0 1.5px var(--op-text-3);
+  position: relative;
+}
+.rx-evolucion:first-child .rx-evolucion__punto i {
+  background: rgb(var(--op-accent-rgb) / .25);
+  box-shadow: inset 0 0 0 1.5px var(--op-accent), 0 0 10px rgb(var(--op-accent-rgb) / .7);
+}
+.rx-evolucion__caja {
+  display: flex;
+  gap: var(--op-3);
+  align-items: flex-start;
+  padding: var(--op-3) var(--op-4);
+  border-radius: var(--op-r-lg);
+  background: var(--op-s2);
+  box-shadow: var(--op-sheet);
+}
+.rx-evolucion__cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--op-1); }
+.rx-evolucion__motivo { font-weight: var(--op-w-semi); color: var(--op-text); }
+.rx-evolucion__notas { color: var(--op-text-2); white-space: pre-wrap; line-height: 1.6; }
+.rx-evolucion__signos { display: flex; flex-wrap: wrap; gap: var(--op-1) var(--op-2); margin-top: var(--op-1); }
+
+/* La filiación del panel: la clave a la izquierda, el dato que se lee entero. */
+.rx-kv { row-gap: var(--op-2); }
 
 /* ── Detalles chicos ─────────────────────────────────────────────────────── */
 
@@ -332,7 +431,7 @@
 .rx-fila {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--ox-3);
+  gap: var(--op-3);
 }
 .rx-fila--dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
@@ -344,13 +443,76 @@
   border: 0;
   background: transparent;
   font: inherit;
-  color: var(--ox-text-3);
+  color: var(--op-text-3);
   cursor: default;
 }
-.rx-update:hover { color: var(--ox-text); }
-.rx-update .ox-icon { width: 12px; height: 12px; }
-.rx-update .ox-meter { width: 72px; }
+.rx-update:hover { color: var(--op-text); }
+.rx-update .op-icon { width: 12px; height: 12px; }
+.rx-update .op-meter { width: 72px; }
 .rx-update.is-lista,
-.rx-update.is-lista .ox-statusbar__value { color: var(--ox-accent); }
+.rx-update.is-lista .op-statusbar__value { color: var(--op-accent); }
 .rx-update.is-lista:hover,
-.rx-update.is-lista:hover .ox-statusbar__value { color: var(--ox-text); }
+.rx-update.is-lista:hover .op-statusbar__value { color: var(--op-text); }
+
+/* ── Tablero ─────────────────────────────────────────────────────────────── */
+
+.rx-eyebrow {
+  font-family: var(--op-mono);
+  font-size: var(--op-fs-10);
+  font-weight: var(--op-w-medium);
+  letter-spacing: var(--op-track-caps);
+  text-transform: uppercase;
+  color: var(--op-text-3);
+  margin-bottom: 4px;
+}
+
+/* Las cifras van en una sola tira, separadas por hilos: cinco cajas iguales
+   pesan más que lo que dicen. */
+.rx-cifras { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.rx-cifra { position: relative; padding: var(--op-4) var(--op-5) 14px; min-width: 0; }
+.rx-cifra + .rx-cifra::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--op-4);
+  bottom: var(--op-4);
+  width: 1px;
+  background: var(--op-line-2);
+}
+.rx-cifra__v { font-size: var(--op-fs-26); font-weight: var(--op-w-medium); letter-spacing: -.03em; line-height: 1.1; }
+.rx-cifra__r { margin-top: 4px; font-size: var(--op-fs-12); color: var(--op-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.rx-doble {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: var(--op-3);
+  margin: var(--op-3) 0 var(--op-5);
+}
+.rx-tarjeta__cab { display: flex; align-items: baseline; gap: var(--op-3); padding: 14px var(--op-4) 0; }
+.rx-tarjeta__tit { font-weight: var(--op-w-semi); font-size: var(--op-fs-13); }
+.rx-tarjeta__meta { margin-left: auto; font-size: var(--op-fs-11); color: var(--op-text-3); white-space: nowrap; }
+
+.rx-traza__lienzo { height: 168px; margin: var(--op-2) 6px 2px; }
+.rx-traza__lienzo canvas { display: block; width: 100%; height: 100%; }
+.rx-traza__ejes { display: flex; justify-content: space-between; padding: 0 var(--op-4) var(--op-3); font-size: var(--op-fs-11); color: var(--op-text-3); }
+
+.rx-hoy { display: flex; flex-direction: column; min-height: 0; }
+.rx-hoy__vacio { padding: var(--op-4); color: var(--op-text-3); font-size: var(--op-fs-12); }
+.rx-hoy__lista { display: flex; flex-direction: column; gap: 2px; padding: var(--op-2); max-height: 214px; overflow-y: auto; overflow-x: hidden; }
+.rx-turno {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: var(--op-3);
+  padding: var(--op-2);
+  border-radius: var(--op-r-md);
+  cursor: pointer;
+  transition: var(--tr-color);
+}
+.rx-turno:hover { background: var(--op-s2); }
+.rx-turno__h { font-size: var(--op-fs-12); color: var(--op-text-2); padding-top: 1px; }
+.rx-turno__n { font-weight: var(--op-w-medium); }
+.rx-turno__m { font-size: var(--op-fs-12); color: var(--op-text-3); }
+
+@media (max-width: 1100px) {
+  .rx-doble { grid-template-columns: minmax(0, 1fr); }
+}

@@ -88,9 +88,9 @@ app.whenReady().then(async () => {
     !!cajaCaja && cajaCaja.x >= 0 && cajaCaja.y >= 0 && cajaCaja.x + cajaCaja.w <= W,
     JSON.stringify(cajaCaja));
 
-  /* El checkbox de recordar es el `.ox-check` de Onyx con SU tilde: el `check`
+  /* El checkbox de recordar es el `.op-check` de Onyx con SU tilde: el `check`
      del banco, que controls.css achica a 11px y dibuja con stroke-dashoffset.
-     Un <svg> suelto sin `.ox-icon` salía grueso y aparecía de golpe. Se lo
+     Un <svg> suelto sin `.op-icon` salía grueso y aparecía de golpe. Se lo
      prende, se mide el tilde a mitad de camino y dibujado, y se lo apaga. */
   const tilde = await js(`(async () => {
     const b = document.getElementById('recordar');
@@ -102,7 +102,7 @@ app.whenReady().then(async () => {
     await new Promise((r) => setTimeout(r, 60));
     const medio = off();
     await new Promise((r) => setTimeout(r, 500));
-    const r = { esIcono: svg.classList.contains('ox-icon'), ancho: svg.getBoundingClientRect().width,
+    const r = { esIcono: svg.classList.contains('op-icon'), ancho: svg.getBoundingClientRect().width,
       antes, medio, despues: off(), marcado: b.getAttribute('aria-checked') };
     b.click();
     return r;
@@ -135,7 +135,7 @@ app.whenReady().then(async () => {
   /* ── 2. Shell ─────────────────────────────────────────────────────────── */
   console.log('\n2. Shell');
   ok('la titlebar y el rail están montados',
-    await js(`!!document.querySelector('.ox-titlebar') && !!document.querySelector('.ox-rail')`));
+    await js(`!!document.querySelector('.op-titlebar') && !!document.querySelector('.op-rail')`));
   ok('los <i data-icon> se reemplazaron por SVG',
     !(await js(`!!document.querySelector('i[data-icon]')`)));
   ok('la vista inicial pintó algo', (await js(`document.getElementById('view').children.length`)) > 0);
@@ -162,13 +162,13 @@ app.whenReady().then(async () => {
   /* ── 3. Recorrer las vistas ───────────────────────────────────────────── */
   console.log('\n3. Vistas');
   for (const vista of ['tablero', 'pacientes', 'recetas', 'ordenes', 'medicamentos', 'estudios', 'ajustes']) {
-    await click(`.ox-navitem[data-view="${vista}"]`);
+    await click(`.op-navitem[data-view="${vista}"]`);
     await sleep(600);
     const hijos = await js(`document.getElementById('view').children.length`);
-    const titulo = await js(`document.querySelector('.ox-viewhead')?.textContent?.trim().slice(0,40) || ''`);
+    const titulo = await js(`document.querySelector('.op-viewhead')?.textContent?.trim().slice(0,40) || ''`);
     ok(`"${vista}" monta y tiene encabezado`, hijos > 0 && titulo.length > 0, `hijos=${hijos} tit="${titulo}"`);
     ok(`"${vista}" ilumina su ítem del rail`,
-      await js(`document.querySelector('.ox-navitem[data-view="${vista}"]')?.classList.contains('is-active')`));
+      await js(`document.querySelector('.op-navitem[data-view="${vista}"]')?.classList.contains('is-active')`));
   }
   ok('Ajustes muestra el estado de actualización',
     await js(`document.getElementById('upd-estado')?.textContent.includes('app instalada')`));
@@ -177,18 +177,18 @@ app.whenReady().then(async () => {
 
   /* ── 4. Alta de un paciente por la UI real ────────────────────────────── */
   console.log('\n4. Paciente');
-  await click('.ox-navitem[data-view="pacientes"]');
+  await click('.op-navitem[data-view="pacientes"]');
   await sleep(500);
   await click('#p-nuevo');
   await sleep(700);
 
-  const cajaModal = await caja('.ox-modal');
+  const cajaModal = await caja('.op-modal');
   ok('el modal cae dentro de la ventana',
     !!cajaModal && cajaModal.y >= 0 && cajaModal.x >= 0
     && cajaModal.y + cajaModal.h <= H + 1 && cajaModal.x + cajaModal.w <= W + 1,
     JSON.stringify(cajaModal));
 
-  const guardar = () => js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+  const guardar = () => js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === 'Guardar')?.click()`);
 
   await escribir('#p-nombre', 'GÓMEZ, MARÍA ELENA');
@@ -212,7 +212,7 @@ app.whenReady().then(async () => {
   await escribir('#p-cuil', '27-28123456-4');
   await guardar();
   await sleep(900);
-  ok('el CUIL inválido no guarda', await js(`!!document.querySelector('.ox-modal')`));
+  ok('el CUIL inválido no guarda', await js(`!!document.querySelector('.op-modal')`));
   ok('y el formulario vuelve con lo que ya estaba escrito',
     (await js(`document.getElementById('p-nombre')?.value`)) === 'GÓMEZ, MARÍA ELENA'
     && (await js(`document.getElementById('p-dni')?.value`)) === '28123456');
@@ -222,7 +222,12 @@ app.whenReady().then(async () => {
   await sleep(1600);
 
   ok('quedó en la ficha del paciente nuevo',
-    await js(`document.querySelector('.ox-viewhead')?.textContent.includes('GÓMEZ')`));
+    await js(`document.querySelector('.rx-pac__nombre')?.textContent.includes('GÓMEZ')`));
+  ok('la ficha tiene sus cuatro pestañas',
+    (await js(`document.querySelectorAll('#f-tabs .op-tab').length`)) === 4);
+  ok('la ficha prende el panel derecho con la filiación',
+    await js(`document.querySelector('.op-app').classList.contains('con-panel')
+              && document.getElementById('panel').textContent.includes('28123456')`));
   ok('el rail contó el paciente',
     (await js(`document.getElementById('cuenta-pacientes')?.textContent`)) === '1');
 
@@ -233,7 +238,7 @@ app.whenReady().then(async () => {
   await sleep(1400);
   ok('la alergia se guardó sola y el campo quedó teñido',
     await js(`!!document.querySelector('#f-alergias')
-              && document.getElementById('f-alergias').closest('.ox-field').classList.contains('rx-campo-alerta')`));
+              && document.getElementById('f-alergias').closest('.op-field').classList.contains('rx-campo-alerta')`));
 
   /* La previa vive en una columna de grilla. Durante un tiempo esa columna
      crecía hasta el alto de las hojas y desbordaba la vista: el duplicado
@@ -248,8 +253,8 @@ app.whenReady().then(async () => {
   /* Y la hoja que se abre desde el historial va centrada en el modal: un
      bloque suelto ocupa todo el ancho y la dejaba pegada a la izquierda. */
   const hojaCentrada = () => js(`(() => {
-    const b = document.querySelector('.ox-modal__body').getBoundingClientRect();
-    const h = document.querySelector('.ox-modal .rx-hoja').getBoundingClientRect();
+    const b = document.querySelector('.op-modal__body').getBoundingClientRect();
+    const h = document.querySelector('.op-modal .rx-hoja').getBoundingClientRect();
     return { cuerpo: Math.round(b.x + b.width / 2), hoja: Math.round(h.x + h.width / 2) }; })()`);
 
   /* ── 5. Emitir una receta ─────────────────────────────────────────────── */
@@ -265,7 +270,7 @@ app.whenReady().then(async () => {
     return parseFloat(getComputedStyle(s).getPropertyValue('--seg-w')) || 0; })()`);
   ok('la cápsula del segmentado tiene ancho', anchoSeg > 20, `--seg-w=${anchoSeg}`);
   ok('y el texto de las opciones se lee',
-    await js(`document.querySelector('#r-plantilla .ox-segmented__opt')?.textContent.trim()`) === 'Clásica');
+    await js(`document.querySelector('#r-plantilla .op-segmented__opt')?.textContent.trim()`) === 'Clásica');
 
   ok('trajo al paciente de la ficha',
     await js(`document.getElementById('r-paciente-txt')?.textContent.includes('GÓMEZ')`));
@@ -318,8 +323,8 @@ app.whenReady().then(async () => {
   await click('#r-emitir');
   await sleep(900);
   ok('ofrece imprimir o guardar después de emitir',
-    await js(`document.querySelector('.ox-modal')?.textContent.includes('Receta emitida')`));
-  await js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Receta emitida')`));
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === 'Después')?.click()`);
   await sleep(1200);
 
@@ -333,19 +338,19 @@ app.whenReady().then(async () => {
   await click('[data-abrir]');
   await sleep(900);
   ok('la receta guardada se puede volver a ver',
-    await js(`document.querySelector('.ox-modal')?.textContent.includes('Receta del')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Receta del')`));
   ok('la hoja guardada muestra el medicamento',
-    await js(`document.querySelector('.ox-modal .rx-hoja')?.textContent.includes('Sertralina')`));
+    await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Sertralina')`));
   const centrada = await hojaCentrada();
   ok('la hoja guardada queda centrada en el modal',
     Math.abs(centrada.cuerpo - centrada.hoja) <= 2, JSON.stringify(centrada));
-  await js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === 'Cerrar')?.click()`);
   await sleep(500);
 
   /* ── 7. Emitir una orden de estudios ──────────────────────────────────── */
   console.log('\n7. Orden');
-  await click('.ox-navitem[data-view="pacientes"]');
+  await click('.op-navitem[data-view="pacientes"]');
   await sleep(700);
   await click('[data-ficha]');
   await sleep(900);
@@ -394,8 +399,8 @@ app.whenReady().then(async () => {
   await click('#o-emitir');
   await sleep(900);
   ok('ofrece imprimir o guardar después de emitir',
-    await js(`document.querySelector('.ox-modal')?.textContent.includes('Orden emitida')`));
-  await js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Orden emitida')`));
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === 'Después')?.click()`);
   await sleep(1200);
 
@@ -407,13 +412,13 @@ app.whenReady().then(async () => {
   await click('[data-abrir]');
   await sleep(900);
   ok('la orden guardada se puede volver a ver',
-    await js(`document.querySelector('.ox-modal')?.textContent.includes('Orden del')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Orden del')`));
   ok('la hoja guardada muestra el estudio',
-    await js(`document.querySelector('.ox-modal .rx-hoja')?.textContent.includes('Hemograma')`));
+    await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Hemograma')`));
   const centradaOrden = await hojaCentrada();
   ok('la hoja de la orden queda centrada en el modal',
     Math.abs(centradaOrden.cuerpo - centradaOrden.hoja) <= 2, JSON.stringify(centradaOrden));
-  await js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === 'Cerrar')?.click()`);
   await sleep(500);
 
@@ -423,9 +428,9 @@ app.whenReady().then(async () => {
      "¿existe?", así que se mira acá, con datos ya cargados: en la vuelta de las
      vistas del principio los contadores estaban en cero y el bug no aparecía. */
   for (const vista of ['pacientes', 'recetas', 'ordenes', 'medicamentos', 'estudios']) {
-    await click(`.ox-navitem[data-view="${vista}"]`);
+    await click(`.op-navitem[data-view="${vista}"]`);
     await sleep(500);
-    const cabeza = (await js(`document.querySelector('.ox-viewhead')?.textContent || ''`))
+    const cabeza = (await js(`document.querySelector('.op-viewhead')?.textContent || ''`))
       .replace(/\s+/g, ' ').trim();
     ok(`"${vista}" no repite el número en el subtítulo`,
       !/(\b\d+) \1\b/.test(cabeza), cabeza.slice(0, 70));
@@ -434,7 +439,7 @@ app.whenReady().then(async () => {
   /* Un pedido largo no entra en la A5 y sigue en una segunda página. La previa
      no lo muestra sola —el papel simplemente se dibuja más alto— así que el
      rótulo lo tiene que decir. Es lo único de esta vista que no se ve mirando. */
-  await click('.ox-navitem[data-view="pacientes"]');
+  await click('.op-navitem[data-view="pacientes"]');
   await sleep(700);
   await click('[data-ficha]');
   await sleep(900);
@@ -461,7 +466,7 @@ app.whenReady().then(async () => {
      último escribía en el estudio equivocado. */
   // Arriba de todo: agregar quince filas dejó el formulario scrolleado al
   // final, y lo que viaja fuera de la vista reconcile() no lo anima.
-  const scrollAntes = await js(`(() => { const s = document.getElementById('o-items').closest('.ox-scroll');
+  const scrollAntes = await js(`(() => { const s = document.getElementById('o-items').closest('.op-scroll');
     const y = s?.scrollTop; s?.scrollTo(0, 0); return y; })()`);
   await sleep(200);
   const viajaba = await js(`(() => {
@@ -492,7 +497,7 @@ app.whenReady().then(async () => {
      orden, para que quede algo que borrar de a una y algo que borrar en
      bloque. Salen de la ficha, como las primeras. */
   const emitirDesdeFicha = async (boton, emitir, valor) => {
-    await click('.ox-navitem[data-view="pacientes"]');
+    await click('.op-navitem[data-view="pacientes"]');
     await sleep(700);
     await click('[data-ficha]');
     await sleep(900);
@@ -505,9 +510,9 @@ app.whenReady().then(async () => {
     await sleep(1200);
   };
   const cuantos = () => js(`document.querySelectorAll('[data-abrir]').length`);
-  const apretar = (etiqueta) => js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+  const apretar = (etiqueta) => js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === ${JSON.stringify(etiqueta)})?.click()`);
-  const apagado = (etiqueta) => js(`[...document.querySelectorAll('.ox-modal__foot .ox-btn')]
+  const apagado = (etiqueta) => js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
              .find(b => b.textContent.trim() === ${JSON.stringify(etiqueta)})?.disabled`);
 
   /* Recetas. */
@@ -520,7 +525,7 @@ app.whenReady().then(async () => {
   await click('[data-borrar]');
   await sleep(700);
   ok('el tacho pide confirmación',
-    await js(`document.querySelector('.ox-modal')?.textContent.includes('Eliminar la receta')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Eliminar la receta')`));
   await apretar('Cancelar');
   await sleep(600);
   ok('cancelar no borra nada', (await cuantos()) === 2);
@@ -536,24 +541,24 @@ app.whenReady().then(async () => {
   ok('el botón de borrar historial está', await js(`!!document.getElementById('h-vaciar')`));
   await click('#h-vaciar');
   await sleep(700);
-  const cajaVaciar = await caja('.ox-modal');
+  const cajaVaciar = await caja('.op-modal');
   ok('el modal de borrar historial cae dentro de la ventana',
     !!cajaVaciar && cajaVaciar.y >= 0 && cajaVaciar.x >= 0
     && cajaVaciar.y + cajaVaciar.h <= H + 1 && cajaVaciar.x + cajaVaciar.w <= W + 1,
     JSON.stringify(cajaVaciar));
   ok('el botón de confirmar arranca apagado', (await apagado('Borrar historial')) === true);
   ok('el foco está en el campo de la palabra',
-    await js(`document.activeElement === document.querySelector('.ox-modal input')`));
-  await escribir('.ox-modal input', 'borra');
+    await js(`document.activeElement === document.querySelector('.op-modal input')`));
+  await escribir('.op-modal input', 'borra');
   await sleep(200);
   ok('con la palabra a medias sigue apagado', (await apagado('Borrar historial')) === true);
-  await escribir('.ox-modal input', 'BORRAR');
+  await escribir('.op-modal input', 'BORRAR');
   await sleep(200);
   ok('con la palabra completa se enciende', (await apagado('Borrar historial')) === false);
   await apretar('Borrar historial');
   await sleep(1400);
   ok('el historial quedó vacío',
-    (await cuantos()) === 0 && await js(`!!document.querySelector('.ox-empty')`));
+    (await cuantos()) === 0 && await js(`!!document.querySelector('.op-empty')`));
   ok('y el botón de borrar historial se fue con él', !(await js(`!!document.getElementById('h-vaciar')`)));
   ok('la statusbar dejó de contar recetas de hoy',
     (await js(`document.getElementById('stat-hoy')?.textContent`)) === '0');
@@ -566,25 +571,33 @@ app.whenReady().then(async () => {
   await click('[data-borrar]');
   await sleep(700);
   ok('el tacho de la orden pide confirmación',
-    await js(`document.querySelector('.ox-modal')?.textContent.includes('Eliminar la orden')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Eliminar la orden')`));
   await apretar('Eliminar');
   await sleep(1400);
   ok('confirmar borra esa orden y deja la otra', (await cuantos()) === 1);
   await click('#ho-vaciar');
   await sleep(700);
   ok('el botón de confirmar de las órdenes arranca apagado', (await apagado('Borrar historial')) === true);
-  await escribir('.ox-modal input', 'borrar');
+  await escribir('.op-modal input', 'borrar');
   await sleep(200);
   ok('y se enciende con la palabra', (await apagado('Borrar historial')) === false);
   await apretar('Borrar historial');
   await sleep(1400);
   ok('el historial de órdenes quedó vacío',
-    (await cuantos()) === 0 && await js(`!!document.querySelector('.ox-empty')`));
+    (await cuantos()) === 0 && await js(`!!document.querySelector('.op-empty')`));
   ok('el rail ya no cuenta órdenes',
     (await js(`document.getElementById('cuenta-ordenes')?.textContent`)) === '0');
 
   /* ── 8. Bloqueo ───────────────────────────────────────────────────────── */
   console.log('\n8. Bloqueo');
+  /* Se bloquea desde la ficha, que es donde hay más dato de paciente en
+     pantalla: la vista Y el panel de la filiación. */
+  await click('.op-navitem[data-view="pacientes"]');
+  await sleep(900);
+  await js(`[...document.querySelectorAll('[data-ficha]')].find((e) => e.textContent.includes('GÓMEZ'))?.click()`);
+  await sleep(1200);
+  ok('la ficha volvió a llenar el panel',
+    await js(`document.getElementById('panel').textContent.includes('Filiación')`));
   await click('#btn-bloquear');
   await sleep(1200);
   ok('vuelve la cerradura', await js(`!document.getElementById('cerradura').hidden`));
@@ -593,6 +606,9 @@ app.whenReady().then(async () => {
     (await js(`document.getElementById('view').children.length`)) === 0);
   ok('no quedó ningún dato de paciente en el DOM',
     !(await js(`document.body.textContent.includes('GÓMEZ')`)));
+  ok('el panel de la filiación quedó vacío y apagado',
+    (await js(`document.getElementById('panel').children.length`)) === 0
+    && !(await js(`document.querySelector('.op-app').classList.contains('con-panel')`)));
 
   await escribir('#clave', 'contrasena-equivocada');
   await click('#enviar');

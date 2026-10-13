@@ -1,13 +1,19 @@
-# Rx
+# Quirotech
 
 Historia clínica, recetas y órdenes de estudios para consultorio. App de
 escritorio, un solo profesional, datos **cifrados en disco**, y lo que sale
 impreso se firma **a mano** sobre el papel: no hay firma electrónica ni nada
 que dependa de un servicio de nadie.
 
-Construida sobre [Onyx](../../..\tools\Onyx). Todo lo que dice el README de Onyx
-sobre el shell, los tokens y el anti-flash vale acá; esto documenta lo que Rx
-agrega encima.
+Se llamó **Rx** hasta la 0.1.12. El nombre viene de Quirón, el centauro que le
+enseñó medicina a Asclepio; el ícono es la vara de este último. Por dentro
+muchas cosas siguen diciendo `rx` (el prefijo de las clases propias, el puente
+`window.rx`, la carpeta de datos) y está bien que así sea: ver «Los datos
+siguen en %APPDATA%\Rx», más abajo.
+
+Construida sobre [Opal](../Opal), la plantilla de vidrio (hasta la 0.1.12 fue
+Onyx). Todo lo que dice el README de Opal sobre el shell, los tokens, las hojas
+y el anti-flash vale acá; esto documenta lo que Quirotech agrega encima.
 
 ```
 npm run dev            # con la consola del renderer saliendo por la terminal
@@ -15,7 +21,7 @@ npm test               # tokens, almacenamiento y formato (node pelado)
 npm run test:datos     # la base cifrada de punta a punta (necesita Electron)
 npm run humo           # monta la app, la desbloquea y la recorre entera
 
-npm run icon           # regenera build/icon.png desde la marca
+npm run icon           # regenera el ícono en todos sus tamaños (build/icono.mjs)
 npm run build          # instalador NSIS en dist/
 npm run test:paquete   # verifica el build: el .exe de verdad, no el fuente
 ```
@@ -269,7 +275,7 @@ muestra y saca capturas para mirar cómo quedó.
 ## Empaquetar
 
 ```
-npm run build          # → dist/Rx-Setup-0.1.2.exe
+npm run build          # → dist/Quirotech-Setup-<versión>.exe
 npm run test:paquete   # y verificarlo, que no es opcional
 ```
 
@@ -304,10 +310,22 @@ Los datos de la app instalada van a `%APPDATA%\Rx`, no al lado del ejecutable:
 esa carpeta es de solo lectura y además una actualización la reemplaza entera.
 `RX_DATA` manda sobre todo, y sirve para correr una copia contra datos falsos.
 
+### Los datos siguen en %APPDATA%\Rx
+
+Electron deriva `userData` del nombre de la app, así que con el nombre nuevo
+iría a `%APPDATA%\Quirotech`. `main.cjs` lo fija en `%APPDATA%\Rx` antes de
+cargar nada: ahí están la base cifrada, la sal, y la llave de «recordar en esta
+PC» (safeStorage la guarda en `Local State`). Sin eso, quien actualiza desde Rx
+abriría la app vacía y sin su contraseña recordada. Por lo mismo el `appId`
+sigue siendo `com.kiddshady.rx`: es lo que hace que el instalador reemplace a
+Rx en vez de instalarse al lado.
+
 ### Actualizaciones
 
 La aplicación instalada consulta al arrancar la última release estable de
-[`kiddshady/Rx`](https://github.com/kiddshady/Rx). Si encuentra una versión
+[`kiddshady/Quirotech`](https://github.com/kiddshady/Quirotech). El repo se
+llamó `Rx`; GitHub redirige el nombre viejo, y por eso una Rx instalada
+encuentra la primera Quirotech. Si encuentra una versión
 nueva, descarga el instalador en segundo plano y avisa en la barra de estado.
 Nunca reinicia sola: se aplica al tocar **Reiniciar y actualizar** o al cerrar
 la app después de que terminó la descarga.
@@ -328,31 +346,50 @@ que `latest.yml` coincide con la versión y que existe el `.blockmap`.
 
 ## La marca
 
-El bastón de Asclepio, dibujado sobre la misma grilla de 16 que el resto de los
-íconos. El asta se corta donde la serpiente pasa por delante: ese hueco es lo
-único que la hace parecer enroscada y no apoyada encima.
+La vara de Asclepio con la serpiente enroscada, sobre la baldosa a sangre. El
+dibujo vive en **un solo archivo**, `build/icono.mjs`, y la serpiente es una
+hélice de verdad: cada tramo sabe si pasa por delante o por detrás del bastón
+(`z = cos θ`), así que el orden de pintado y la sombra de las vueltas de atrás
+salen solos. Tiene dos versiones:
 
-Está en **cuatro archivos** que tienen que coincidir:
+- **la grande**, con dos vueltas y cuarto, escamas, brillo, grano y la retícula
+  de papel de electro de fondo;
+- **la chica**, con vuelta y cuarto y trazos gruesos, para 32 px y menos: a ese
+  tamaño la grande es una mancha.
 
-| Dónde | Archivo |
+`npm run icon` (build/make-icon.cjs) las rasteriza con el Chromium de Electron,
+cada tamaño dibujado a su medida, a todo lo que muestra la marca:
+
+| Archivo | Para |
 |---|---|
-| Splash de arranque | `renderer/index.html` (`#boot-splash`) |
-| Titlebar | `renderer/index.html` (`.ox-brand__mark`) |
-| Cerradura | `renderer/js/desbloqueo.js` (`MARCA`) |
-| Ícono de Windows | `build/make-icon.cjs` → `npm run icon` |
+| `build/icon.ico` | Windows: 16/20/24/32 la chica · 40 a 256 la grande |
+| `build/icon.png` | La base de electron-builder (1024) |
+| `renderer/img/marca.png` | El splash y la cerradura |
+| `renderer/img/marca-chica.png` (y `@2x`) | La titlebar |
 
-`npm test` compara los cuatro trazo por trazo y falla si uno se corrió medio
-punto. Sin eso, el arranque salta de un dibujo a otro entre el splash y la
-titlebar, o el ícono queda con la marca vieja — y no se nota hasta que ya está
-empaquetada.
+`npm test` falla si alguno de esos archivos es más viejo que `icono.mjs`: así
+no se puede cambiar el dibujo y olvidarse de regenerar.
 
-> **La cabeza de la serpiente es un punto macizo** (`fill="currentColor"`), así
-> que cada contenedor tiene que declarar `color` además de `stroke`. Si no,
-> hereda el color de texto del padre y puede quedar invisible sobre el fondo.
-> El test también vigila eso.
+## La piel
 
-Se probaron el bastón, la hoja de receta y la cruz. La decisión salió de mirar
-las tres a **tamaño real ampliado por vecino más cercano** (`npx electron
-build/logos.cjs`): en grande las tres se ven bien, y a 16 px la primera versión
-del bastón —con tres vueltas— se leía como un símbolo de centavos. La que quedó
-tiene una sola vuelta y el asta entera.
+La física es la de Opal: una sola superficie opaca, hojas de alfa de blanco,
+el vidrio solo donde puede muestrear y lo primario tallado (obsidiana con el
+canto encendido), nunca relleno de acento. Lo propio de Quirotech está en
+`renderer/css/quirotech.css`:
+
+- **El sustrato es papel de electro.** La grilla de 1 mm y la de 5 mm, en menta
+  apenas, debajo de la niebla. En las hojas se lee como textura; en el aire
+  (titlebar, márgenes) como papel.
+- **Las perillas:** acento menta (`94 234 212`), matiz 195 con tint 1,5, blur
+  20 px. La letra es **Geist** y los datos van en **Geist Mono** (OFL, en
+  `renderer/fonts/`).
+- **Tres colores con significado**, como en Beacon: menta es un canto, una
+  línea o un punto; **ámbar pide atención** (las alergias); rojo dice que algo
+  falló. Rx pintaba las alergias de rojo; desde Quirotech son ámbar.
+
+El tablero tiene la curva de recetas de los últimos 30 días (con un barrido
+tipo monitor que respeta el movimiento reducido) y «Atendidos hoy», que son las
+evoluciones con fecha de hoy y la hora en que se anotaron. La ficha tiene
+pestañas y la filiación en el panel derecho del shell, que se vacía al salir de
+la ficha y al bloquear: un dato de paciente no queda en el DOM de una pantalla
+que no lo muestra (el humo lo verifica).

@@ -11,38 +11,38 @@ const rx = window.rx;
 
 function formulario(m = {}) {
   const caja = document.createElement('div');
-  caja.className = 'ox-col';
-  caja.style.gap = 'var(--ox-3)';
+  caja.className = 'op-col';
+  caja.style.gap = 'var(--op-3)';
   caja.innerHTML = `
-    <div class="ox-field">
-      <label class="ox-field__label" for="m-nombre">Nombre y presentación</label>
-      <input class="ox-input" id="m-nombre" spellcheck="false"
+    <div class="op-field">
+      <label class="op-field__label" for="m-nombre">Nombre y presentación</label>
+      <input class="op-input" id="m-nombre" spellcheck="false"
              placeholder="Sertralina 50 mg" value="${esc(m.nombre || '')}">
     </div>
-    <div class="rx-fila--dos" style="display:grid;gap:var(--ox-3)">
-      <div class="ox-field">
-        <label class="ox-field__label" for="m-marca">Marca sugerida</label>
-        <input class="ox-input" id="m-marca" spellcheck="false" value="${esc(m.marca || '')}">
+    <div class="rx-fila--dos" style="display:grid;gap:var(--op-3)">
+      <div class="op-field">
+        <label class="op-field__label" for="m-marca">Marca sugerida</label>
+        <input class="op-input" id="m-marca" spellcheck="false" value="${esc(m.marca || '')}">
       </div>
-      <div class="ox-field">
-        <label class="ox-field__label" for="m-dosis">Dosis</label>
-        <input class="ox-input" id="m-dosis" spellcheck="false"
+      <div class="op-field">
+        <label class="op-field__label" for="m-dosis">Dosis</label>
+        <input class="op-input" id="m-dosis" spellcheck="false"
                placeholder="1 comp. cada 12 h" value="${esc(m.dosis || '')}">
       </div>
     </div>
-    <div class="ox-field">
-      <label class="ox-field__label" for="m-diag">Diagnóstico habitual</label>
-      <input class="ox-input" id="m-diag" spellcheck="false"
+    <div class="op-field">
+      <label class="op-field__label" for="m-diag">Diagnóstico habitual</label>
+      <input class="op-input" id="m-diag" spellcheck="false"
              placeholder="F31 — Trastorno bipolar" value="${esc(m.diagnostico || '')}">
     </div>
-    <div class="ox-field">
-      <label class="ox-field__label" for="m-ind">Indicaciones</label>
-      <input class="ox-input" id="m-ind" spellcheck="false"
+    <div class="op-field">
+      <label class="op-field__label" for="m-ind">Indicaciones</label>
+      <input class="op-input" id="m-ind" spellcheck="false"
              placeholder="2 comprimidos por día" value="${esc(m.indicaciones || '')}">
     </div>
-    <div class="ox-field">
-      <label class="ox-field__label" for="m-env">Envases por defecto</label>
-      <input class="ox-input ox-input--mono" id="m-env" type="number" min="1"
+    <div class="op-field">
+      <label class="op-field__label" for="m-env">Envases por defecto</label>
+      <input class="op-input op-input--mono" id="m-env" type="number" min="1"
              style="max-width:110px" value="${esc(m.envases ?? 1)}">
     </div>`;
   return caja;
@@ -83,13 +83,13 @@ export async function vistaMedicamentos(busqueda = '') {
     sub: lista.length
       ? `${plural(lista.length, 'medicamento')} en el catálogo`
       : 'Los que uses seguido, para no volver a tipearlos',
-    actions: `<button class="ox-btn ox-btn--primary ox-flashable" id="m-nuevo">
+    actions: `<button class="op-btn op-btn--primary op-flashable" id="m-nuevo">
                 <i data-icon="plus"></i> Nuevo</button>`,
   }) + `
-    <div class="ox-scroll ox-grow ox-scroll--line-bottom">
-      <div class="ox-inputwrap rx-buscador" style="margin-bottom:var(--ox-4)">
+    <div class="op-scroll op-grow op-scroll--line-bottom">
+      <div class="op-inputwrap rx-buscador" style="margin-bottom:var(--op-4)">
         <i data-icon="search"></i>
-        <input class="ox-input" id="m-buscar" placeholder="Buscar…" spellcheck="false"
+        <input class="op-input" id="m-buscar" placeholder="Buscar…" spellcheck="false"
                value="${esc(busqueda)}">
       </div>
       ${lista.length === 0
@@ -98,24 +98,24 @@ export async function vistaMedicamentos(busqueda = '') {
         title: busqueda ? 'Nada coincide con esa búsqueda' : 'El catálogo está vacío',
         text: busqueda ? '' : 'Cargá los que recetes seguido y aparecerán acá arriba.',
       })
-      : `<div class="ox-list">${lista.map((m) => `
-          <div class="ox-listitem">
-            <div class="ox-iconcell"><i data-icon="pill"></i></div>
-            <div class="ox-listitem__main">
-              <div class="ox-listitem__title">${esc(m.nombre)}</div>
-              <div class="ox-listitem__sub ox-truncate">${[
+      : `<div class="op-list">${lista.map((m) => `
+          <div class="op-listitem">
+            <div class="op-iconcell"><i data-icon="pill"></i></div>
+            <div class="op-listitem__main">
+              <div class="op-listitem__title">${esc(m.nombre)}</div>
+              <div class="op-listitem__sub op-truncate">${[
         m.marca && `Marca: ${m.marca}`,
         m.dosis,
         m.indicaciones,
       ].filter(Boolean).map(esc).join(' · ') || '—'}</div>
             </div>
-            <div class="ox-listitem__aside">
-              ${m.usos > 0 ? `<span class="ox-chip ox-chip--mono" data-tip="Veces que lo recetaste">${m.usos}</span>` : ''}
+            <div class="op-listitem__aside">
+              ${m.usos > 0 ? `<span class="op-chip op-chip--mono" data-tip="Veces que lo recetaste">${m.usos}</span>` : ''}
             </div>
-            <div class="ox-rowactions">
-              <button class="ox-iconbtn ox-iconbtn--sm" data-editar="${esc(m.id)}"
+            <div class="op-rowactions">
+              <button class="op-iconbtn op-iconbtn--sm" data-editar="${esc(m.id)}"
                       data-tip="Editar"><i data-icon="edit"></i></button>
-              <button class="ox-iconbtn ox-iconbtn--sm" data-borrar="${esc(m.id)}"
+              <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(m.id)}"
                       data-tip="Eliminar"><i data-icon="trash"></i></button>
             </div>
           </div>`).join('')}</div>`}

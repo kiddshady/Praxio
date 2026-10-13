@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ONYX — proceso principal
+   Quirotech — proceso principal (sobre el de Onyx)
    Acá pasa lo único de una app Electron que no se puede resolver con CSS: que
    la ventana aparezca SIN un solo frame blanco.
 
@@ -33,17 +33,31 @@
 
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
+
+/* Quirotech se llamó Rx hasta la 0.1.12, y sus datos se quedan donde estaban.
+   La base cifrada, la sal y la llave de «recordar en esta PC» (safeStorage la
+   ata a `Local State`) viven en %APPDATA%\Rx, y Electron deriva userData del
+   nombre de la app: sin esto, quien actualiza abriría Quirotech vacía y sin
+   su contraseña recordada. Va antes de cargar el store, que calcula su raíz
+   al requerirse. En desarrollo los datos van a data/ y esto no toca nada.
+   Tampoco pisa a quien pide otra carpeta a propósito: un --user-data-dir
+   explícito o RX_DATA (los tests del paquete corren así, aislados de los
+   datos de verdad). */
+if (app.isPackaged && !process.env.RX_DATA && !app.commandLine.hasSwitch('user-data-dir')) {
+  app.setPath('userData', path.join(app.getPath('appData'), 'Rx'));
+}
 const ipc = require('./src/ipc.cjs');
 const store = require('./src/store.cjs');
 const db = require('./src/db.cjs');
 const actualizador = require('./src/actualizador.cjs');
+const { keepAlive } = require('./src/recover.cjs');
 
-/* Color base de arranque. Tiene que coincidir con --ox-bg de tokens.css.
-   Como --ox-bg es oklch y Electron solo entiende hex, el renderer se lo vuelve
+/* Color base de arranque. Tiene que coincidir con --op-bg de tokens.css.
+   Como --op-bg es oklch y Electron solo entiende hex, el renderer se lo vuelve
    a mandar ya resuelto apenas carga (win.setBackground en app.js): si cambiás
    el matiz o la temperatura, no hace falta tocar este valor a mano. Este hex
    solo cubre los primeros milisegundos, antes de que exista el renderer. */
-const BG = '#0a0b0d';
+const BG = '#070b0b';
 
 const DEFAULT_W = 1280;
 const DEFAULT_H = 820;
@@ -139,6 +153,9 @@ function createWindow(state) {
 
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+  // Si se cae el proceso de la interfaz, la ventana se recarga sola (recover.cjs).
+  keepAlive(win);
+
   win.once('ready-to-show', () => {
     win.show();
     setTimeout(() => {
@@ -189,7 +206,7 @@ ipcMain.on('win:toggle-maximize', () => {
 ipcMain.on('win:close', () => win && win.close());
 ipcMain.handle('win:is-maximized', () => (win ? win.isMaximized() : false));
 
-// El renderer manda su --ox-bg ya resuelto a hex. Es lo que hace que el frame
+// El renderer manda su --op-bg ya resuelto a hex. Es lo que hace que el frame
 // fantasma del restore siga camuflado aunque cambies el matiz en tokens.css.
 ipcMain.on('win:set-bg', (_e, hex) => {
   if (win && !win.isDestroyed() && /^#[0-9a-f]{6}$/i.test(String(hex))) {

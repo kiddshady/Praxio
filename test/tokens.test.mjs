@@ -4,7 +4,7 @@
    main.cjs tiene que llevar un `backgroundColor` en hex porque Electron no
    entiende oklch, pero el color real vive en tokens.css. Son dos lugares con
    el mismo dato, y eso siempre se desincroniza. Este test lo hace imposible:
-   convierte --ox-bg a sRGB con la misma matemática que el navegador y lo
+   convierte --op-bg a sRGB con la misma matemática que el navegador y lo
    compara contra el hex de main.cjs.
 
    Si falla, el síntoma en producción sería un destello del color viejo al
@@ -25,21 +25,26 @@ const ok = (n, c, x = '') => { if (c) { pass++; console.log(`  ok   ${n}`); } el
 console.log('\n1. Los tokens se pueden leer');
 const css = fs.readFileSync(path.join(ROOT, 'renderer', 'css', 'tokens.css'), 'utf8');
 
-const hue = Number(css.match(/--ox-hue:\s*([\d.]+)/)?.[1]);
-const tint = Number(css.match(/--ox-tint:\s*([\d.]+)/)?.[1]);
-ok('--ox-hue está declarado', Number.isFinite(hue), String(hue));
-ok('--ox-tint está declarado', Number.isFinite(tint), String(tint));
+const hue = Number(css.match(/--op-hue:\s*([\d.]+)/)?.[1]);
+const tint = Number(css.match(/--op-tint:\s*([\d.]+)/)?.[1]);
+ok('--op-hue está declarado', Number.isFinite(hue), String(hue));
+ok('--op-tint está declarado', Number.isFinite(tint), String(tint));
 
-const bgDecl = css.match(/--ox-bg:\s*oklch\(([\d.]+)%\s*calc\(([\d.]+)\s*\*\s*var\(--ox-tint\)\)\s*var\(--ox-hue\)\)/);
-ok('--ox-bg es oklch derivado de las perillas', !!bgDecl, bgDecl ? '' : 'no matcheó el patrón');
+const blur = Number(css.match(/--op-blur:\s*([\d.]+)px/)?.[1]);
+const fog = Number(css.match(/--op-fog:\s*([\d.]+)/)?.[1]);
+ok('--op-blur está declarado en px', Number.isFinite(blur), String(blur));
+ok('--op-fog está declarado', Number.isFinite(fog), String(fog));
+
+const bgDecl = css.match(/--op-bg:\s*oklch\(([\d.]+)%\s*calc\(([\d.]+)\s*\*\s*var\(--op-tint\)\)\s*var\(--op-hue\)\)/);
+ok('--op-bg es oklch derivado de las perillas', !!bgDecl, bgDecl ? '' : 'no matcheó el patrón');
 
 console.log('\n2. La familia monoespaciada');
-const monoSel = css.match(/--ox-mono:\s*([^;]+)/)?.[1]?.trim();
-ok('--ox-mono apunta a un token, no a una familia suelta',
-  /^var\(--ox-mono-[a-z0-9-]+\)$/.test(monoSel || ''), String(monoSel));
+const monoSel = css.match(/--op-mono:\s*([^;]+)/)?.[1]?.trim();
+ok('--op-mono apunta a un token, no a una familia suelta',
+  /^var\(--op-mono-[a-z0-9-]+\)$/.test(monoSel || ''), String(monoSel));
 
-const declaradas = [...css.matchAll(/--ox-mono-([a-z0-9-]+):/g)].map((m) => m[1]);
-const elegida = monoSel?.match(/--ox-mono-([a-z0-9-]+)/)?.[1];
+const declaradas = [...css.matchAll(/--op-mono-([a-z0-9-]+):/g)].map((m) => m[1]);
+const elegida = monoSel?.match(/--op-mono-([a-z0-9-]+)/)?.[1];
 ok(`la elegida ("${elegida}") está declarada`, declaradas.includes(elegida), declaradas.join(', '));
 ok('hay más de una opción', declaradas.length >= 2, declaradas.join(', '));
 
@@ -58,14 +63,14 @@ ok('declara los pesos 400 y 500', pesos.includes('400') && pesos.includes('500')
 ok('la licencia viaja con la fuente (OFL lo exige)',
   fs.existsSync(path.join(ROOT, 'renderer', 'fonts', 'Roboto-Mono-LICENSE.txt')));
 
-console.log('\n3. El hex de main.cjs coincide con --ox-bg');
+console.log('\n3. El hex de main.cjs coincide con --op-bg');
 const main = fs.readFileSync(path.join(ROOT, 'main.cjs'), 'utf8');
 const bgHex = main.match(/const BG\s*=\s*'(#[0-9a-f]{6})'/i)?.[1]?.toLowerCase();
 ok('main.cjs declara BG', !!bgHex, String(bgHex));
 
 if (bgDecl && bgHex) {
   const esperado = oklchToHex(Number(bgDecl[1]) / 100, Number(bgDecl[2]) * tint, hue);
-  ok(`BG (${bgHex}) coincide con --ox-bg (${esperado})`, sameColor(bgHex, esperado),
+  ok(`BG (${bgHex}) coincide con --op-bg (${esperado})`, sameColor(bgHex, esperado),
     'corré `node tools/retint.mjs` para volver a sincronizarlos');
 }
 
@@ -76,8 +81,9 @@ ok('el splash declara un color literal', !!splashBg, String(splashBg));
 ok('y es el mismo que el de la ventana', splashBg === bgHex, `${splashBg} vs ${bgHex}`);
 
 console.log('\n5. Ningún archivo del sistema quedó con el prefijo viejo');
-// Solo el código que se envía. Los tests quedan afuera a propósito: este mismo
-// archivo contiene el patrón que busca, y se encontraría a sí mismo.
+// Opal nació de Onyx: `ox-` es el prefijo que NO puede quedar en el código que
+// se envía. Los tests quedan afuera a propósito: este mismo archivo contiene
+// el patrón que busca, y se encontraría a sí mismo.
 const files = [path.join(ROOT, 'main.cjs'), path.join(ROOT, 'preload.cjs')];
 (function walk(dir) {
   if (!fs.existsSync(dir)) return;
@@ -95,64 +101,61 @@ const files = [path.join(ROOT, 'main.cjs'), path.join(ROOT, 'preload.cjs')];
     else if (/\.(js|cjs|mjs)$/.test(e.name)) files.push(p);
   }
 }(path.join(ROOT, 'src')));
-const sucios = files.filter((f) => /(--vc-|\.vc-|"vc-|'vc-)/.test(fs.readFileSync(f, 'utf8')));
-ok('sin restos de otro prefijo', sucios.length === 0, sucios.join(', '));
+const sucios = files.filter((f) => /(--ox-|\.ox-|"ox-|'ox-)/.test(fs.readFileSync(f, 'utf8')));
+ok('sin restos del prefijo de Onyx', sucios.length === 0, sucios.join(', '));
 
-/* ── La marca ────────────────────────────────────────────────────────────────
-   El bastón de Asclepio está dibujado en CUATRO archivos: el splash y la
-   titlebar (index.html), la cerradura (desbloqueo.js) y el generador del ícono
-   (make-icon.cjs). Cambiar uno solo hace que el arranque salte de un dibujo a
-   otro, o que el ícono de Windows deje de ser el de la app — y nadie lo nota
-   hasta que ya está empaquetada. */
-console.log('\n6. La marca es la misma en los cuatro lugares');
-
-const leer = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
-const entre = (txt, desde, hasta) => {
-  const a = txt.indexOf(desde);
-  const b = txt.indexOf(hasta, a + 1);
-  return a < 0 || b < 0 ? '' : txt.slice(a, b);
+console.log('\n6. Lo que se lee, se lee');
+/* WCAG pide 4,5:1 para texto chico. text-3 es el gris más bajo que lleva
+   información (la ayuda de un campo, una clave, un atajo, la hora de un
+   log), y tiene que pasar sobre el fondo y sobre las tres hojas. */
+const lumOf = (hex) => {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 };
-/** Los trazos y la cabeza de una región, normalizados para poder comparar. */
-const marca = (txt) => JSON.stringify({
-  trazos: (txt.match(/\sd="([^"]+)"/g) || []).map((s) => s.replace(/\s+/g, ' ').trim()),
-  cabeza: (txt.match(/<circle[^>]*>/) || [''])[0].replace(/\s+/g, ' ').trim(),
-});
-
-const indice = leer('renderer', 'index.html');
-const lugares = {
-  splash: entre(indice, 'id="boot-splash"', '<div class="ox-app">'),
-  titlebar: entre(indice, 'ox-brand__mark', '</svg>'),
-  cerradura: entre(leer('renderer', 'js', 'desbloqueo.js'), 'const MARCA', '</svg>'),
-  icono: entre(leer('build', 'make-icon.cjs'), '<div class="placa">', '</div>'),
-};
-
-const referencia = marca(lugares.splash);
-const trazos = JSON.parse(referencia).trazos.length;
-ok('el splash tiene la marca dibujada', trazos === 3, `trazos=${trazos}`);
-ok('el splash tiene la cabeza de la serpiente',
-  JSON.parse(referencia).cabeza.includes('circle'));
-
-for (const [donde, txt] of Object.entries(lugares)) {
-  if (donde === 'splash') continue;
-  ok(`"${donde}" dibuja exactamente la misma marca`, marca(txt) === referencia,
-    `\n         esperaba ${referencia}\n         encontré ${marca(txt)}`);
+const contrast = (a, b) => { const [x, y] = [lumOf(a), lumOf(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const whiteOver = (hex, alpha) => `#${[1, 3, 5].map((i) => { const v = parseInt(hex.slice(i, i + 2), 16); return Math.round(v + alpha * (255 - v)).toString(16).padStart(2, '0'); }).join('')}`;
+const t3 = css.match(/--op-text-3:\s*oklch\(([\d.]+)%\s*calc\(([\d.]+)\s*\*\s*var\(--op-tint\)\)/);
+const fondoHex = bgDecl && oklchToHex(Number(bgDecl[1]) / 100, Number(bgDecl[2]) * tint, hue);
+const t3Hex = t3 && oklchToHex(Number(t3[1]) / 100, Number(t3[2]) * tint, hue);
+for (const s of ['bg', 's1', 's2', 's3']) {
+  const alpha = s === 'bg' ? 0 : Number(css.match(new RegExp(`--op-${s}:\\s*rgb\\(255 255 255 / ([\\d.]+)\\)`))?.[1]);
+  const fondo = fondoHex && whiteOver(fondoHex, alpha);
+  const r = t3Hex && fondo ? contrast(t3Hex, fondo) : 0;
+  ok(`text-3 sobre ${s} pasa 4,5:1`, r >= 4.5, `${t3Hex} sobre ${fondo}: ${r.toFixed(2)}`);
+}
+/* text-4 es para lo deshabilitado, los placeholders y los íconos de adorno.
+   Estos llevan datos. */
+const cssAll = ['controls.css', 'overlays.css', 'shell.css', 'surfaces.css']
+  .map((f) => fs.readFileSync(path.join(ROOT, 'renderer', 'css', f), 'utf8')).join('\n');
+for (const cls of ['.op-field__hint', '.op-tooltip__key', '.op-menuitem__key', '.op-menu__label', '.op-rail__group-label',
+  '.op-navitem__count', '.op-section__title', '.op-kv__k', '.op-table th', '.op-tab__count', '.op-stat__label',
+  '.op-empty__text', '.op-log__time']) {
+  const rule = cssAll.match(new RegExp(`${cls.replace(/\./g, '\\.')}\\s*\\{[^}]*\\}`))?.[0] || '';
+  ok(`${cls} no usa text-4`, !!rule && !rule.includes('--op-text-4'), rule.slice(0, 80) || 'no está la regla');
 }
 
-/* La cabeza es un punto macizo con fill="currentColor". Si el contenedor no
-   declara `color`, hereda el del texto y puede quedar invisible. */
-/* Se mira una ventana de caracteres y no "hasta la llave que cierra": en
-   make-icon.cjs el CSS vive adentro de un template literal y el primer `}` es
-   el de un `${...}`, que corta el bloque antes de llegar a la declaración. */
-for (const [donde, archivo, selector] of [
-  ['splash', 'renderer/index.html', '#boot-splash svg'],
-  ['cerradura', 'renderer/css/rx.css', '.rx-cerradura__marca'],
-  ['ícono', 'build/make-icon.cjs', '  svg {'],
-]) {
-  const txt = leer(...archivo.split('/'));
-  const i = txt.indexOf(selector);
-  const bloque = i < 0 ? '' : txt.slice(i, i + 420);
-  ok(`"${donde}" declara color para la cabeza maciza`,
-    i >= 0 && /(^|[^-\w])color:/.test(bloque), `en ${archivo} → ${selector}`);
+/* ── La marca de Quirotech ────────────────────────────────────────────────────
+   La vara de Asclepio sale de UN solo dibujo (build/icono.mjs) y npm run icon
+   la rasteriza a todo lo que la muestra: el .ico, el splash, la titlebar y la
+   cerradura. Lo que hay que vigilar es que todos apunten a esos archivos y que
+   estén al día con el dibujo: cambiar icono.mjs sin regenerar deja el ícono
+   de Windows distinto del de la app, y nadie lo nota hasta empaquetar. */
+console.log('\nQ. La marca sale de un solo dibujo');
+{
+  const leer = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
+  const indice = leer('renderer', 'index.html');
+  const cerradura = leer('renderer', 'js', 'desbloqueo.js');
+  ok('el splash muestra marca.png', /id="boot-splash">[\s\S]*?src="\.\/img\/marca\.png"/.test(indice));
+  ok('la titlebar muestra la marca chica', /op-brand__img[^>]*src="\.\/img\/marca-chica\.png"/.test(indice));
+  ok('la cerradura muestra marca.png', /const MARCA = '<img[^']*src="\.\/img\/marca\.png"/.test(cerradura));
+  const dibujo = fs.statSync(path.join(ROOT, 'build', 'icono.mjs')).mtimeMs;
+  for (const rel of ['build/icon.png', 'build/icon.ico', 'renderer/img/marca.png',
+    'renderer/img/marca-chica.png', 'renderer/img/marca-chica@2x.png']) {
+    const p = path.join(ROOT, ...rel.split('/'));
+    const existe = fs.existsSync(p);
+    ok(`${rel} existe y está al día con icono.mjs`, existe && fs.statSync(p).mtimeMs >= dibujo - 2000,
+      existe ? 'más viejo que el dibujo: corré npm run icon' : 'no está: corré npm run icon');
+  }
 }
 
 console.log(`\n═══ ${pass} ok · ${fail} fallas ═══`);

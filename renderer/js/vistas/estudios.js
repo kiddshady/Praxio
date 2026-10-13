@@ -12,19 +12,19 @@ const rx = window.rx;
 
 function formulario(e = {}) {
   const caja = document.createElement('div');
-  caja.className = 'ox-col';
-  caja.style.gap = 'var(--ox-3)';
+  caja.className = 'op-col';
+  caja.style.gap = 'var(--op-3)';
   caja.innerHTML = `
-    <div class="ox-field">
-      <label class="ox-field__label" for="e-nombre">Estudio o práctica</label>
-      <input class="ox-input" id="e-nombre" spellcheck="false"
+    <div class="op-field">
+      <label class="op-field__label" for="e-nombre">Estudio o práctica</label>
+      <input class="op-input" id="e-nombre" spellcheck="false"
              placeholder="Hemograma completo" value="${esc(e.nombre || '')}">
     </div>
-    <div class="ox-field">
-      <label class="ox-field__label" for="e-aclaracion">Aclaración habitual</label>
-      <input class="ox-input" id="e-aclaracion" spellcheck="false"
+    <div class="op-field">
+      <label class="op-field__label" for="e-aclaracion">Aclaración habitual</label>
+      <input class="op-input" id="e-aclaracion" spellcheck="false"
              placeholder="En ayunas de 8 horas" value="${esc(e.aclaracion || '')}">
-      <span class="ox-field__hint">Se carga sola al pedirlo, y se puede cambiar en la orden.</span>
+      <span class="op-field__hint">Se carga sola al pedirlo, y se puede cambiar en la orden.</span>
     </div>`;
   return caja;
 }
@@ -60,13 +60,13 @@ export async function vistaEstudios(busqueda = '') {
     sub: lista.length
       ? `${plural(lista.length, 'estudio')} en el catálogo`
       : 'Los que pidas seguido, para no volver a tipearlos',
-    actions: `<button class="ox-btn ox-btn--primary ox-flashable" id="e-nuevo">
+    actions: `<button class="op-btn op-btn--primary op-flashable" id="e-nuevo">
                 <i data-icon="plus"></i> Nuevo</button>`,
   }) + `
-    <div class="ox-scroll ox-grow ox-scroll--line-bottom">
-      <div class="ox-inputwrap rx-buscador" style="margin-bottom:var(--ox-4)">
+    <div class="op-scroll op-grow op-scroll--line-bottom">
+      <div class="op-inputwrap rx-buscador" style="margin-bottom:var(--op-4)">
         <i data-icon="search"></i>
-        <input class="ox-input" id="e-buscar" placeholder="Buscar…" spellcheck="false"
+        <input class="op-input" id="e-buscar" placeholder="Buscar…" spellcheck="false"
                value="${esc(busqueda)}">
       </div>
       ${lista.length === 0
@@ -75,20 +75,20 @@ export async function vistaEstudios(busqueda = '') {
         title: busqueda ? 'Nada coincide con esa búsqueda' : 'El catálogo está vacío',
         text: busqueda ? '' : 'Cargá los que pidas seguido y aparecerán acá arriba.',
       })
-      : `<div class="ox-list">${lista.map((e) => `
-          <div class="ox-listitem">
-            <div class="ox-iconcell"><i data-icon="estudio"></i></div>
-            <div class="ox-listitem__main">
-              <div class="ox-listitem__title">${esc(e.nombre)}</div>
-              <div class="ox-listitem__sub ox-truncate">${esc(e.aclaracion || '—')}</div>
+      : `<div class="op-list">${lista.map((e) => `
+          <div class="op-listitem">
+            <div class="op-iconcell"><i data-icon="estudio"></i></div>
+            <div class="op-listitem__main">
+              <div class="op-listitem__title">${esc(e.nombre)}</div>
+              <div class="op-listitem__sub op-truncate">${esc(e.aclaracion || '—')}</div>
             </div>
-            <div class="ox-listitem__aside">
-              ${e.usos > 0 ? `<span class="ox-chip ox-chip--mono" data-tip="Veces que lo pediste">${e.usos}</span>` : ''}
+            <div class="op-listitem__aside">
+              ${e.usos > 0 ? `<span class="op-chip op-chip--mono" data-tip="Veces que lo pediste">${e.usos}</span>` : ''}
             </div>
-            <div class="ox-rowactions">
-              <button class="ox-iconbtn ox-iconbtn--sm" data-editar="${esc(e.id)}"
+            <div class="op-rowactions">
+              <button class="op-iconbtn op-iconbtn--sm" data-editar="${esc(e.id)}"
                       data-tip="Editar"><i data-icon="edit"></i></button>
-              <button class="ox-iconbtn ox-iconbtn--sm" data-borrar="${esc(e.id)}"
+              <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(e.id)}"
                       data-tip="Eliminar"><i data-icon="trash"></i></button>
             </div>
           </div>`).join('')}</div>`}

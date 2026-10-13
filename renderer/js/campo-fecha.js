@@ -40,13 +40,13 @@ export function aISO(texto) {
  * @param {{id:string, label:string, valor?:string, hint?:string}} o
  */
 export function campoFecha({ id, label, valor = '', hint = '' }) {
-  return `<div class="ox-field">
-    <label class="ox-field__label" for="${esc(id)}">${esc(label)}</label>
-    <input class="ox-input ox-input--mono" id="${esc(id)}" data-fecha
+  return `<div class="op-field">
+    <label class="op-field__label" for="${esc(id)}">${esc(label)}</label>
+    <input class="op-input op-input--mono" id="${esc(id)}" data-fecha
            inputmode="numeric" maxlength="10" spellcheck="false" autocomplete="off"
            placeholder="dd/mm/aaaa" value="${esc(deISO(valor))}"
            data-iso="${esc(valor || '')}">
-    ${hint ? `<span class="ox-field__hint">${esc(hint)}</span>` : ''}
+    ${hint ? `<span class="op-field__hint">${esc(hint)}</span>` : ''}
   </div>`;
 }
 

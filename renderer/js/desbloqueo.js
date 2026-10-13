@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Rx — la cerradura
+   Quirotech — la cerradura
 
    Lo primero que se ve. Tiene tres caras según el estado de la instalación:
 
@@ -16,61 +16,57 @@
 import { Icons } from './icons.js';
 import { esc } from './ui.js';
 
-/* La marca vive en CUATRO lugares que tienen que coincidir: el splash y la
-   titlebar (renderer/index.html), acá, y build/make-icon.cjs. Si cambiás uno
-   solo, el arranque salta de un dibujo a otro. */
-const MARCA = '<svg class="rx-cerradura__marca" viewBox="0 0 16 16" aria-hidden="true">'
-  + '<path d="M8 1.9V7.9"/>'
-  + '<path d="M8 9.6V14.1"/>'
-  + '<path d="M8.2 13.2A2.8 2.8 0 0 0 6.6 8.2 3 3 0 0 1 9.9 3.5"/>'
-  + '<circle cx="9.9" cy="3.5" r=".85" fill="currentColor" stroke="none"/></svg>';
+/* La marca es el ícono de verdad, el mismo del splash y de la barra de tareas
+   (build/make-icon.cjs lo saca de build/icono.mjs). Una sola fuente: el
+   arranque no puede saltar de un dibujo a otro. */
+const MARCA = '<img class="rx-cerradura__marca" src="./img/marca.png" alt="">';
 
 let host = null;
 let mostrando = false;
 
-/** Un `.ox-check` de Onyx, que es un botón y no un input nativo. El tilde tiene
+/** Un `.op-check` de Onyx, que es un botón y no un input nativo. El tilde tiene
     que ser el `check` del banco: controls.css lo estila y lo dibuja a través de
-    `.ox-check .ox-icon`, y un <svg> suelto sin esa clase salía grueso y de golpe. */
+    `.op-check .op-icon`, y un <svg> suelto sin esa clase salía grueso y de golpe. */
 function check(id, etiqueta, marcado) {
-  return `<label class="ox-row" style="gap:var(--ox-2);cursor:pointer;align-items:center">
-    <button type="button" class="ox-check${marcado ? ' is-on' : ''}" id="${id}"
+  return `<label class="op-row" style="gap:var(--op-2);cursor:pointer;align-items:center">
+    <button type="button" class="op-check${marcado ? ' is-on' : ''}" id="${id}"
             role="checkbox" aria-checked="${marcado}">
       ${Icons.svg('check')}
     </button>
-    <span style="font-size:var(--ox-fs-13);color:var(--ox-text-2)">${esc(etiqueta)}</span>
+    <span style="font-size:var(--op-fs-13);color:var(--op-text-2)">${esc(etiqueta)}</span>
   </label>`;
 }
 
 function pantallaCrear(estado) {
   return `
     ${MARCA}
-    <div class="rx-cerradura__titulo">Rx</div>
+    <div class="rx-cerradura__titulo">Quirotech</div>
     <p class="rx-cerradura__sub">
       Elegí la contraseña que va a proteger la historia clínica de tus pacientes.
     </p>
     <form class="rx-cerradura__form" id="form-cerradura" autocomplete="off">
       <div class="rx-aviso">
-        ${Icons.svg('key', 'ox-icon--sm')}
+        ${Icons.svg('key', 'op-icon--sm')}
         <div>
           <strong>No hay forma de recuperarla.</strong> Los datos se cifran con esta
           contraseña y nadie —ni esta app, ni yo, ni nadie— puede abrirlos sin ella.
           Si la perdés, perdés los datos. Anotala en un lugar seguro.
         </div>
       </div>
-      <div class="ox-field">
-        <label class="ox-field__label" for="clave">Contraseña</label>
-        <input class="ox-input" type="password" id="clave" minlength="8"
+      <div class="op-field">
+        <label class="op-field__label" for="clave">Contraseña</label>
+        <input class="op-input" type="password" id="clave" minlength="8"
                autocomplete="new-password" spellcheck="false" required>
-        <span class="ox-field__hint">Mínimo 8 caracteres.</span>
+        <span class="op-field__hint">Mínimo 8 caracteres.</span>
       </div>
-      <div class="ox-field">
-        <label class="ox-field__label" for="clave2">Repetila</label>
-        <input class="ox-input" type="password" id="clave2"
+      <div class="op-field">
+        <label class="op-field__label" for="clave2">Repetila</label>
+        <input class="op-input" type="password" id="clave2"
                autocomplete="new-password" spellcheck="false" required>
       </div>
       ${estado.puedeRecordar ? check('recordar', 'Recordar en esta computadora', false) : ''}
       <div class="rx-cerradura__error" id="error"></div>
-      <button class="ox-btn ox-btn--primary ox-flashable" type="submit" id="enviar">
+      <button class="op-btn op-btn--primary op-flashable" type="submit" id="enviar">
         Crear y entrar
       </button>
     </form>`;
@@ -82,21 +78,21 @@ function pantallaAbrir(estado, motivo) {
     : 'Ingresá tu contraseña para abrir la historia clínica.';
   return `
     ${MARCA}
-    <div class="rx-cerradura__titulo">Rx</div>
+    <div class="rx-cerradura__titulo">Quirotech</div>
     <p class="rx-cerradura__sub">${esc(sub)}</p>
     <form class="rx-cerradura__form" id="form-cerradura" autocomplete="off">
-      <div class="ox-field">
-        <label class="ox-field__label" for="clave">Contraseña</label>
-        <input class="ox-input" type="password" id="clave"
+      <div class="op-field">
+        <label class="op-field__label" for="clave">Contraseña</label>
+        <input class="op-input" type="password" id="clave"
                autocomplete="current-password" spellcheck="false" required>
       </div>
       ${estado.puedeRecordar ? check('recordar', 'Recordar en esta computadora', false) : ''}
       <div class="rx-cerradura__error" id="error"></div>
-      <button class="ox-btn ox-btn--primary ox-flashable" type="submit" id="enviar">
+      <button class="op-btn op-btn--primary op-flashable" type="submit" id="enviar">
         Desbloquear
       </button>
     </form>
-    <div class="rx-cerradura__pie">${Icons.svg('lock', 'ox-icon--sm')} Los datos están cifrados en disco</div>`;
+    <div class="rx-cerradura__pie">${Icons.svg('lock', 'op-icon--sm')} Los datos están cifrados en disco</div>`;
 }
 
 /**
@@ -122,7 +118,7 @@ export function pedirClave(estado, motivo = 'inicio') {
     const enviar = host.querySelector('#enviar');
     const error = host.querySelector('#error');
 
-    /* El `.ox-check` es un botón: el estado lo lleva la clase, no un input. */
+    /* El `.op-check` es un botón: el estado lo lleva la clase, no un input. */
     if (recordar) {
       recordar.addEventListener('click', () => {
         const on = recordar.classList.toggle('is-on');
@@ -137,9 +133,9 @@ export function pedirClave(estado, motivo = 'inicio') {
       /* El temblor tiene que poder repetirse: si la clase ya está puesta, el
          navegador no reinicia la animación. Se saca y se fuerza un reflow. */
       const caja = host.querySelector('.rx-cerradura__caja');
-      caja.classList.remove('ox-shaking');
+      caja.classList.remove('op-shaking');
       void caja.offsetWidth;
-      caja.classList.add('ox-shaking');
+      caja.classList.add('op-shaking');
       clave.focus();
       clave.select();
     }

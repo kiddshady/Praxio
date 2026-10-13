@@ -11,7 +11,7 @@ import { plural } from '../format.js';
 import { hoja, PLANTILLAS, CON_NUMERO } from '../hoja.js';
 
 const rx = window.rx;
-const onyx = window.onyx;
+const opal = window.opal;
 
 /* ══ Nueva receta ════════════════════════════════════════════════════════════ */
 
@@ -22,31 +22,31 @@ function itemVacio() {
 function filaItem(it, i) {
   return `<div class="rx-item" data-item="${i}">
     <div class="rx-item__campos">
-      <input class="ox-input" data-campo="nombre" data-i="${i}" spellcheck="false"
+      <input class="op-input" data-campo="nombre" data-i="${i}" spellcheck="false"
              placeholder="Medicamento y presentación" value="${esc(it.nombre)}">
       <div class="rx-item__grid">
-        <input class="ox-input" data-campo="marca" data-i="${i}" spellcheck="false"
+        <input class="op-input" data-campo="marca" data-i="${i}" spellcheck="false"
                placeholder="Marca sugerida" value="${esc(it.marca)}">
-        <input class="ox-input" data-campo="dosis" data-i="${i}" spellcheck="false"
+        <input class="op-input" data-campo="dosis" data-i="${i}" spellcheck="false"
                placeholder="Dosis" value="${esc(it.dosis)}">
-        <input class="ox-input" data-campo="diagnostico" data-i="${i}" spellcheck="false"
+        <input class="op-input" data-campo="diagnostico" data-i="${i}" spellcheck="false"
                placeholder="Diagnóstico" value="${esc(it.diagnostico)}">
       </div>
       <!-- Indicaciones va sola y a lo ancho: es la línea más larga de una
            receta ("1 comprimido por la mañana, con el desayuno") y metida en
            una columna de la grilla se lee cortada justo cuando importa. -->
-      <input class="ox-input" data-campo="indicaciones" data-i="${i}" spellcheck="false"
+      <input class="op-input" data-campo="indicaciones" data-i="${i}" spellcheck="false"
              placeholder="Indicaciones" value="${esc(it.indicaciones)}">
     </div>
     <div class="rx-item__acciones">
-      <div class="ox-field" style="width:78px">
-        <label class="ox-field__label">Envases</label>
-        <input class="ox-input ox-input--mono" data-campo="envases" data-i="${i}"
+      <div class="op-field" style="width:78px">
+        <label class="op-field__label">Envases</label>
+        <input class="op-input op-input--mono" data-campo="envases" data-i="${i}"
                type="number" min="1" value="${esc(it.envases)}">
       </div>
-      <button class="ox-iconbtn ox-iconbtn--sm" data-catalogo="${i}"
+      <button class="op-iconbtn op-iconbtn--sm" data-catalogo="${i}"
               data-tip="Cargar del catálogo"><i data-icon="pill"></i></button>
-      <button class="ox-iconbtn ox-iconbtn--sm" data-quitar="${i}"
+      <button class="op-iconbtn op-iconbtn--sm" data-quitar="${i}"
               data-tip="Quitar"><i data-icon="trash"></i></button>
     </div>
   </div>`;
@@ -78,67 +78,67 @@ export async function vistaReceta(pacienteId = null) {
     title: 'Nueva receta',
     sub: 'La hoja de la derecha es exactamente lo que va a salir impreso',
     crumbs: [{ label: 'Recetas', view: 'recetas' }],
-    actions: `<button class="ox-btn ox-btn--primary ox-flashable" id="r-emitir">
+    actions: `<button class="op-btn op-btn--primary op-flashable" id="r-emitir">
                 <i data-icon="check"></i> Emitir</button>`,
   }) + `
     <div class="rx-receta">
-      <div class="ox-scroll rx-receta__form ox-scroll--line-bottom">
+      <div class="op-scroll rx-receta__form op-scroll--line-bottom">
 
-        <div class="ox-field">
-          <label class="ox-field__label">Paciente</label>
-          <button class="ox-select" id="r-paciente" type="button">
+        <div class="op-field">
+          <label class="op-field__label">Paciente</label>
+          <button class="op-select" id="r-paciente" type="button">
             <span id="r-paciente-txt">${E.paciente
       ? esc(E.paciente.apellido_nombre) : 'Elegir paciente…'}</span>
             <i data-icon="chevronDown"></i>
           </button>
-          <span class="ox-field__hint" id="r-paciente-hint"></span>
+          <span class="op-field__hint" id="r-paciente-hint"></span>
         </div>
 
         <div id="r-alergias"></div>
 
         <div class="rx-fila">
           ${campoFecha({ id: 'r-fecha', label: 'Fecha', valor: E.fecha })}
-          <div class="ox-field">
-            <label class="ox-field__label">Plantilla</label>
-            <div class="ox-segmented" id="r-plantilla">
-              ${PLANTILLAS.map(([v, n]) => `<button class="ox-segmented__opt${E.plantilla === v ? ' is-active' : ''}"
+          <div class="op-field">
+            <label class="op-field__label">Plantilla</label>
+            <div class="op-segmented" id="r-plantilla">
+              ${PLANTILLAS.map(([v, n]) => `<button class="op-segmented__opt${E.plantilla === v ? ' is-active' : ''}"
                       data-value="${v}">${n}</button>`).join('')}
             </div>
           </div>
-          <div class="ox-field" id="r-numero-campo" ${CON_NUMERO.includes(E.plantilla) ? '' : 'hidden'}>
-            <label class="ox-field__label" for="r-numero">Nº de receta</label>
-            <input class="ox-input ox-input--mono" id="r-numero" spellcheck="false" value="">
+          <div class="op-field" id="r-numero-campo" ${CON_NUMERO.includes(E.plantilla) ? '' : 'hidden'}>
+            <label class="op-field__label" for="r-numero">Nº de receta</label>
+            <input class="op-input op-input--mono" id="r-numero" spellcheck="false" value="">
           </div>
         </div>
 
-        <div class="ox-row ox-plegable" id="r-membrete-campo"
-             style="gap:var(--ox-3);align-items:center;--ox-plegable-gap:var(--ox-4)"
+        <div class="op-row op-plegable" id="r-membrete-campo"
+             style="gap:var(--op-3);align-items:center;--op-plegable-gap:var(--op-4)"
              ${E.plantilla === 'retro' ? '' : 'hidden'}>
-          <div class="ox-grow">
+          <div class="op-grow">
             <div>Membrete del profesional</div>
-            <div class="ox-meta">Nombre, especialidad, matrícula y domicilio arriba de la hoja. El número de receta sale igual.</div>
+            <div class="op-meta">Nombre, especialidad, matrícula y domicilio arriba de la hoja. El número de receta sale igual.</div>
           </div>
-          <button type="button" class="ox-switch${E.membrete ? ' is-on' : ''}" id="r-membrete"
+          <button type="button" class="op-switch${E.membrete ? ' is-on' : ''}" id="r-membrete"
                   role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"><span></span></button>
         </div>
 
-        <div class="ox-section">
-          <div class="ox-section__head">
-            <div class="ox-section__title">Medicamentos</div>
-            <button class="ox-btn ox-btn--secondary ox-btn--sm ox-flashable" id="r-agregar">
+        <div class="op-section">
+          <div class="op-section__head">
+            <div class="op-section__title">Medicamentos</div>
+            <button class="op-btn op-btn--secondary op-btn--sm op-flashable" id="r-agregar">
               <i data-icon="plus"></i> Agregar</button>
             <span class="rx-limite" id="r-limite">Máximo ${MAX}: es un límite legal</span>
           </div>
-          <div class="ox-col" id="r-items" style="gap:var(--ox-3)"></div>
+          <div class="op-col" id="r-items" style="gap:var(--op-3)"></div>
         </div>
       </div>
 
       <div class="rx-receta__previa">
-        <div class="rx-previa ox-grow">
+        <div class="rx-previa op-grow">
           <div class="rx-previa__head">
             <i data-icon="printer"></i> Vista previa
-            <span class="ox-spacer"></span>
-            <span class="ox-meta">original + duplicado</span>
+            <span class="op-spacer"></span>
+            <span class="op-meta">original + duplicado</span>
           </div>
           <div class="rx-previa__scroll" id="r-previa"></div>
         </div>
@@ -331,7 +331,7 @@ export async function vistaReceta(pacienteId = null) {
     elMembrete.classList.toggle('is-on', E.membrete);
     elMembrete.setAttribute('aria-checked', String(E.membrete));
     pintarPrevia();
-    S.ajustes = await onyx.settings.save({ membreteRetro: E.membrete });
+    S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
   };
   /* La retro imprime el número en el membrete, así que la previa lo sigue. */
   document.getElementById('r-numero').addEventListener('input', (e) => {
@@ -423,28 +423,28 @@ export async function vistaRecetas(recetaId = null) {
        y sin rojo: el rojo aparece recién en la confirmación, que es donde algo
        se rompe de verdad. */
     actions: `${lista.length ? `
-              <button class="ox-btn ox-btn--ghost ox-flashable" id="h-vaciar">
+              <button class="op-btn op-btn--ghost op-flashable" id="h-vaciar">
                 <i data-icon="trash"></i> Borrar historial</button>` : ''}
-              <button class="ox-btn ox-btn--primary ox-flashable" id="h-nueva">
+              <button class="op-btn op-btn--primary op-flashable" id="h-nueva">
                 <i data-icon="plus"></i> Nueva receta</button>`,
   }) + `
-    <div class="ox-scroll ox-grow ox-scroll--line-bottom">
+    <div class="op-scroll op-grow op-scroll--line-bottom">
       ${lista.length === 0
       ? empty({ icon: 'file', title: 'Sin recetas', text: 'La primera sale del botón de arriba.' })
-      : `<div class="ox-list">${lista.map((r) => `
-        <div class="ox-listitem" data-abrir="${esc(r.id)}" role="button" tabindex="0">
-          <div class="ox-iconcell"><i data-icon="file"></i></div>
-          <div class="ox-listitem__main">
-            <div class="ox-listitem__title">${esc(r.paciente || '— paciente eliminado —')}</div>
-            <div class="ox-listitem__sub ox-truncate">${esc(r.detalle || '')}</div>
+      : `<div class="op-list">${lista.map((r) => `
+        <div class="op-listitem" data-abrir="${esc(r.id)}" role="button" tabindex="0">
+          <div class="op-iconcell"><i data-icon="file"></i></div>
+          <div class="op-listitem__main">
+            <div class="op-listitem__title">${esc(r.paciente || '— paciente eliminado —')}</div>
+            <div class="op-listitem__sub op-truncate">${esc(r.detalle || '')}</div>
           </div>
-          <div class="ox-listitem__aside ox-num">${esc(fecha(r.fecha))}</div>
-          <div class="ox-rowactions">
-            <button class="ox-iconbtn ox-iconbtn--sm" data-imprimir="${esc(r.id)}"
+          <div class="op-listitem__aside op-num">${esc(fecha(r.fecha))}</div>
+          <div class="op-rowactions">
+            <button class="op-iconbtn op-iconbtn--sm" data-imprimir="${esc(r.id)}"
                     data-tip="Imprimir"><i data-icon="printer"></i></button>
-            <button class="ox-iconbtn ox-iconbtn--sm" data-pdf="${esc(r.id)}"
+            <button class="op-iconbtn op-iconbtn--sm" data-pdf="${esc(r.id)}"
                     data-tip="Guardar PDF"><i data-icon="download"></i></button>
-            <button class="ox-iconbtn ox-iconbtn--sm" data-borrar="${esc(r.id)}"
+            <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(r.id)}"
                     data-tip="Eliminar"><i data-icon="trash"></i></button>
           </div>
         </div>`).join('')}</div>`}
@@ -458,7 +458,7 @@ export async function vistaRecetas(recetaId = null) {
   for (const el of document.querySelectorAll('[data-abrir]')) {
     const ver = () => verReceta(el.dataset.abrir);
     el.addEventListener('click', (e) => {
-      if (e.target.closest('.ox-rowactions')) return;   // los botones tienen lo suyo
+      if (e.target.closest('.op-rowactions')) return;   // los botones tienen lo suyo
       ver();
     });
     el.addEventListener('keydown', (e) => {
@@ -484,7 +484,7 @@ export async function vistaRecetas(recetaId = null) {
     /* La fila sale animada y recién después se repinta la lista: si se
        repintara de una, la receta desaparecería de golpe. */
     b.onclick = () => borrarReceta(b.dataset.borrar, {
-      antesDeRepintar: (listo) => exit(b.closest('.ox-listitem'), { onDone: listo }),
+      antesDeRepintar: (listo) => exit(b.closest('.op-listitem'), { onDone: listo }),
     });
   }
 

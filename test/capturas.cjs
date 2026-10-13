@@ -11,7 +11,7 @@ const fs = require('fs');
 const os = require('os');
 
 const ROOT = path.join(__dirname, '..');
-const DESTINO = process.argv[2] || path.join(os.tmpdir(), 'rx-capturas');
+const DESTINO = process.argv[2] || path.join(os.tmpdir(), 'quirotech-capturas');
 const datos = fs.mkdtempSync(path.join(os.tmpdir(), 'rx-demo-'));
 process.env.RX_DATA = datos;
 
@@ -99,12 +99,36 @@ app.whenReady().then(async () => {
       { nombre: 'Enalapril 10 mg', dosis: '1 comprimido por día', envases: 1 },
     ],
   });
+  /* El último mes, para que el tablero tenga una curva y gente atendida hoy.
+     Las cantidades son fijas (no al azar): dos corridas dan la misma captura. */
+  const p2 = (n) => String(n).padStart(2, '0');
+  const haceDias = (n) => {
+    const d = new Date(); d.setDate(d.getDate() - n);
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+  };
+  const POR_DIA = [3, 5, 4, 6, 0, 0, 5, 7, 6, 4, 8, 0, 1, 6, 5, 9, 7, 6, 0, 0, 8, 6, 11, 7, 5, 0, 0, 6, 5, 2];
+  POR_DIA.forEach((n, i) => {
+    for (let k = 0; k < n; k++) {
+      db.recetas.emitir({
+        paciente_id: gomez.id, fecha: haceDias(POR_DIA.length - 1 - i), plantilla: 'clasica',
+        items: [{ nombre: 'Enalapril 10 mg', dosis: '1 comprimido por día', envases: 1 }],
+      });
+    }
+  });
+  for (const motivo of ['Control de tratamiento', 'Ajuste de dosis']) {
+    db.evoluciones.save({ paciente_id: gomez.id, fecha: haceDias(0), motivo, notas: 'Sin novedades.' });
+  }
   db.cerrar();
 
   const win = new BrowserWindow({
     x: -20000, y: -20000, width: W, height: H,
-    frame: false, show: false, paintWhenInitiallyHidden: true, backgroundColor: '#0a0b0d',
+    frame: false, show: false, paintWhenInitiallyHidden: true, backgroundColor: '#070b0b',
     webPreferences: { preload: path.join(ROOT, 'preload.cjs'), contextIsolation: true },
+  });
+  // Lo que se rompa en el renderer sale por la terminal: una captura linda no
+  // prueba que no haya un error debajo.
+  win.webContents.on('console-message', (e) => {
+    if (e.level === 'error' || e.level === 'warning' || e.level >= 2) console.log(`  [renderer] ${e.message}`);
   });
   await win.loadFile(path.join(ROOT, 'renderer', 'index.html'));
   win.show();
@@ -128,7 +152,7 @@ app.whenReady().then(async () => {
   await sleep(2600);
   await foto('1-tablero');
 
-  await js(`document.querySelector('.ox-navitem[data-view="pacientes"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="pacientes"]').click()`);
   await sleep(700); await foto('2-pacientes');
 
   // La de GÓMEZ, que es la única con alergias cargadas: es la ficha que muestra
@@ -149,18 +173,18 @@ app.whenReady().then(async () => {
   })()`);
   await sleep(700); await foto('4-receta');
 
-  await js(`document.querySelector('.ox-navitem[data-view="medicamentos"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="medicamentos"]').click()`);
   await sleep(700); await foto('5-medicamentos');
 
-  await js(`document.querySelector('.ox-navitem[data-view="ajustes"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="ajustes"]').click()`);
   await sleep(700); await foto('6-ajustes');
 
-  await js(`document.querySelector('.ox-navitem[data-view="recetas"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="recetas"]').click()`);
   await sleep(700); await foto('7-recetas');
 
   // La orden se arma desde la ficha, igual que la receta: así la captura la
   // muestra con el paciente ya puesto y la hoja llena.
-  await js(`document.querySelector('.ox-navitem[data-view="pacientes"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="pacientes"]').click()`);
   await sleep(700);
   await js(`[...document.querySelectorAll('[data-ficha]')]
              .find(e => e.textContent.includes('GÓMEZ')).click()`);
@@ -180,10 +204,10 @@ app.whenReady().then(async () => {
   })()`);
   await sleep(800); await foto('8-orden');
 
-  await js(`document.querySelector('.ox-navitem[data-view="ordenes"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="ordenes"]').click()`);
   await sleep(700); await foto('9-ordenes');
 
-  await js(`document.querySelector('.ox-navitem[data-view="estudios"]').click()`);
+  await js(`document.querySelector('.op-navitem[data-view="estudios"]').click()`);
   await sleep(700); await foto('10-estudios');
 
   win.destroy();

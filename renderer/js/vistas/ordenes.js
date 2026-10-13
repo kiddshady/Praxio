@@ -25,16 +25,16 @@ function filaItem(it, i) {
   return `<div class="rx-item rx-item--fila" data-item="${i}">
     <div class="rx-item__campos">
       <div class="rx-item__grid">
-        <input class="ox-input" data-campo="nombre" data-i="${i}" spellcheck="false"
+        <input class="op-input" data-campo="nombre" data-i="${i}" spellcheck="false"
                placeholder="Estudio o práctica" value="${esc(it.nombre)}">
-        <input class="ox-input" data-campo="aclaracion" data-i="${i}" spellcheck="false"
+        <input class="op-input" data-campo="aclaracion" data-i="${i}" spellcheck="false"
                placeholder="Aclaración (lado, región, ayuno…)" value="${esc(it.aclaracion)}">
       </div>
     </div>
     <div class="rx-item__acciones">
-      <button class="ox-iconbtn ox-iconbtn--sm" data-catalogo="${i}"
+      <button class="op-iconbtn op-iconbtn--sm" data-catalogo="${i}"
               data-tip="Cargar del catálogo"><i data-icon="estudio"></i></button>
-      <button class="ox-iconbtn ox-iconbtn--sm" data-quitar="${i}"
+      <button class="op-iconbtn op-iconbtn--sm" data-quitar="${i}"
               data-tip="Quitar"><i data-icon="trash"></i></button>
     </div>
   </div>`;
@@ -57,50 +57,50 @@ export async function vistaOrden(pacienteId = null) {
     title: 'Nueva orden',
     sub: 'La hoja de la derecha es exactamente lo que va a salir impreso',
     crumbs: [{ label: 'Órdenes', view: 'ordenes' }],
-    actions: `<button class="ox-btn ox-btn--primary ox-flashable" id="o-emitir">
+    actions: `<button class="op-btn op-btn--primary op-flashable" id="o-emitir">
                 <i data-icon="check"></i> Emitir</button>`,
   }) + `
     <div class="rx-receta">
-      <div class="ox-scroll rx-receta__form ox-scroll--line-bottom">
+      <div class="op-scroll rx-receta__form op-scroll--line-bottom">
 
-        <div class="ox-field">
-          <label class="ox-field__label">Paciente</label>
-          <button class="ox-select" id="o-paciente" type="button">
+        <div class="op-field">
+          <label class="op-field__label">Paciente</label>
+          <button class="op-select" id="o-paciente" type="button">
             <span id="o-paciente-txt">${E.paciente
       ? esc(E.paciente.apellido_nombre) : 'Elegir paciente…'}</span>
             <i data-icon="chevronDown"></i>
           </button>
-          <span class="ox-field__hint" id="o-paciente-hint"></span>
+          <span class="op-field__hint" id="o-paciente-hint"></span>
         </div>
 
         <div id="o-alergias"></div>
 
         <div class="rx-fila">
           ${campoFecha({ id: 'o-fecha', label: 'Fecha', valor: E.fecha })}
-          <div class="ox-field">
-            <label class="ox-field__label" for="o-diagnostico">Diagnóstico o indicación</label>
-            <input class="ox-input" id="o-diagnostico" spellcheck="false"
+          <div class="op-field">
+            <label class="op-field__label" for="o-diagnostico">Diagnóstico o indicación</label>
+            <input class="op-input" id="o-diagnostico" spellcheck="false"
                    placeholder="Lo que motiva el pedido">
           </div>
         </div>
 
-        <div class="ox-section">
-          <div class="ox-section__head">
-            <div class="ox-section__title">Estudios</div>
-            <button class="ox-btn ox-btn--secondary ox-btn--sm ox-flashable" id="o-agregar">
+        <div class="op-section">
+          <div class="op-section__head">
+            <div class="op-section__title">Estudios</div>
+            <button class="op-btn op-btn--secondary op-btn--sm op-flashable" id="o-agregar">
               <i data-icon="plus"></i> Agregar</button>
           </div>
-          <div class="ox-col" id="o-items" style="gap:var(--ox-3)"></div>
+          <div class="op-col" id="o-items" style="gap:var(--op-3)"></div>
         </div>
 
       </div>
 
       <div class="rx-receta__previa">
-        <div class="rx-previa ox-grow">
+        <div class="rx-previa op-grow">
           <div class="rx-previa__head">
             <i data-icon="printer"></i> Vista previa
-            <span class="ox-spacer"></span>
-            <span class="ox-meta" id="o-hojas">una hoja</span>
+            <span class="op-spacer"></span>
+            <span class="op-meta" id="o-hojas">una hoja</span>
           </div>
           <div class="rx-previa__scroll" id="o-previa"></div>
         </div>
@@ -360,28 +360,28 @@ export async function vistaOrdenes(ordenId = null) {
     /* Igual que en recetas: el de borrar todo solo existe cuando hay algo que
        borrar, y va en fantasma. El rojo aparece recién en la confirmación. */
     actions: `${lista.length ? `
-              <button class="ox-btn ox-btn--ghost ox-flashable" id="ho-vaciar">
+              <button class="op-btn op-btn--ghost op-flashable" id="ho-vaciar">
                 <i data-icon="trash"></i> Borrar historial</button>` : ''}
-              <button class="ox-btn ox-btn--primary ox-flashable" id="ho-nueva">
+              <button class="op-btn op-btn--primary op-flashable" id="ho-nueva">
                 <i data-icon="plus"></i> Nueva orden</button>`,
   }) + `
-    <div class="ox-scroll ox-grow ox-scroll--line-bottom">
+    <div class="op-scroll op-grow op-scroll--line-bottom">
       ${lista.length === 0
       ? empty({ icon: 'orden', title: 'Sin órdenes', text: 'La primera sale del botón de arriba.' })
-      : `<div class="ox-list">${lista.map((o) => `
-        <div class="ox-listitem" data-abrir="${esc(o.id)}" role="button" tabindex="0">
-          <div class="ox-iconcell"><i data-icon="orden"></i></div>
-          <div class="ox-listitem__main">
-            <div class="ox-listitem__title">${esc(o.paciente || '— paciente eliminado —')}</div>
-            <div class="ox-listitem__sub ox-truncate">${esc(o.detalle || '')}</div>
+      : `<div class="op-list">${lista.map((o) => `
+        <div class="op-listitem" data-abrir="${esc(o.id)}" role="button" tabindex="0">
+          <div class="op-iconcell"><i data-icon="orden"></i></div>
+          <div class="op-listitem__main">
+            <div class="op-listitem__title">${esc(o.paciente || '— paciente eliminado —')}</div>
+            <div class="op-listitem__sub op-truncate">${esc(o.detalle || '')}</div>
           </div>
-          <div class="ox-listitem__aside ox-num">${esc(fecha(o.fecha))}</div>
-          <div class="ox-rowactions">
-            <button class="ox-iconbtn ox-iconbtn--sm" data-imprimir="${esc(o.id)}"
+          <div class="op-listitem__aside op-num">${esc(fecha(o.fecha))}</div>
+          <div class="op-rowactions">
+            <button class="op-iconbtn op-iconbtn--sm" data-imprimir="${esc(o.id)}"
                     data-tip="Imprimir"><i data-icon="printer"></i></button>
-            <button class="ox-iconbtn ox-iconbtn--sm" data-pdf="${esc(o.id)}"
+            <button class="op-iconbtn op-iconbtn--sm" data-pdf="${esc(o.id)}"
                     data-tip="Guardar PDF"><i data-icon="download"></i></button>
-            <button class="ox-iconbtn ox-iconbtn--sm" data-borrar="${esc(o.id)}"
+            <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(o.id)}"
                     data-tip="Eliminar"><i data-icon="trash"></i></button>
           </div>
         </div>`).join('')}</div>`}
@@ -395,7 +395,7 @@ export async function vistaOrdenes(ordenId = null) {
   for (const el of document.querySelectorAll('[data-abrir]')) {
     const ver = () => verOrden(el.dataset.abrir);
     el.addEventListener('click', (e) => {
-      if (e.target.closest('.ox-rowactions')) return;   // los botones tienen lo suyo
+      if (e.target.closest('.op-rowactions')) return;   // los botones tienen lo suyo
       ver();
     });
     el.addEventListener('keydown', (e) => {
@@ -420,7 +420,7 @@ export async function vistaOrdenes(ordenId = null) {
   for (const b of document.querySelectorAll('[data-borrar]')) {
     /* La fila sale animada y recién después se repinta la lista. */
     b.onclick = () => borrarOrden(b.dataset.borrar, {
-      antesDeRepintar: (listo) => exit(b.closest('.ox-listitem'), { onDone: listo }),
+      antesDeRepintar: (listo) => exit(b.closest('.op-listitem'), { onDone: listo }),
     });
   }
 

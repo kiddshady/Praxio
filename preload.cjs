@@ -22,9 +22,9 @@ const call = async (canal, ...args) => {
   return res.data;
 };
 
-/* `onyx` es la API del framework: ventana, ajustes, info. No se renombra —
+/* `opal` es la API del framework: ventana, ajustes, info. No se renombra —
    es lo que hace que un arreglo del shell se pueda portar entre apps. */
-contextBridge.exposeInMainWorld('onyx', {
+contextBridge.exposeInMainWorld('opal', {
   info: () => call('app:info'),
 
   win: {
@@ -38,6 +38,12 @@ contextBridge.exposeInMainWorld('onyx', {
       ipcRenderer.on('win:maximized', h);
       return () => ipcRenderer.off('win:maximized', h);
     },
+  },
+
+  /* El portapapeles para el menú de los campos (FieldMenu): leerlo desde el
+     renderer pide permiso, y por el main no. Escribir no pasa por acá. */
+  clip: {
+    read: () => call('clip:read'),
   },
 
   settings: {

@@ -13,7 +13,7 @@
    hace cumplir, con la clave fuera del alcance del renderer.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const { ipcMain, app, dialog, shell, BrowserWindow } = require('electron');
+const { ipcMain, app, dialog, shell, BrowserWindow, clipboard } = require('electron');
 const fsp = require('fs/promises');
 const path = require('path');
 const store = require('./store.cjs');
@@ -207,7 +207,7 @@ function registrarRespaldo() {
     const res = await dialog.showSaveDialog(ventana(), {
       title: 'Guardar respaldo cifrado',
       defaultPath: `rx-respaldo-${sello}.db`,
-      filters: [{ name: 'Base cifrada de Rx', extensions: ['db'] }],
+      filters: [{ name: 'Base cifrada de Quirotech', extensions: ['db'] }],
     });
     if (res.canceled || !res.filePath) return { cancelado: true };
     db.respaldar(res.filePath);
@@ -290,11 +290,14 @@ function register(opciones = {}) {
     dataDir: rutas.raiz(),
     electron: process.versions.electron,
     esquema: db.ESQUEMA,
-    repo: 'https://github.com/kiddshady/Rx',
+    repo: 'https://github.com/kiddshady/Quirotech',
     /* El tope legal viaja al renderer en vez de estar escrito de nuevo en la
        vista: el numero es uno solo y sale de donde se hace cumplir. */
     maxMedicamentos: db.MAX_MEDICAMENTOS,
   }));
+
+  // Para pegar desde el menú de los campos. Con tope: es texto para un campo.
+  handle('clip:read', async () => String(await clipboard.readText()).slice(0, 100000));
 
   handle('settings:get', () => store.loadSettings());
   handle('settings:save', async (patch) => {

@@ -3,7 +3,7 @@
      clínicas adentro no tiene ningún motivo para hablar con la red. -->
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
-<title>Rx</title>
+<title>Quirotech</title>
 
 <link rel="stylesheet" href="./css/fonts.css">
 <link rel="stylesheet" href="./css/tokens.css">
@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="./css/overlays.css">
 <link rel="stylesheet" href="./css/hoja.css">
 <link rel="stylesheet" href="./css/rx.css">
+<link rel="stylesheet" href="./css/quirotech.css">
 
 <style>
   /* Boot splash: réplica exacta del primer frame. Pinta ANTES de que cargue
@@ -27,107 +28,95 @@
     z-index: 9999;
     display: grid;
     place-items: center;
-    background: #0a0b0d;
+    background: #070b0b;
     transition: opacity .34s cubic-bezier(.16, 1, .3, 1);
   }
-  /* `color` además de `stroke`: la cabeza de la serpiente es un punto macizo
-     con fill="currentColor", y sin esto tomaría el color heredado del body —
-     o sea negro sobre negro, invisible. */
-  #boot-splash svg { width: 46px; height: 46px; stroke: #f2f4f7; color: #f2f4f7; fill: none;
-                     stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
-  /* La marca se DIBUJA, no aparece: primero el bastón, después la serpiente
-     enroscándose, y al final asoma la cabeza. */
-  #boot-splash path { stroke-dasharray: 34; stroke-dashoffset: 34;
-                      animation: boot-draw .72s cubic-bezier(.16,1,.3,1) forwards; }
-  #boot-splash path:nth-child(2) { animation-delay: .06s; }
-  #boot-splash path:nth-child(3) { animation-delay: .18s; }
-  #boot-splash circle { opacity: 0;
-                        animation: boot-cabeza .28s cubic-bezier(.16,1,.3,1) .66s forwards; }
-  @keyframes boot-draw { to { stroke-dashoffset: 0 } }
-  @keyframes boot-cabeza { to { opacity: 1 } }
+  /* La marca AFLORA (la firma de movimiento de Opal): sube apenas y se
+     enciende, con la sombra larga de lo que flota. */
+  #boot-splash img {
+    width: 84px;
+    height: 84px;
+    opacity: 0;
+    transform: translateY(8px) scale(.97);
+    filter: drop-shadow(0 14px 30px rgb(0 0 0 / .6));
+    animation: boot-aflora .7s cubic-bezier(.16, 1, .3, 1) .05s forwards;
+  }
+  @keyframes boot-aflora { to { opacity: 1; transform: none; } }
 </style>
 
 <div id="boot-splash">
-  <!-- Bastón de Asclepio. El asta se corta donde la serpiente pasa por
-       delante: ese hueco es lo que la hace parecer enroscada y no apoyada. -->
-  <svg viewBox="0 0 16 16">
-    <path d="M8 1.9V7.9"/>
-    <path d="M8 9.6V14.1"/>
-    <path d="M8.2 13.2A2.8 2.8 0 0 0 6.6 8.2 3 3 0 0 1 9.9 3.5"/>
-    <circle cx="9.9" cy="3.5" r=".85" fill="currentColor" stroke="none"/>
-  </svg>
+  <img src="./img/marca.png" alt="">
 </div>
 
-<div class="ox-app">
+<div class="op-app">
+
+  <!-- El sustrato: niebla y papel de electro (quirotech.css). Una capa, estática. -->
+  <div class="op-fog" aria-hidden="true"></div>
 
   <!-- ── Titlebar propia: acá no hay frame nativo ─────────────────────────── -->
-  <header class="ox-titlebar">
-    <div class="ox-brand ox-no-drag" data-tip="Rx" id="brand">
-      <svg class="ox-brand__mark ox-icon" viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M8 1.9V7.9"/>
-        <path d="M8 9.6V14.1"/>
-        <path d="M8.2 13.2A2.8 2.8 0 0 0 6.6 8.2 3 3 0 0 1 9.9 3.5"/>
-        <circle cx="9.9" cy="3.5" r=".85" fill="currentColor" stroke="none"/>
-      </svg>
-      <span class="ox-brand__name">Rx</span>
+  <header class="op-titlebar">
+    <div class="op-brand op-no-drag" id="brand">
+      <img class="op-brand__img" src="./img/marca-chica.png" srcset="./img/marca-chica.png 1x, ./img/marca-chica@2x.png 2x" alt="">
+      <span class="op-brand__name">Quirotech</span>
     </div>
 
     <!-- Contexto de la vista actual. Lo llena el router. -->
-    <div class="ox-titlebar__context" id="titlebar-context"></div>
-
-    <div class="ox-wincontrols">
-      <button class="ox-wincontrol" id="win-min"   aria-label="Minimizar"><i data-icon="winMin"></i></button>
-      <button class="ox-wincontrol" id="win-max"   aria-label="Maximizar"><i data-icon="winMax"></i></button>
-      <button class="ox-wincontrol ox-wincontrol--close" id="win-close" aria-label="Cerrar"><i data-icon="winClose"></i></button>
-    </div>
+    <div class="op-titlebar__context" id="titlebar-context"></div>
   </header>
 
-  <div class="ox-body">
+  <!-- Los controles de ventana viven aparte de la titlebar (Opal). -->
+  <div class="op-wincontrols">
+    <button class="op-wincontrol" id="win-min"   aria-label="Minimizar"><i data-icon="winMin"></i></button>
+    <button class="op-wincontrol op-iconswap" id="win-max" aria-label="Maximizar"><i data-icon="winMax"></i><i data-icon="winRestore"></i></button>
+    <button class="op-wincontrol op-wincontrol--close" id="win-close" aria-label="Cerrar"><i data-icon="winClose"></i></button>
+  </div>
+
+  <div class="op-body">
 
     <!-- ── Rail ──────────────────────────────────────────────────────────── -->
-    <nav class="ox-rail">
-      <div class="ox-rail__top">
-        <button class="ox-btn ox-btn--secondary ox-flashable" id="btn-nueva-receta" style="width:100%">
+    <nav class="op-rail">
+      <div class="op-rail__top">
+        <button class="op-btn op-btn--primary op-flashable" id="btn-nueva-receta" style="width:100%">
           <i data-icon="plus"></i> Nueva receta
         </button>
       </div>
 
-      <div class="ox-rail__nav ox-scroll">
-        <div class="ox-rail__group">
-          <button class="ox-navitem" data-view="tablero">
+      <div class="op-rail__nav op-scroll">
+        <div class="op-rail__group">
+          <button class="op-navitem" data-view="tablero">
             <i data-icon="home"></i> Tablero
           </button>
-          <button class="ox-navitem" data-view="pacientes">
-            <i data-icon="users"></i> Pacientes <span class="ox-navitem__count" id="cuenta-pacientes"></span>
+          <button class="op-navitem" data-view="pacientes">
+            <i data-icon="users"></i> Pacientes <span class="op-navitem__count" id="cuenta-pacientes"></span>
           </button>
-          <button class="ox-navitem" data-view="recetas">
-            <i data-icon="file"></i> Recetas <span class="ox-navitem__count" id="cuenta-recetas"></span>
+          <button class="op-navitem" data-view="recetas">
+            <i data-icon="file"></i> Recetas <span class="op-navitem__count" id="cuenta-recetas"></span>
           </button>
-          <button class="ox-navitem" data-view="ordenes">
-            <i data-icon="orden"></i> Órdenes <span class="ox-navitem__count" id="cuenta-ordenes"></span>
+          <button class="op-navitem" data-view="ordenes">
+            <i data-icon="orden"></i> Órdenes <span class="op-navitem__count" id="cuenta-ordenes"></span>
           </button>
         </div>
 
-        <div class="ox-rail__group">
-          <div class="ox-rail__group-label">Catálogo</div>
-          <button class="ox-navitem" data-view="medicamentos">
+        <div class="op-rail__group">
+          <div class="op-rail__group-label">Catálogo</div>
+          <button class="op-navitem" data-view="medicamentos">
             <i data-icon="pill"></i> Medicamentos
           </button>
-          <button class="ox-navitem" data-view="estudios">
+          <button class="op-navitem" data-view="estudios">
             <i data-icon="estudio"></i> Estudios
           </button>
         </div>
 
-        <div class="ox-rail__group">
-          <div class="ox-rail__group-label">Sistema</div>
-          <button class="ox-navitem" data-view="ajustes">
+        <div class="op-rail__group">
+          <div class="op-rail__group-label">Sistema</div>
+          <button class="op-navitem" data-view="ajustes">
             <i data-icon="settings"></i> Ajustes
           </button>
         </div>
       </div>
 
-      <div class="ox-rail__foot" id="rail-foot">
-        <button class="ox-btn ox-btn--ghost ox-flashable" id="btn-bloquear" style="width:100%"
+      <div class="op-rail__foot" id="rail-foot">
+        <button class="op-btn op-btn--ghost op-flashable" id="btn-bloquear" style="width:100%"
                 data-tip="Cierra la base y pide la contraseña" data-tip-side="top">
           <i data-icon="lock"></i> Bloquear
         </button>
@@ -135,20 +124,23 @@
     </nav>
 
     <!-- ── Vista ─────────────────────────────────────────────────────────── -->
-    <main class="ox-main" id="view"></main>
+    <main class="op-main" id="view"></main>
+
+    <!-- ── Panel derecho: la filiación del paciente en su ficha (.con-panel) ── -->
+    <aside class="op-panel" id="panel" aria-label="Datos del paciente" inert></aside>
   </div>
 
   <!-- ── Statusbar ───────────────────────────────────────────────────────── -->
-  <footer class="ox-statusbar">
-    <div class="ox-statusbar__item" data-tip="Recetas emitidas hoy" data-tip-side="top">
-      <i data-icon="file"></i> <span class="ox-statusbar__value ox-num" id="stat-hoy"></span> hoy
+  <footer class="op-statusbar">
+    <div class="op-statusbar__item" data-tip="Recetas emitidas hoy" data-tip-side="top">
+      <i data-icon="file"></i> <span class="op-statusbar__value op-num" id="stat-hoy"></span> hoy
     </div>
-    <div class="ox-statusbar__item" id="stat-cifrado" data-tip="La base está cifrada en disco" data-tip-side="top">
-      <i data-icon="lock"></i> <span class="ox-statusbar__value">Cifrada</span>
+    <div class="op-statusbar__item" id="stat-cifrado" data-tip="La base está cifrada en disco" data-tip-side="top">
+      <i data-icon="lock"></i> <span class="op-statusbar__value">Cifrada</span>
     </div>
-    <button type="button" class="ox-statusbar__item ox-plegable--ancho rx-update" id="stat-update"
+    <button type="button" class="op-statusbar__item op-plegable--ancho rx-update" id="stat-update"
             data-tip-side="top" hidden></button>
-    <div class="ox-spacer"></div>
+    <div class="op-spacer"></div>
   </footer>
 </div>
 
@@ -159,6 +151,6 @@
 <div id="cerradura" class="rx-cerradura" hidden></div>
 
 <!-- Todos los overlays se portalean acá: fuera del flujo, por encima de todo. -->
-<div id="ox-layer"></div>
+<div id="op-layer"></div>
 
 <script type="module" src="./js/app.js"></script>

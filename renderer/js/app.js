@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Rx — arranque y shell
+   Quirotech — arranque y shell
 
    El orden importa: NADA de dominio se pide antes de que la base esté abierta.
    Si el proceso principal responde "La app está bloqueada" es porque una vista
@@ -8,7 +8,8 @@
 
 import { Icons } from './icons.js';
 import './iconos-rx.js';
-import { Tooltip, Toast, Menu, Modal } from './overlays.js';
+import { Tooltip, Toast, Menu, FieldMenu, Modal } from './overlays.js';
+import { Shell } from './shell.js';
 import Router from './router.js';
 import { initClickFlash, initScrollFades } from './motion.js';
 import { colorToken, attempt } from './ui.js';
@@ -24,7 +25,7 @@ import { vistaMedicamentos } from './vistas/medicamentos.js';
 import { vistaEstudios } from './vistas/estudios.js';
 import { vistaAjustes } from './vistas/ajustes.js';
 
-const api = window.onyx;
+const api = window.opal;
 const rx = window.rx;
 
 /* ══ Shell ═══════════════════════════════════════════════════════════════════ */
@@ -36,7 +37,7 @@ function cablearShell() {
 
   const btnMax = document.getElementById('win-max');
   api.win.onMaximized((max) => {
-    btnMax.innerHTML = Icons.svg(max ? 'winRestore' : 'winMax');
+    btnMax.classList.toggle('is-b', max);   // los dos íconos se cruzan (.op-iconswap)
   });
 
   document.getElementById('btn-nueva-receta').onclick = () => Router.go('receta');
@@ -44,17 +45,17 @@ function cablearShell() {
 
   /* El rail no se ilumina desde acá: de eso ya se encarga el router, que sabe
      cuál es el `nav` de cada ruta (la ficha de un paciente ilumina Pacientes). */
-  for (const b of document.querySelectorAll('.ox-navitem')) {
+  for (const b of document.querySelectorAll('.op-navitem')) {
     b.onclick = () => Router.go(b.dataset.view);
   }
 }
 
 /* ══ Color de la ventana ═════════════════════════════════════════════════════
-   --ox-bg está en oklch y Electron solo entiende hex. La traducción la hace
+   --op-bg está en oklch y Electron solo entiende hex. La traducción la hace
    colorToken() con un canvas, no un regex: parseando el texto, la app le
    mandaba VERDE a su propia ventana. */
 function sincronizarColor() {
-  const hex = colorToken('--ox-bg');
+  const hex = colorToken('--op-bg');
   if (hex) api.win.setBackground(hex);
 }
 
@@ -105,8 +106,11 @@ function cablearBloqueo() {
        detrás, un dato de paciente seguiría en pantalla —y en el DOM— con la
        app supuestamente bloqueada. */
     document.getElementById('view').innerHTML = '';
+    // Y la filiación del panel derecho, por lo mismo.
+    Shell.set({ panel: false });
+    document.getElementById('panel').innerHTML = '';
     // Y el calco de un relevo en curso (router.js), que es la vista anterior entera.
-    document.querySelectorAll('.ox-main--saliente').forEach((el) => el.remove());
+    document.querySelectorAll('.op-main--saliente').forEach((el) => el.remove());
     Menu.hide?.();
     await desbloquear(motivo);
     await cargarTodo();
@@ -133,8 +137,10 @@ function quitarSplash() {
 async function boot() {
   Icons.mount(document);
   Tooltip.init();
+  FieldMenu.init();           // el click derecho en un campo: cortar, copiar, pegar
   initClickFlash();
   initScrollFades();
+  Shell.init();
   cablearShell();
   cablearActividad();
   sincronizarColor();
@@ -165,6 +171,14 @@ async function boot() {
   Router.go(S.ajustes.ultimaVista || 'tablero');
 
   Router.onChange(({ name }) => {
+    /* El panel derecho es de la ficha. Fuera de ella se apaga, y su contenido
+       (datos del paciente) se vacía cuando terminó de irse: vaciarlo antes lo
+       haría desaparecer de golpe en vez de fundirse. */
+    if (name !== 'ficha' && Shell.get().panel) {
+      Shell.set({ panel: false });
+      setTimeout(() => { if (!Shell.get().panel) document.getElementById('panel').innerHTML = ''; }, 400);
+    }
+
     /* Los contadores del rail y la statusbar se rehacen en CADA navegación.
        Dejar que los actualice quien muta los datos parece más eficiente y es
        una fuente inagotable de cifras viejas: alcanza con que un camino nuevo
@@ -185,8 +199,8 @@ boot()
   .catch((err) => {
     console.error('[boot]', err);
     document.getElementById('view').innerHTML =
-      `<div class="ox-empty"><div class="ox-empty__title">Rx no pudo arrancar</div>
-       <div class="ox-empty__text">${String(err?.message || err)}</div></div>`;
+      `<div class="op-empty"><div class="op-empty__title">Quirotech no pudo arrancar</div>
+       <div class="op-empty__text">${String(err?.message || err)}</div></div>`;
   })
   /* El splash se va SIEMPRE, incluso si el arranque falló: dejarlo puesto sobre
      un error convierte una falla explicable en una app colgada. */

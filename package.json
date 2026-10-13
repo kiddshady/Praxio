@@ -1,7 +1,7 @@
 {
-  "name": "rx",
-  "productName": "Rx",
-  "version": "0.1.12",
+  "name": "quirotech",
+  "productName": "Quirotech",
+  "version": "0.2.0",
   "description": "Historia clínica, recetas y órdenes de estudios para consultorio. Datos cifrados en disco, firma manuscrita.",
   "main": "main.cjs",
   "author": "Francisco Pavez",
@@ -27,7 +27,7 @@
   },
   "build": {
     "appId": "com.kiddshady.rx",
-    "productName": "Rx",
+    "productName": "Quirotech",
     "copyright": "Copyright © 2026 Francisco Pavez",
     "directories": {
       "output": "dist",
@@ -39,8 +39,7 @@
       "src/**/*",
       "renderer/**/*",
       "package.json",
-      "!build/make-icon.cjs",
-      "!data/**",
+            "!data/**",
       "!test/**",
       "!dist/**"
     ],
@@ -50,7 +49,7 @@
     "npmRebuild": false,
     "win": {
       "target": "nsis",
-      "icon": "build/icon.png"
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -60,7 +59,7 @@
     "publish": {
       "provider": "github",
       "owner": "kiddshady",
-      "repo": "Rx"
+      "repo": "Quirotech"
     }
   }
 }

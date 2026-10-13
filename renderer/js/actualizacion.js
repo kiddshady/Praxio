@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Rx — actualizaciones (renderer)
+   Quirotech — actualizaciones (renderer)
 
    El proceso principal descarga; acá se presenta el estado en tres lugares:
    statusbar, toast al quedar lista y controles dentro de Ajustes. El chequeo
@@ -52,7 +52,7 @@ function pintarStatusbar() {
 
   const texto = {
     buscando: 'buscando actualización…',
-    disponible: `Rx ${estado.nueva} disponible`,
+    disponible: `Quirotech ${estado.nueva} disponible`,
     descargando: `descargando ${estado.nueva}`,
     listo: `Reiniciar y actualizar a ${estado.nueva}`,
   }[f];
@@ -62,13 +62,13 @@ function pintarStatusbar() {
      adentro, cada evento de progreso relevaría el aviso entero. Se escribe en
      la barra que ya está. */
   const html = `${Icons.svg(f === 'listo' ? 'retry' : 'download')}`
-    + `<span class="ox-statusbar__value">${esc(texto)}</span>`
-    + (f === 'descargando' ? '<span class="ox-meter"><span class="ox-meter__fill"></span></span>' : '');
+    + `<span class="op-statusbar__value">${esc(texto)}</span>`
+    + (f === 'descargando' ? '<span class="op-meter"><span class="op-meter__fill"></span></span>' : '');
   deslizarAncho(el, () => swap(el, html, { relevo: true }));
   // `:scope >`: durante el relevo, la barra de antes sigue en el calco que se va.
-  el.querySelector(':scope > .ox-meter')?.style.setProperty('--ox-pct', `${Math.round(estado.progreso || 0)}%`);
+  el.querySelector(':scope > .op-meter')?.style.setProperty('--op-pct', `${Math.round(estado.progreso || 0)}%`);
   el.dataset.tip = f === 'listo'
-    ? 'Cierra Rx, instala la versión nueva y la vuelve a abrir'
+    ? 'Cierra Quirotech, instala la versión nueva y la vuelve a abrir'
     : f === 'descargando'
       ? `${Math.round(estado.progreso || 0)} %${estado.velocidad ? ` · ${fmtBytes(estado.velocidad)}/s` : ''}`
       : 'Ver en Ajustes';
@@ -81,7 +81,7 @@ function aplicar(e) {
   if (estado.fase === 'listo' && avisada !== estado.nueva) {
     avisada = estado.nueva;
     Toast.show({
-      title: `Rx ${estado.nueva} está lista`,
+      title: `Quirotech ${estado.nueva} está lista`,
       text: 'Se instala al reiniciar. Tocá el aviso de la barra cuando quieras.',
       icon: 'download',
       duration: 9000,

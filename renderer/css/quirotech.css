@@ -1,0 +1,91 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUIROTECH — la piel
+
+   Opal pone la física (una sola superficie opaca, hojas de alfa, el vidrio
+   solo donde puede muestrear, la luz que talla en vez de rellenar). Esto pone
+   lo que hace que sea Quirotech y no otra app de la familia:
+
+     · el sustrato es papel de electrocardiograma: la grilla de 1 mm y la de
+       5 mm, en menta apenas, debajo de la niebla. Es lo que el vidrio
+       desenfoca, así que en las hojas se lee como textura y en el aire (la
+       titlebar, los márgenes) como papel;
+     · la niebla junta un poco de menta y un poco de agua, además de luz;
+     · la marca es el ícono de verdad (la vara de Asclepio en su baldosa), no
+       un trazo de línea: el mismo que se ve en la barra de tareas.
+
+   Como en Beacon, el cromo no tiene color: si algo en pantalla es menta, es un
+   canto, una línea o un punto; si es ámbar, pide atención; si es rojo, falló.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+.op-app {
+  /* En :root también: la cerradura vive fuera de .op-app y usa la misma niebla. */
+  --op-sustrato:
+    /* El grano, arriba de todo el sustrato. */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),
+    /* El velo: parejo, nunca un degradé largo (franjas). */
+    linear-gradient(rgb(6 9 10 / .3), rgb(6 9 10 / .3)),
+    /* El papel de electro: 5 mm y 1 mm. */
+    linear-gradient(rgb(var(--op-accent-rgb) / .042) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(90deg, rgb(var(--op-accent-rgb) / .042) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(rgb(var(--op-accent-rgb) / .018) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, rgb(var(--op-accent-rgb) / .018) 1px, transparent 1px) 0 0 / 20px 20px,
+    /* La niebla: luz, menta y agua. */
+    radial-gradient(46vw 46vw at 10% 0%, rgb(var(--op-accent-rgb) / calc(.07 * var(--op-fog))), transparent 70%),
+    radial-gradient(42vw 42vw at 94% 16%, rgb(255 255 255 / calc(.05 * var(--op-fog))), transparent 70%),
+    radial-gradient(40vw 40vw at 80% 104%, rgb(120 180 255 / calc(.05 * var(--op-fog))), transparent 70%),
+    radial-gradient(40vw 40vw at 30% 110%, rgb(var(--op-accent-rgb) / calc(.035 * var(--op-fog))), transparent 70%);
+}
+
+/* ── La marca ────────────────────────────────────────────────────────────────
+   El ícono en su baldosa, a 18 px, con la versión chica dibujada a su medida
+   (build/make-icon.cjs). El nombre en la sans, sin versalitas: Quirotech es
+   una palabra, no una sigla. */
+.op-brand__img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  flex: none;
+  display: block;
+}
+.op-brand__name {
+  font-size: var(--op-fs-13);
+  font-weight: var(--op-w-semi);
+  letter-spacing: -.01em;
+  text-transform: none;
+  color: var(--op-text);
+}
+
+/* El activo del rail: la hoja que ya pone Opal más una luz menta en el canto
+   izquierdo, que entra y sale con su propia curva. */
+.op-navitem { position: relative; }
+.op-navitem::after {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--op-2) - 1px);
+  top: 50%;
+  width: 3px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 0 3px 3px 0;
+  background: var(--op-accent);
+  box-shadow: 0 0 10px rgb(var(--op-accent-rgb) / .85);
+  opacity: 0;
+  transform: scaleY(.3);
+  transition: opacity var(--op-t-2) var(--op-ease-soft), transform var(--op-t-3) var(--op-ease);
+  pointer-events: none;
+}
+.op-navitem.is-active::after { opacity: 1; transform: none; }
+
+/* Los números de las cifras, en la mono y un punto más grandes. */
+.op-stat__value { font-family: var(--op-mono); letter-spacing: -.03em; }
+
+/* ── Ámbar: lo que pide atención ─────────────────────────────────────────────
+   El tercer color con significado, como en Beacon: menta es un canto, ámbar
+   pide que lo mires antes de seguir (una alergia), rojo dice que algo falló. */
+:root {
+  --qt-ambar-rgb: 251 191 36;
+  --qt-ambar: rgb(var(--qt-ambar-rgb));
+  --qt-ambar-wash: rgb(var(--qt-ambar-rgb) / .09);
+  --qt-ambar-ring: rgb(var(--qt-ambar-rgb) / .32);
+}
