@@ -89,3 +89,15 @@
   --qt-ambar-wash: rgb(var(--qt-ambar-rgb) / .09);
   --qt-ambar-ring: rgb(var(--qt-ambar-rgb) / .32);
 }
+
+/* ── Los modales: hojas sólidas del tono de la app ──────────────────────────
+   Opal los hace de vidrio (--op-s3 con blur), y sobre el papel oscuro eso daba
+   un gris neutro (29 32 34) que no era de la familia de las hojas de la vista
+   (15 20 22). Pedido de Fran (13 oct 2026): sólidos, del color del fondo. Son
+   el fondo de la app aclarado lo mismo que se ve aclarada la hoja de la vista,
+   con el matiz del fondo; opacos, así que el blur no tiene nada que hacer. El
+   canto iluminado y la sombra larga se quedan: es lo que los despega del velo. */
+.op-modal {
+  background: oklch(from var(--op-bg) calc(l + .042) c h);
+  backdrop-filter: none;
+}
