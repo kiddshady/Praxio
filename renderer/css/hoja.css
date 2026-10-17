@@ -378,6 +378,13 @@
 
 .rx-hoja--retro .separador { margin: 2.5mm 0; border-top: .8mm double var(--retro-linea); }
 
+/* Orden retro: los estudios numerados como los medicamentos, pero sin raya
+   doble entre uno y otro, y el diagnóstico de la orden entera al final. El
+   encabezado es texto libre y puede ser largo: parte en vez de desbordar. */
+.rx-hoja--retro.rx-hoja--orden .rp { min-width: 0; overflow-wrap: anywhere; }
+.rx-hoja--retro.rx-hoja--orden .item { margin-bottom: 1.6mm; }
+.rx-hoja--retro.rx-hoja--orden .datos-orden { margin-top: 2.4mm; }
+
 /* Firma: mismo criterio que la RPE, el mínimo es el piso y no el ideal. */
 .rx-hoja--retro .hueco-firma { flex: 1; min-height: 22mm; }
 .rx-hoja--retro .pie { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; }

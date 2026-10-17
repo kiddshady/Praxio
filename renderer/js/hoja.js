@@ -10,11 +10,12 @@
    `receta.snapshot`. Así reimprimir una receta de marzo pinta exactamente lo
    que salió en marzo.
 
-   Son cuatro hojas: la receta clásica, la RPE, la retro y la orden de
-   estudios. La retro es la RPE con otra ropa (ver más abajo). La orden
-   usa la misma plantilla RPE y cambia solamente el cuerpo: estudios en vez de
-   medicamentos, sin numeración y sin columna de envases. Encabezado, cobertura
-   y pie son literalmente las mismas funciones, no una copia parecida.
+   Son cinco hojas: la receta clásica, la RPE y la retro, y la orden de
+   estudios en RPE o en retro. La retro es la RPE con otra ropa (ver más
+   abajo). Cada orden usa la plantilla de su receta y cambia solamente el
+   cuerpo: estudios en vez de medicamentos y sin envases. Encabezado,
+   cobertura y pie son literalmente las mismas funciones, no una copia
+   parecida.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /** Las plantillas de receta, en el orden en que se ofrecen, con el nombre que
@@ -29,6 +30,22 @@ export const PLANTILLAS = [
 /** Las que llevan número de receta en el formulario. La RPE lo pide aunque su
     hoja no lo imprima: así quedaba, y se sigue guardando con la receta. */
 export const CON_NUMERO = ['rpe', 'retro'];
+
+/** Las plantillas de la orden de estudios. La misma lista vive en db.cjs
+    (PLANTILLAS_ORDEN). Una orden sin plantilla (las de antes de la 0.3.0) es
+    RPE. */
+export const PLANTILLAS_ORDEN = [
+  ['rpe', 'RPE'],
+  ['retro', 'Retro'],
+];
+
+/** Lo que encabeza el pedido si no se escribió otra cosa. Una orden vieja, sin
+    el campo, sale con esto; uno vaciado a propósito sale vacío. */
+export const ENCABEZADO_ORDEN = 'Solicito:';
+
+function encabezadoOrden(o) {
+  return o.encabezado == null ? ENCABEZADO_ORDEN : String(o.encabezado);
+}
 
 export function nombrePlantilla(p) {
   return (PLANTILLAS.find(([v]) => v === p) || PLANTILLAS[0])[1];
@@ -249,15 +266,10 @@ function membreteRetro(m, numero) {
   return h;
 }
 
-function retro(r, duplicado) {
-  const p = r.paciente || {};
-  const m = r.medico || {};
-  const items = r.items || [];
-
-  let h = `<section class="rx-hoja rx-hoja--retro">`;
-  h += membreteRetro(r.membrete === false ? {} : m, String(r.numero || '').trim());
-
-  h += `<div class="caja caja-paciente"><div class="campos">`;
+/** Las cajas del paciente y de la cobertura. Las comparten la receta retro y
+    la orden retro. */
+function cajasRetro(p) {
+  let h = `<div class="caja caja-paciente"><div class="campos">`;
   if (p.apellido_nombre) {
     h += campoRetro('Paciente', p.apellido_nombre, 'campo--ancho campo--nombre');
     h += campoRetro('CUIL', p.cuil) + campoRetro('DNI', p.dni)
@@ -274,6 +286,26 @@ function retro(r, duplicado) {
     h += campoRetro('Cobertura', p.cobertura) + campoRetro('Afiliado Nº', p.afiliado);
     h += `</div></div>`;
   }
+  return h;
+}
+
+/** El hueco de la firma y el pie con la fecha. Los comparten las dos retro. */
+function pieRetro(fechaDoc) {
+  let h = `<div class="hueco-firma"></div>`;
+  h += `<div class="pie"><div class="emitida"><span class="rot">Emitida:</span>`
+     + `<span class="dato">${esc(fechaLarga(fechaDoc) || '—')}</span></div>`;
+  h += `<div class="firma"><div class="linea"></div><div class="rot">Firma y sello</div></div></div>`;
+  return h;
+}
+
+function retro(r, duplicado) {
+  const p = r.paciente || {};
+  const m = r.medico || {};
+  const items = r.items || [];
+
+  let h = `<section class="rx-hoja rx-hoja--retro">`;
+  h += membreteRetro(r.membrete === false ? {} : m, String(r.numero || '').trim());
+  h += cajasRetro(p);
 
   h += `<div class="encabezado-rp"><div class="rp">Rp/</div>`;
   if (duplicado) h += `<div class="sello">DUPLICADO</div>`;
@@ -291,10 +323,7 @@ function retro(r, duplicado) {
     h += `</div></div>`;
   });
 
-  h += `<div class="hueco-firma"></div>`;
-  h += `<div class="pie"><div class="emitida"><span class="rot">Emitida:</span>`
-     + `<span class="dato">${esc(fechaLarga(r.fecha) || '—')}</span></div>`;
-  h += `<div class="firma"><div class="linea"></div><div class="rot">Firma y sello</div></div></div>`;
+  h += pieRetro(r.fecha);
   h += `</section>`;
   return h;
 }
@@ -311,7 +340,7 @@ function orden(o) {
 
   let h = `<section class="rx-hoja rx-hoja--rpe rx-hoja--orden">`;
   h += cabeceraRpe(p);
-  h += `<div class="encabezado-rp"><div>Solicito:</div></div>`;
+  h += `<div class="encabezado-rp"><div>${esc(encabezadoOrden(o))}</div></div>`;
 
   items.forEach((it) => {
     h += `<div class="item estudio"><div class="principal">`;
@@ -335,21 +364,59 @@ function orden(o) {
   return h;
 }
 
+/* La orden con la ropa de la receta retro: el mismo membrete (sin número: la
+   orden no lleva), las mismas cajas, el mismo pie. Donde la receta dice «Rp/»
+   va el encabezado del pedido, en la misma tinta y el mismo cuerpo, y es texto
+   libre («Solicito:» si no se escribió otro). Los estudios van numerados en el
+   margen como los medicamentos, pero sin la raya doble entre uno y otro: un
+   pedido de laboratorio puede tener diez renglones y la raya los separaría de
+   más. El diagnóstico va una sola vez, al final, porque es de la orden entera. */
+function ordenRetro(o) {
+  const p = o.paciente || {};
+  const m = o.medico || {};
+  const items = o.items || [];
+
+  let h = `<section class="rx-hoja rx-hoja--retro rx-hoja--orden">`;
+  h += membreteRetro(o.membrete === false ? {} : m, '');
+  h += cajasRetro(p);
+
+  h += `<div class="encabezado-rp"><div class="rp">${esc(encabezadoOrden(o))}</div></div>`;
+
+  items.forEach((it, i) => {
+    h += `<div class="item estudio"><div class="num">${i + 1}.</div><div class="principal">`;
+    h += `<div class="dato t1">${esc(it.nombre || '—')}</div>`;
+    if (it.aclaracion) h += `<div class="det"><span class="dato">${esc(it.aclaracion)}</span></div>`;
+    h += `</div></div>`;
+  });
+
+  if (items.length === 0) h += `<div class="sin-datos">— sin estudios —</div>`;
+
+  if (o.diagnostico) {
+    h += `<div class="det datos-orden"><span class="rot">Diagnóstico:</span> `
+       + `<span class="dato">${esc(o.diagnostico)}</span></div>`;
+  }
+
+  h += pieRetro(o.fecha);
+  h += `</section>`;
+  return h;
+}
+
 /**
  * Arma UNA hoja.
  *
- * El tipo manda antes que la plantilla: una orden usa siempre la RPE.
+ * El tipo manda antes que la plantilla: una orden es RPE o retro, nunca la
+ * clásica.
  * Sin `tipo`, es una receta — es lo que había antes de que existiera la orden
  * y lo que sigue llegando desde los snapshots viejos.
  *
  * @param {object} d  receta {paciente, medico, items, fecha, plantilla, numero,
  *                            membrete}
  *                    u orden {tipo:'orden', paciente, medico, items, fecha,
- *                             diagnostico}
+ *                             diagnostico, plantilla, encabezado, membrete}
  * @param {{duplicado?: boolean}} opts
  */
 export function hoja(d, { duplicado = false } = {}) {
-  if (d?.tipo === 'orden') return orden(d);
+  if (d?.tipo === 'orden') return d.plantilla === 'retro' ? ordenRetro(d) : orden(d);
   const plantilla = { rpe, retro }[d?.plantilla] || clasica;
   return plantilla(d || {}, duplicado);
 }

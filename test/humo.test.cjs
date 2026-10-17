@@ -400,6 +400,26 @@ app.whenReady().then(async () => {
   ok('el panel de la previa de la orden termina dentro de la ventana',
     contenidaOrden.fondo <= contenidaOrden.ventana, JSON.stringify(contenidaOrden));
 
+  /* La orden también tiene su retro, y lo que encabeza el pedido es texto
+     libre: se emite así para ver que la instantánea lo conserve. */
+  ok('el encabezado arranca en «Solicito:»',
+    (await js(`document.getElementById('o-encabezado')?.value`)) === 'Solicito:');
+  await click('#o-plantilla [data-value="retro"]');
+  await sleep(600);
+  ok('en retro la previa es la orden retro', await js(`(() => {
+    const h = document.querySelector('#o-previa .rx-hoja');
+    return h?.classList.contains('rx-hoja--retro') && h.classList.contains('rx-hoja--orden');
+  })()`));
+  ok('en retro aparece el interruptor del membrete',
+    !(await js(`document.getElementById('o-membrete-campo').hidden`)));
+  ok('la orden retro sigue en una sola hoja',
+    (await js(`document.querySelectorAll('#o-previa .rx-hoja').length`)) === 1
+    && (await js(`document.getElementById('o-hojas')?.textContent`)) === 'una hoja');
+  await escribir('#o-encabezado', 'Se solicita:');
+  await sleep(400);
+  ok('el encabezado editado llega a la hoja',
+    (await js(`document.querySelector('#o-previa .encabezado-rp .rp')?.textContent`)) === 'Se solicita:');
+
   await click('#o-emitir');
   await sleep(900);
   ok('ofrece imprimir o guardar después de emitir',
@@ -419,6 +439,10 @@ app.whenReady().then(async () => {
     await js(`document.querySelector('.op-modal')?.textContent.includes('Orden del')`));
   ok('la hoja guardada muestra el estudio',
     await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Hemograma')`));
+  ok('y conserva la retro y el encabezado con que se emitió', await js(`(() => {
+    const h = document.querySelector('.op-modal .rx-hoja');
+    return h?.classList.contains('rx-hoja--retro') && h.querySelector('.rp')?.textContent === 'Se solicita:';
+  })()`));
   const centradaOrden = await hojaCentrada();
   ok('la hoja de la orden queda centrada en el modal',
     Math.abs(centradaOrden.cuerpo - centradaOrden.hoja) <= 2, JSON.stringify(centradaOrden));

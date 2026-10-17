@@ -64,8 +64,11 @@ const DEFAULT_SETTINGS = {
   bloqueoInactividad: 15,
   /** Con cuál de las plantillas arranca una receta nueva. */
   plantillaPorDefecto: 'clasica',
-  /** Si la retro lleva el membrete del profesional. Lo deja la última receta. */
+  /** Si la retro lleva el membrete del profesional. Lo deja la última receta
+      u orden retro. */
   membreteRetro: true,
+  /** Con cuál plantilla arranca una orden nueva. La deja la última orden. */
+  plantillaOrden: 'rpe',
   ultimaVista: null,
 };
 

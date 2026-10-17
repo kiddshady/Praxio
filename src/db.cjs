@@ -512,6 +512,8 @@ const MAX_MEDICAMENTOS = 2;
    'clasica', que es lo que pinta hoja() ante una plantilla que no conoce. La
    columna es TEXT sin CHECK a propósito: sumar una plantilla no migra nada. */
 const PLANTILLAS = ['clasica', 'rpe', 'retro'];
+/** Las de la orden de estudios (hoja.js, PLANTILLAS_ORDEN). */
+const PLANTILLAS_ORDEN = ['rpe', 'retro'];
 
 const recetas = {
   /** Emite una receta: la congela con su instantánea y suma uso al catálogo.
@@ -679,11 +681,20 @@ const ordenes = {
 
     const diagnostico = String(datos?.diagnostico ?? '').trim();
     const observaciones = String(datos?.observaciones ?? '').trim();
+    /* La plantilla, el encabezado del pedido y el membrete van solo en la
+       instantánea, que es de donde se imprime: no migran nada. Una orden sin
+       ellos (de antes de la 0.3.0) sale RPE y con «Solicito:». El encabezado
+       es texto libre; vacío a propósito, se guarda vacío. */
+    const plantilla = PLANTILLAS_ORDEN.includes(datos?.plantilla) ? datos.plantilla : 'rpe';
+    const encabezado = datos?.encabezado == null
+      ? 'Solicito:' : String(datos.encabezado).trim().slice(0, 80);
+    const membrete = datos?.membrete !== false;
     const prof = medico.get();
     const oid = id();
     const creado = ahora();
     const snapshot = JSON.stringify({
       paciente, medico: prof, items, fecha, diagnostico, observaciones,
+      plantilla, encabezado, membrete,
     });
 
     const guardar = c.transaction(() => {
@@ -796,5 +807,5 @@ function integridad() {
 module.exports = {
   abrir, cerrar, abierta, recifrar, respaldar, normalizar, hoyLocal, integridad,
   medico, pacientes, evoluciones, medicamentos, recetas, estudios, ordenes, resumen,
-  ESQUEMA, MAX_MEDICAMENTOS, PLANTILLAS,
+  ESQUEMA, MAX_MEDICAMENTOS, PLANTILLAS, PLANTILLAS_ORDEN,
 };

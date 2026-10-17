@@ -39,6 +39,41 @@ console.log('\n2. Las otras plantillas no cambian');
   ok('la RPE no numera con la clase de la retro', !rpe.includes('class="num"'));
 }
 
+console.log('\n2b. La orden retro');
+{
+  const base = {
+    tipo: 'orden', paciente: { apellido_nombre: 'GÓMEZ, María', cobertura: 'OSEP' },
+    medico: { apellido_nombre: 'Dra. Pérez', matricula: '1234' },
+    items: [{ nombre: 'Hemograma completo' }, { nombre: 'Rx de tórax', aclaracion: 'Frente y perfil' }],
+    fecha: '2026-10-16', diagnostico: 'Control anual',
+  };
+  const vieja = juego(base);
+  ok('una orden sin plantilla sigue saliendo RPE', vieja.includes('rx-hoja--rpe') && !vieja.includes('rx-hoja--retro'));
+  ok('y con «Solicito:»', vieja.includes('>Solicito:<'));
+
+  const r = juego({ ...base, plantilla: 'retro' });
+  ok('sale UNA hoja retro de orden', r.split('<section').length === 2 && r.includes('rx-hoja--retro rx-hoja--orden'));
+  ok('lleva el membrete del profesional', r.includes('class="membrete"') && r.includes('Dra. Pérez'));
+  ok('el membrete no inventa un número de receta', !r.includes('Receta Nº'));
+  ok('lleva las cajas del paciente y de la cobertura', r.includes('caja-paciente') && r.includes('caja-cobertura'));
+  ok('el encabezado por defecto es «Solicito:»', r.includes('class="rp">Solicito:<'));
+  const nums = [...r.matchAll(/class="num">(\d+)\.</g)].map((m) => Number(m[1]));
+  ok('los estudios van numerados', nums.join() === '1,2', nums.join());
+  ok('sin raya doble entre estudios', !r.includes('class="separador"'));
+  ok('la aclaración sale', r.includes('Frente y perfil'));
+  ok('el diagnóstico sale una vez', (r.match(/Diagnóstico:/g) || []).length === 1);
+  ok('no lleva sello de duplicado', !r.includes('DUPLICADO'));
+
+  const otro = juego({ ...base, plantilla: 'retro', encabezado: 'Se solicita <urgente>:' });
+  ok('el encabezado es texto libre (y escapado)', otro.includes('class="rp">Se solicita &lt;urgente&gt;:<'));
+  const rpe = juego({ ...base, plantilla: 'rpe', encabezado: 'Pedido de estudios' });
+  ok('la RPE también respeta el encabezado', rpe.includes('>Pedido de estudios<') && !rpe.includes('Solicito:'));
+  const vacio = juego({ ...base, plantilla: 'retro', encabezado: '' });
+  ok('vaciado a propósito, no imprime nada', vacio.includes('class="rp"></div>') && !vacio.includes('Solicito:'));
+  const sinMembrete = juego({ ...base, plantilla: 'retro', membrete: false });
+  ok('con el membrete apagado no lo imprime', !sinMembrete.includes('class="membrete"'));
+}
+
 console.log('\n3. La hoja');
 {
   const retro = css.slice(css.indexOf('/* ── Plantilla retro'));

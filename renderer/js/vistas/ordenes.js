@@ -7,13 +7,14 @@ import { Modal, Toast, Menu } from '../overlays.js';
 import { Icons } from '../icons.js';
 import Router from '../router.js';
 import { paint, head, esc, empty, attempt } from '../ui.js';
-import { exit, reconcile, swap } from '../motion.js';
+import { exit, bindSwitcher, reconcile, swap, asentarPlegables } from '../motion.js';
 import { campoFecha, cablearFechas } from '../campo-fecha.js';
 import { S, fecha, hoyISO, edad } from '../tienda.js';
 import { plural } from '../format.js';
-import { hoja } from '../hoja.js';
+import { hoja, PLANTILLAS_ORDEN, ENCABEZADO_ORDEN } from '../hoja.js';
 
 const rx = window.rx;
+const opal = window.opal;
 
 /* ══ Nueva orden ═════════════════════════════════════════════════════════════ */
 
@@ -49,6 +50,12 @@ export async function vistaOrden(pacienteId = null) {
     paciente: null,
     fecha: hoyISO(),
     diagnostico: '',
+    /* La plantilla queda como se usó la última vez, igual que el membrete
+       (que es el mismo ajuste que el de la receta retro). */
+    plantilla: PLANTILLAS_ORDEN.some(([v]) => v === S.ajustes?.plantillaOrden)
+      ? S.ajustes.plantillaOrden : 'rpe',
+    encabezado: ENCABEZADO_ORDEN,
+    membrete: S.ajustes?.membreteRetro !== false,
     items: [itemVacio()],
   };
   if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId);
@@ -82,6 +89,32 @@ export async function vistaOrden(pacienteId = null) {
             <input class="op-input" id="o-diagnostico" spellcheck="false"
                    placeholder="Lo que motiva el pedido">
           </div>
+        </div>
+
+        <div class="rx-fila">
+          <div class="op-field">
+            <label class="op-field__label">Plantilla</label>
+            <div class="op-segmented" id="o-plantilla">
+              ${PLANTILLAS_ORDEN.map(([v, n]) => `<button class="op-segmented__opt${E.plantilla === v ? ' is-active' : ''}"
+                      data-value="${v}">${n}</button>`).join('')}
+            </div>
+          </div>
+          <div class="op-field">
+            <label class="op-field__label" for="o-encabezado">Encabezado del pedido</label>
+            <input class="op-input" id="o-encabezado" spellcheck="false" maxlength="80"
+                   value="${esc(E.encabezado)}" placeholder="Vacío, la hoja no lo imprime">
+          </div>
+        </div>
+
+        <div class="op-row op-plegable" id="o-membrete-campo"
+             style="gap:var(--op-3);align-items:center;--op-plegable-gap:var(--op-4)"
+             ${E.plantilla === 'retro' ? '' : 'hidden'}>
+          <div class="op-grow">
+            <div>Membrete del profesional</div>
+            <div class="op-meta">Nombre, especialidad, matrícula y domicilio arriba de la hoja.</div>
+          </div>
+          <button type="button" class="op-switch${E.membrete ? ' is-on' : ''}" id="o-membrete"
+                  role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"><span></span></button>
         </div>
 
         <div class="op-section">
@@ -123,6 +156,9 @@ export async function vistaOrden(pacienteId = null) {
       items: E.items.filter((i) => i.nombre.trim()),
       fecha: E.fecha,
       diagnostico: E.diagnostico,
+      plantilla: E.plantilla,
+      encabezado: E.encabezado,
+      membrete: E.membrete,
     };
   }
 
@@ -281,6 +317,35 @@ export async function vistaOrden(pacienteId = null) {
     pintarPrevia();
   });
 
+  const campoMembrete = document.getElementById('o-membrete-campo');
+  asentarPlegables(campoMembrete);
+  bindSwitcher(document.getElementById('o-plantilla'), (valor) => {
+    E.plantilla = valor;
+    campoMembrete.hidden = valor !== 'retro';
+    pintarPrevia();
+    opal.settings.save({ plantillaOrden: valor })
+      .then((a) => { S.ajustes = a; })
+      .catch(() => { /* preferencia, no dato */ });
+  });
+
+  /* Lo que encabeza el pedido es texto libre: «Solicito:», «Se solicita:»,
+     «Pedido de estudios»… Vacío, la hoja no imprime nada en ese lugar. */
+  document.getElementById('o-encabezado').addEventListener('input', (e) => {
+    E.encabezado = e.target.value;
+    pintarPrevia();
+  });
+
+  /* El mismo ajuste que el membrete de la receta retro: quien no lo quiere lo
+     apaga una vez. */
+  const elMembrete = document.getElementById('o-membrete');
+  elMembrete.onclick = async () => {
+    E.membrete = !E.membrete;
+    elMembrete.classList.toggle('is-on', E.membrete);
+    elMembrete.setAttribute('aria-checked', String(E.membrete));
+    pintarPrevia();
+    S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
+  };
+
   document.getElementById('o-agregar').onclick = () => {
     const nuevo = itemVacio();
     E.items.push(nuevo);
@@ -298,6 +363,9 @@ export async function vistaOrden(pacienteId = null) {
       paciente_id: E.paciente.id,
       fecha: E.fecha,
       diagnostico: E.diagnostico,
+      plantilla: E.plantilla,
+      encabezado: E.encabezado,
+      membrete: E.membrete,
       items,
       desdeCatalogo: items.map((i) => i.desde).filter(Boolean),
     }), { errorTitle: 'No se pudo emitir la orden' });
@@ -479,6 +547,9 @@ async function verOrden(id) {
     items: o.items,
     fecha: o.fecha,
     diagnostico: o.diagnostico,
+    plantilla: o.snapshot?.plantilla,
+    encabezado: o.snapshot?.encabezado,
+    membrete: o.snapshot?.membrete,
   };
 
   const caja = document.createElement('div');

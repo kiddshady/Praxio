@@ -177,20 +177,34 @@ guarda, y en `PLANTILLAS` de `hoja.js`, que da los nombres. La columna no
 tiene CHECK, así que sumar una plantilla no migra nada; pero si falta en la
 lista de `db.cjs`, se guarda como clásica sin avisar.
 
-### La orden de estudios usa la plantilla RPE
+### La orden de estudios: RPE o retro
 
 Mismo circuito completo: paciente, hoja en vivo al lado, emitir, congelar la
 instantánea, salir a papel o a PDF, y quedar en el historial y en la ficha. Lo
 que cambia es el medio de la hoja: donde la receta lleva los medicamentos, la
-orden pone cada estudio en su propio renglón, **sin numerarlos**. Sale en **una**
-sola hoja: el duplicado de la receta existe
-porque se lo queda la farmacia, y la orden se la queda el laboratorio y listo.
+orden pone cada estudio en su propio renglón. Sale en **una** sola hoja: el
+duplicado de la receta existe porque se lo queda la farmacia, y la orden se la
+queda el laboratorio y listo.
 
-Por eso comparte de verdad, no "parecido": las cajas RPE del paciente y la
-cobertura, los renglones y el pie de firma salen de las mismas funciones y
-reglas de `hoja.js` y `hoja.css`. Dentro del pedido hay aire, no líneas. Dos
-copias del mismo milímetro se desincronizan el día que una se toca — y acá eso
-significa dos papeles que se ven distinto.
+Desde la 0.3.0 la orden se emite en **RPE** o en **retro** (selector
+«Plantilla» del formulario; queda la última usada, `plantillaOrden` en los
+ajustes). Cada una comparte de verdad, no "parecido", con su receta: en la RPE,
+las cajas del paciente y la cobertura, los renglones y el pie de firma salen de
+las mismas funciones y reglas de `hoja.js` y `hoja.css`, y los estudios van
+**sin numerar**; en la retro, el membrete (sin número: la orden no lleva), las
+cajas, el pie y la tinta son los de la receta retro, y los estudios van
+numerados en el margen como los medicamentos pero **sin la raya doble** entre
+uno y otro. Dentro del pedido hay aire, no líneas. Dos copias del mismo
+milímetro se desincronizan el día que una se toca — y acá eso significa dos
+papeles que se ven distinto. El membrete de la orden retro usa el mismo
+interruptor y el mismo ajuste (`membreteRetro`) que la receta retro.
+
+Lo que encabeza el pedido es **texto libre** (campo «Encabezado del pedido»):
+arranca en «Solicito:» y se puede cambiar por cualquier cosa o vaciar, y
+vacío la hoja no imprime nada en ese lugar. En la retro ocupa el lugar y la
+tinta del «Rp/». La plantilla, el encabezado y el membrete van solo en la
+instantánea, sin migrar la base: una orden de antes de la 0.3.0 sale RPE y con
+«Solicito:», como salió.
 
 El diagnóstico va **uno** para toda la orden y no uno por estudio: en el papel
 encabeza el pedido entero, y repetirlo en cada renglón sería ruido en una hoja
