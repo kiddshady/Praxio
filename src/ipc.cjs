@@ -216,7 +216,7 @@ function registrarRespaldo() {
     const res = await dialog.showSaveDialog(ventana(), {
       title: 'Guardar respaldo cifrado',
       defaultPath: `rx-respaldo-${sello}.db`,
-      filters: [{ name: 'Base cifrada de Quirotech', extensions: ['db'] }],
+      filters: [{ name: 'Base cifrada de Quiron', extensions: ['db'] }],
     });
     if (res.canceled || !res.filePath) return { cancelado: true };
     db.respaldar(res.filePath);
@@ -299,7 +299,7 @@ function register(opciones = {}) {
     dataDir: rutas.raiz(),
     electron: process.versions.electron,
     esquema: db.ESQUEMA,
-    repo: 'https://github.com/kiddshady/Quirotech',
+    repo: 'https://github.com/kiddshady/Quiron',
     /* El tope legal viaja al renderer en vez de estar escrito de nuevo en la
        vista: el numero es uno solo y sale de donde se hace cumplir. */
     maxMedicamentos: db.MAX_MEDICAMENTOS,

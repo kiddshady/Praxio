@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quirotech — proceso principal (sobre el de Onyx)
+   Quiron — proceso principal (sobre el de Onyx)
    Acá pasa lo único de una app Electron que no se puede resolver con CSS: que
    la ventana aparezca SIN un solo frame blanco.
 
@@ -34,12 +34,13 @@
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
 
-/* Quirotech se llamó Rx hasta la 0.1.12, y hasta la 0.2.3 sus datos siguieron
-   en %APPDATA%\Rx. Desde la 0.2.4 viven en %APPDATA%\Quirotech, y quien viene
-   de antes se muda acá, al arrancar: la carpeta entera se renombra, así la
-   base, la sal y la llave de «recordar en esta PC» (safeStorage la ata a
-   `Local State`) viajan juntas. Si no se puede mudar, esta vez se usa Rx: nunca
-   se abre vacía (src/carpeta.cjs). Va antes de cargar el store, que calcula su
+/* Quiron se llamó Rx hasta la 0.1.12 y Quirotech de la 0.2.0 a la 0.2.6, y sus
+   datos vivieron en %APPDATA%\Rx (hasta la 0.2.3) y %APPDATA%\Quirotech. Desde
+   la 0.3.0 viven en %APPDATA%\Quiron, y quien viene de antes se muda acá, al
+   arrancar: la carpeta entera se renombra, así la base, la sal y la llave de
+   «recordar en esta PC» (safeStorage la ata a `Local State`) viajan juntas. Si
+   no se puede mudar, esta vez se usa la vieja: nunca se abre vacía
+   (src/carpeta.cjs). Va antes de cargar el store, que calcula su
    raíz al requerirse, y antes de que Chromium escriba nada en userData. En
    desarrollo los datos van a data/ y esto no toca nada. Tampoco pisa a quien
    pide otra carpeta a propósito: un --user-data-dir explícito o RX_DATA (los

@@ -175,9 +175,9 @@ app.whenReady().then(async () => {
   ok('Ajustes permite buscar actualizaciones a mano',
     await js(`!!document.getElementById('btn-buscar-upd')`));
   // La carpeta de datos sigue llamándose Rx a propósito; el nombre de la app no.
-  ok('Ajustes dice Quirotech, no Rx, en la versión',
+  ok('Ajustes dice Quiron, no Rx, en la versión',
     await js(`(() => { const t = document.getElementById('view').innerText;
-      return /Quirotech v\\d/.test(t) && !/\\bRx v\\d/.test(t); })()`));
+      return /Quiron v\\d/.test(t) && !/\\bRx v\\d/.test(t); })()`));
 
   /* ── 4. Alta de un paciente por la UI real ────────────────────────────── */
   console.log('\n4. Paciente');

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quirotech — genera el ícono en todos sus tamaños.
+   Quiron — genera el ícono en todos sus tamaños.
 
      npm run icon
 

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quirotech — la cerradura
+   Quiron — la cerradura
 
    Lo primero que se ve. Tiene tres caras según el estado de la instalación:
 
@@ -40,7 +40,7 @@ function check(id, etiqueta, marcado) {
 function pantallaCrear(estado) {
   return `
     ${MARCA}
-    <div class="rx-cerradura__titulo">Quirotech</div>
+    <div class="rx-cerradura__titulo">Quiron</div>
     <p class="rx-cerradura__sub">
       Elegí la contraseña que va a proteger la historia clínica de tus pacientes.
     </p>
@@ -78,7 +78,7 @@ function pantallaAbrir(estado, motivo) {
     : 'Ingresá tu contraseña para abrir la historia clínica.';
   return `
     ${MARCA}
-    <div class="rx-cerradura__titulo">Quirotech</div>
+    <div class="rx-cerradura__titulo">Quiron</div>
     <p class="rx-cerradura__sub">${esc(sub)}</p>
     <form class="rx-cerradura__form" id="form-cerradura" autocomplete="off">
       <div class="op-field">

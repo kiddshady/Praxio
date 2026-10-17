@@ -1,19 +1,21 @@
-# Quirotech
+# Quiron
 
 Historia clínica, recetas y órdenes de estudios para consultorio. App de
 escritorio, un solo profesional, datos **cifrados en disco**, y lo que sale
 impreso se firma **a mano** sobre el papel: no hay firma electrónica ni nada
 que dependa de un servicio de nadie.
 
-Se llamó **Rx** hasta la 0.1.12. El nombre viene de Quirón, el centauro que le
-enseñó medicina a Asclepio; el ícono es la vara de este último. Por dentro
-muchas cosas siguen diciendo `rx` (el prefijo de las clases propias, el puente
-`window.rx`, el archivo `rx.db`) y está bien que así sea. La carpeta de datos
-fue `%APPDATA%\Rx` hasta la 0.2.3: ver «La mudanza de los datos», más abajo.
+Se llamó **Rx** hasta la 0.1.12 y **Quirotech** de la 0.2.0 a la 0.2.6. El
+nombre viene de Quirón, el centauro que le enseñó medicina a Asclepio; el ícono
+es la vara de este último. Por dentro muchas cosas siguen diciendo `rx` (el
+prefijo de las clases propias, el puente `window.rx`, el archivo `rx.db`) o
+`qt` (`quirotech.css` y sus variables `--qt-`), y está bien que así sea. La
+carpeta de datos fue `%APPDATA%\Rx` hasta la 0.2.3 y `%APPDATA%\Quirotech`
+hasta la 0.2.6: ver «La mudanza de los datos», más abajo.
 
 Construida sobre [Opal](../Opal), la plantilla de vidrio (hasta la 0.1.12 fue
 Onyx). Todo lo que dice el README de Opal sobre el shell, los tokens, las hojas
-y el anti-flash vale acá; esto documenta lo que Quirotech agrega encima.
+y el anti-flash vale acá; esto documenta lo que Quiron agrega encima.
 
 ```
 npm run dev            # con la consola del renderer saliendo por la terminal
@@ -146,8 +148,9 @@ Los medicamentos van numerados, y los envases no tienen columna propia: salen
 pegados a la presentación («Comprimidos x 21 x 1 env.»), o al nombre si no
 hay presentación. En una columna aparte, lejos a la derecha, el número se leía
 suelto. Entre medicamentos va una raya doble, y el DUPLICADO es un sello de
-goma negro, derecho, con la tinta gastada «al 60 %»: la máscara de desgaste
-junta los puntos con una capa pareja al 40 %.
+goma grafito (`#3b3b3b`), derecho, con la tinta gastada «al 30 %»: la máscara
+de desgaste junta los puntos con una capa pareja al 70 %. Hasta la 0.2.6 fue
+negro y al 60 %.
 
 Es la única que imprime **membrete** (nombre, especialidad, matrícula,
 domicilio y teléfono del profesional) y el **número de receta**. Los dos son
@@ -278,7 +281,7 @@ muestra y saca capturas para mirar cómo quedó.
 ## Empaquetar
 
 ```
-npm run build          # → dist/Quirotech-Setup-<versión>.exe
+npm run build          # → dist/Quiron-Setup-<versión>.exe
 npm run test:paquete   # y verificarlo, que no es opcional
 ```
 
@@ -324,37 +327,39 @@ mismo hash del contenido en las diez tablas antes y después, y la clave de
   `<i data-icon>` sean SVG. El `<title>` **no** alcanza — una pantalla en blanco
   también tiene título.
 
-Los datos de la app instalada van a `%APPDATA%\Quirotech`, no al lado del ejecutable:
+Los datos de la app instalada van a `%APPDATA%\Quiron`, no al lado del ejecutable:
 esa carpeta es de solo lectura y además una actualización la reemplaza entera.
 `RX_DATA` manda sobre todo, y sirve para correr una copia contra datos falsos.
 
-### La mudanza de los datos (de Rx a Quirotech)
+### La mudanza de los datos (de Rx y Quirotech a Quiron)
 
 Hasta la 0.2.3, `main.cjs` fijaba `userData` en `%APPDATA%\Rx` para que quien
-actualizaba desde Rx no abriera la app vacía. Desde la 0.2.4 los datos viven en
-`%APPDATA%\Quirotech` (lo que Electron deriva solo del nombre), y quien viene
-de antes **se muda al arrancar**: `src/carpeta.cjs` renombra la carpeta entera,
-antes de que Chromium escriba nada. Renombrar y no copiar es lo que hace que
-la base cifrada, la sal, los respaldos y la llave de «recordar en esta PC»
-(safeStorage la guarda en `Local State`) viajen juntas.
+actualizaba desde Rx no abriera la app vacía. De la 0.2.4 a la 0.2.6 los datos
+vivieron en `%APPDATA%\Quirotech`, y desde la 0.3.0 viven en `%APPDATA%\Quiron`
+(lo que Electron deriva solo del nombre). Quien viene de cualquiera de las dos
+**se muda al arrancar**: `src/carpeta.cjs` renombra la carpeta entera, antes de
+que Chromium escriba nada. Renombrar y no copiar es lo que hace que la base
+cifrada, la sal, los respaldos y la llave de «recordar en esta PC» (safeStorage
+la guarda en `Local State`) viajen juntas. Si hay datos en las dos viejas, se
+muda la más nueva (Quirotech) y Rx no se toca.
 
-Ningún caso abre la app vacía: si el renombre falla, esa vez usa Rx y lo
-reintenta en el próximo arranque; si ya hay una `Quirotech` con datos, manda
-esa; si hay una con algo que no son datos, usa Rx y no pisa nada.
-`test/carpeta.test.mjs` arma cada caso con carpetas temporales. Para la 0.2.4
-se probó además que una clave recordada sigue leyéndose después de renombrar
-la carpeta (Electron 44), y el paquete de punta a punta: una `Rx` con clave
-recordada se mudó y la app entró sola.
+Ningún caso abre la app vacía: si el renombre falla, esa vez usa la vieja y lo
+reintenta en el próximo arranque; si ya hay una `Quiron` con datos, manda esa;
+si hay una con algo que no son datos, usa la vieja y no pisa nada.
+`test/carpeta.test.mjs` arma cada caso con carpetas temporales, una vez desde
+cada nombre viejo. Para la 0.2.4 se probó además que una clave recordada sigue
+leyéndose después de renombrar la carpeta (Electron 44), y el paquete de punta
+a punta: una `Rx` con clave recordada se mudó y la app entró sola.
 
 El `appId` sigue siendo `com.kiddshady.rx`: es lo que hace que el instalador
-reemplace a Rx en vez de instalarse al lado.
+reemplace a la versión anterior en vez de instalarse al lado.
 
 ### Actualizaciones
 
 La aplicación instalada consulta al arrancar la última release estable de
-[`kiddshady/Quirotech`](https://github.com/kiddshady/Quirotech). El repo se
-llamó `Rx`; GitHub redirige el nombre viejo, y por eso una Rx instalada
-encuentra la primera Quirotech. Si encuentra una versión
+[`kiddshady/Quiron`](https://github.com/kiddshady/Quiron). El repo se llamó
+`Rx` y después `Quirotech`; GitHub redirige los nombres viejos, y por eso una
+Rx o una Quirotech instalada encuentra la primera Quiron. Si encuentra una versión
 nueva, descarga el instalador en segundo plano y avisa en la barra de estado.
 Nunca reinicia sola: se aplica al tocar **Reiniciar y actualizar** o al cerrar
 la app después de que terminó la descarga.
@@ -403,7 +408,7 @@ no se puede cambiar el dibujo y olvidarse de regenerar.
 
 La física es la de Opal: una sola superficie opaca, hojas de alfa de blanco,
 el vidrio solo donde puede muestrear y lo primario tallado (obsidiana con el
-canto encendido), nunca relleno de acento. Lo propio de Quirotech está en
+canto encendido), nunca relleno de acento. Lo propio de Quiron está en
 `renderer/css/quirotech.css`:
 
 - **El sustrato es papel de electro.** La grilla de 1 mm y la de 5 mm, en menta
@@ -414,7 +419,7 @@ canto encendido), nunca relleno de acento. Lo propio de Quirotech está en
   `renderer/fonts/`).
 - **Tres colores con significado**, como en Beacon: menta es un canto, una
   línea o un punto; **ámbar pide atención** (las alergias); rojo dice que algo
-  falló. Rx pintaba las alergias de rojo; desde Quirotech son ámbar.
+  falló. Rx pintaba las alergias de rojo; desde Quirotech (y en Quiron) son ámbar.
 
 El tablero tiene la curva de recetas de los últimos 30 días (con un barrido
 tipo monitor que respeta el movimiento reducido) y «Atendidos hoy», que son las

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quirotech — actualizaciones (renderer)
+   Quiron — actualizaciones (renderer)
 
    El proceso principal descarga; acá se presenta el estado en tres lugares:
    statusbar, toast al quedar lista y controles dentro de Ajustes. El chequeo
@@ -52,7 +52,7 @@ function pintarStatusbar() {
 
   const texto = {
     buscando: 'buscando actualización…',
-    disponible: `Quirotech ${estado.nueva} disponible`,
+    disponible: `Quiron ${estado.nueva} disponible`,
     descargando: `descargando ${estado.nueva}`,
     listo: `Reiniciar y actualizar a ${estado.nueva}`,
   }[f];
@@ -68,7 +68,7 @@ function pintarStatusbar() {
   // `:scope >`: durante el relevo, la barra de antes sigue en el calco que se va.
   el.querySelector(':scope > .op-meter')?.style.setProperty('--op-pct', `${Math.round(estado.progreso || 0)}%`);
   el.dataset.tip = f === 'listo'
-    ? 'Cierra Quirotech, instala la versión nueva y la vuelve a abrir'
+    ? 'Cierra Quiron, instala la versión nueva y la vuelve a abrir'
     : f === 'descargando'
       ? `${Math.round(estado.progreso || 0)} %${estado.velocidad ? ` · ${fmtBytes(estado.velocidad)}/s` : ''}`
       : 'Ver en Ajustes';
@@ -81,7 +81,7 @@ function aplicar(e) {
   if (estado.fase === 'listo' && avisada !== estado.nueva) {
     avisada = estado.nueva;
     Toast.show({
-      title: `Quirotech ${estado.nueva} está lista`,
+      title: `Quiron ${estado.nueva} está lista`,
       text: 'Se instala al reiniciar. Tocá el aviso de la barra cuando quieras.',
       icon: 'download',
       duration: 9000,

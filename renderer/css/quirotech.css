@@ -1,9 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   QUIROTECH — la piel
+   QUIRON — la piel
+   (el archivo y el prefijo `--qt-` son de cuando se llamaba Quirotech)
 
    Opal pone la física (una sola superficie opaca, hojas de alfa, el vidrio
    solo donde puede muestrear, la luz que talla en vez de rellenar). Esto pone
-   lo que hace que sea Quirotech y no otra app de la familia:
+   lo que hace que sea Quiron y no otra app de la familia:
 
      · el sustrato es papel de electrocardiograma: la grilla de 1 mm y la de
        5 mm, en menta apenas, debajo de la niebla. Es lo que el vidrio
@@ -39,7 +40,7 @@
 
 /* ── La marca ────────────────────────────────────────────────────────────────
    El ícono en su baldosa, a 18 px, con la versión chica dibujada a su medida
-   (build/make-icon.cjs). El nombre en la sans, sin versalitas: Quirotech es
+   (build/make-icon.cjs). El nombre en la sans, sin versalitas: Quiron es
    una palabra, no una sigla. */
 .op-brand__img {
   width: 18px;

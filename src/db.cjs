@@ -225,7 +225,7 @@ function migrar(conn) {
   if (version === ESQUEMA) return;
   if (version > ESQUEMA) {
     throw new Error(
-      `Estos datos son de una versión más nueva de Quirotech (esquema ${version}, esta app entiende ${ESQUEMA}). ` +
+      `Estos datos son de una versión más nueva de Quiron (esquema ${version}, esta app entiende ${ESQUEMA}). ` +
       'Actualizá la app antes de abrirlos.',
     );
   }
@@ -246,7 +246,7 @@ function migrar(conn) {
 /**
  * Abre (o crea) la base con la clave dada.
  * @param {Buffer} clave 32 bytes derivados por el llavero.
- * @throws si la clave es incorrecta o el archivo no es una base de Quirotech (ni de Rx, su nombre anterior).
+ * @throws si la clave es incorrecta o el archivo no es una base de Quiron (ni de Quirotech o Rx, sus nombres anteriores).
  */
 function abrir(clave) {
   if (db) cerrar();

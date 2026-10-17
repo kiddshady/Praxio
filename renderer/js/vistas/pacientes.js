@@ -291,7 +291,7 @@ async function editarEvolucion(pacienteId, e) {
     reemplaza al cartel separado que había antes arriba: mostrar el mismo texto
     dos veces a diez centímetros no lo hace más visible, lo hace ruido. Acá el
     dato salta a la vista Y se edita en el mismo lugar. Es ÁMBAR y no rojo:
-    en Quirotech el rojo dice que algo falló, y una alergia no es una falla,
+    en Quiron el rojo dice que algo falló, y una alergia no es una falla,
     es lo que tiene que verse antes de recetar. */
 function bloqueClinico(id, rotulo, valor, placeholder, alerta = false) {
   const encendido = alerta && !!String(valor || '').trim();

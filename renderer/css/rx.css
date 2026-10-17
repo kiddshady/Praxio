@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quirotech — lo propio de esta app (prefijo `rx-`, de cuando se llamaba Rx)
+   Quiron — lo propio de esta app (prefijo `rx-`, de cuando se llamaba Rx)
 
    Todo lo genérico ya está en `op-`. Acá va solo lo que Onyx no tiene: la
    cerradura, la vista previa de la hoja, y los dos o tres layouts de dominio.
@@ -265,7 +265,7 @@
 
 /* Alergias: es lo único de la ficha que tiene que saltar a la vista antes de
    recetar, así que se sale de la escalera de grises. Va en ÁMBAR: en
-   Quirotech, como en Beacon, el rojo dice que algo falló, y una alergia no es
+   Quiron, como en Beacon, el rojo dice que algo falló, y una alergia no es
    una falla del sistema sino una advertencia clínica. */
 .rx-alergias {
   display: flex;
