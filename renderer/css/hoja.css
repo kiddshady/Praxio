@@ -340,7 +340,7 @@
 
 /* El DUPLICADO es un sello de goma: doble contorno y la tinta gastada por una
    máscara de puntos (renderer/img/desgaste.png, ver tools/desgaste.mjs). La
-   máscara junta ese desgaste con una capa pareja al 40 %: es el «Goma 60 %» que
+   máscara junta ese desgaste con una capa pareja al 70 %: es el «Goma 30 %» que
    eligió Fran en la maqueta (0 % sería tinta lisa, como impresa; 100 %, solo el
    desgaste). La forma no cambia con eso, solo la tinta.
    Flota sobre el encabezado, así que el original y el duplicado arrancan a la
@@ -353,7 +353,7 @@
   color: var(--retro-sello);
   font-family: 'Source Sans 3', 'Segoe UI', system-ui, Arial, sans-serif; font-size: 13pt; font-weight: bold;
   letter-spacing: .2em; line-height: 1; white-space: nowrap;
-  --goma-liso: .4;
+  --goma-liso: .7;
   -webkit-mask-image: linear-gradient(rgb(0 0 0 / var(--goma-liso)), rgb(0 0 0 / var(--goma-liso))), url('../img/desgaste.png');
   mask-image: linear-gradient(rgb(0 0 0 / var(--goma-liso)), rgb(0 0 0 / var(--goma-liso))), url('../img/desgaste.png');
   -webkit-mask-size: 100% 100%, 36mm; mask-size: 100% 100%, 36mm;
