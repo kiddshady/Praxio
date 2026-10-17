@@ -2,7 +2,8 @@
    La plantilla retro tal como la eligió Fran en la maqueta (13 oct 2026,
    «La de Quirotech»). Lo que se mide acá es lo que no se nota a simple vista
    en un humo: que los medicamentos salgan numerados, que la hoja no pida una
-   fuente que ya no viaja en el paquete y que el sello conserve su «Goma 60 %».
+   fuente que ya no viaja en el paquete y que el sello conserve su «Goma 60 %»
+   y su tinta grafito.
    Que la receta entre en la A5 se midió renderizando (sobran ~3,4 mm).
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -44,6 +45,7 @@ console.log('\n3. La hoja');
   ok('T2 en 11,5 pt', /--retro-t2:\s*11\.5pt;/.test(retro));
   ok('ninguna regla pide Courier Prime', !/font-family:[^;]*Courier/.test(css));
   ok('el sello está al 60 % de goma (capa pareja al 40 %)', /--goma-liso:\s*\.4;/.test(retro));
+  ok('el sello va en grafito, no en negro (16 oct 2026)', /--retro-sello:\s*#3b3b3b;/.test(retro));
   ok('y la máscara junta esa capa con el desgaste',
     /mask-image:\s*linear-gradient\(rgb\(0 0 0 \/ var\(--goma-liso\)\)[^;]*desgaste\.png/.test(retro));
   const fuentes = [...css.matchAll(/url\('\.\.\/(fonts\/[^']+)'\)/g)].map((m) => m[1]);

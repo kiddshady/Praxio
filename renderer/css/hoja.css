@@ -253,7 +253,7 @@
   --retro-form:  #1e4d45;                 /* tinta del talonario */
   --retro-datos: #161616;                 /* cinta de la máquina */
   --retro-linea: #62827d;                 /* la tinta al 70 % sobre blanco */
-  --retro-sello: #161616;                 /* el sello va en negro, sin girar */
+  --retro-sello: #3b3b3b;                 /* el sello va en grafito, sin girar */
   --retro-t1: 12.5pt;
   --retro-t2: 11.5pt;
 
