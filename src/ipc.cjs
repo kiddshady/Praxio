@@ -31,11 +31,18 @@ let minutosInactividad = 0;
 let relojInactividad = null;
 let alBloquear = () => { };
 
+/* Después de un bloqueo la clave recordada no abre: hay que escribir la
+   contraseña. Es la misma regla que sigue el renderer (app.js), repetida acá
+   para que no dependa de que la pantalla la respete. Se apaga al abrir con
+   contraseña y al reiniciar la app. */
+let bloqueadaEnSesion = false;
+
 function ventana() { return BrowserWindow.getAllWindows()[0] || null; }
 
 function bloquear(motivo = 'manual') {
   db.cerrar();
   claveActual = null;
+  bloqueadaEnSesion = true;
   clearTimeout(relojInactividad);
   relojInactividad = null;
   const w = ventana();
@@ -105,6 +112,7 @@ function registrarSesion() {
     const clave = await llave.derivarGuardada(password);
     db.abrir(clave);                 // tira "Contraseña incorrecta" si no va
     claveActual = clave;
+    bloqueadaEnSesion = false;
     if (recordar) await llave.recordar(clave).catch(() => { /* no es fatal */ });
     else await llave.olvidar();
     await tomarAjustes();
@@ -114,6 +122,7 @@ function registrarSesion() {
   /** Desbloqueo sin contraseña usando la clave guardada con safeStorage. */
   handle('sesion:abrir-recordada', async () => {
     if (db.abierta()) return true;
+    if (bloqueadaEnSesion) return false;
     const clave = await llave.recuperarRecordada();
     if (!clave) return false;
     try {

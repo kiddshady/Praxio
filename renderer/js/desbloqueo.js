@@ -86,7 +86,7 @@ function pantallaAbrir(estado, motivo) {
         <input class="op-input" type="password" id="clave"
                autocomplete="current-password" spellcheck="false" required>
       </div>
-      ${estado.puedeRecordar ? check('recordar', 'Recordar en esta computadora', false) : ''}
+      ${estado.puedeRecordar ? check('recordar', 'Recordar en esta computadora', !!estado.recordada) : ''}
       <div class="rx-cerradura__error" id="error"></div>
       <button class="op-btn op-btn--primary op-flashable" type="submit" id="enviar">
         Desbloquear

@@ -83,8 +83,11 @@ async function desbloquear(motivo = 'inicio') {
   const estado = await rx.sesion.estado();
   if (estado.abierta) return;
 
-  /* Si está recordada en esta PC se abre sola y la cerradura ni aparece. */
-  if (estado.recordada && await rx.sesion.abrirRecordada()) return;
+  /* Si está recordada en esta PC se abre sola y la cerradura ni aparece, pero
+     SOLO al arrancar. Después de un bloqueo (el botón o la inactividad) se pide
+     la contraseña: abrirse sola ahí convertía el botón en un refresco, porque
+     la base se cerraba y se volvía a abrir en el mismo instante. */
+  if (motivo === 'inicio' && estado.recordada && await rx.sesion.abrirRecordada()) return;
 
   await pedirClave(estado, motivo);
 }

@@ -620,11 +620,35 @@ app.whenReady().then(async () => {
   ok('una contraseña equivocada no abre', await js(`!document.getElementById('cerradura').hidden`));
 
   await escribir('#clave', CLAVE);
+  // Esta vez con «Recordar en esta computadora», para probar el bloqueo con la clave recordada.
+  const puedeRecordar = await js(`!!document.getElementById('recordar')`);
+  if (puedeRecordar) await click('#recordar');
   await click('#enviar');
   await sleep(2000);
   ok('la correcta reabre', await js(`document.getElementById('cerradura').hidden`));
   ok('los datos siguen ahí',
     (await js(`document.getElementById('cuenta-pacientes')?.textContent`)) === '1');
+
+  /* Con la clave recordada, Bloquear tiene que bloquear: antes la base se
+     cerraba y se volvía a abrir sola en el mismo instante, y el botón parecía
+     un refresco de la app. */
+  if (puedeRecordar) {
+    ok('quedó recordada', (await js(`window.rx.sesion.estado()`))?.recordada === true);
+    await click('#btn-bloquear');
+    await sleep(2000);
+    ok('recordada, Bloquear deja la cerradura puesta', await js(`!document.getElementById('cerradura').hidden`));
+    ok('recordada, la base quedó cerrada', (await js(`window.rx.sesion.estado()`))?.abierta === false);
+    ok('la clave recordada no abre después de un bloqueo', (await js(`window.rx.sesion.abrirRecordada()`)) === false);
+    ok('el recordar ya viene marcado, para no olvidarla sin querer',
+      await js(`document.getElementById('recordar')?.getAttribute('aria-checked')`) === 'true');
+    await escribir('#clave', CLAVE);
+    await click('#enviar');
+    await sleep(2000);
+    ok('con la contraseña reabre', await js(`document.getElementById('cerradura').hidden`));
+    ok('y sigue recordada para el próximo arranque', (await js(`window.rx.sesion.estado()`))?.recordada === true);
+  } else {
+    console.log('  (safeStorage no disponible: se salta el bloqueo con clave recordada)');
+  }
 
   /* ── Cierre ───────────────────────────────────────────────────────────── */
   ok('la consola del renderer no tiró errores', errores.length === 0, errores.slice(0, 4).join(' | '));
