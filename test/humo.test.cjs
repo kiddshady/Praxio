@@ -412,6 +412,23 @@ app.whenReady().then(async () => {
   })()`));
   ok('en retro aparece el interruptor del membrete',
     !(await js(`document.getElementById('o-membrete-campo').hidden`)));
+  ok('y el de la numeración, prendido',
+    !(await js(`document.getElementById('o-numerar-campo').hidden`))
+    && (await js(`document.getElementById('o-numerar').getAttribute('aria-checked')`)) === 'true');
+  ok('la previa numera los estudios',
+    (await js(`document.querySelectorAll('#o-previa .item .num').length`)) > 0);
+  ok('el estudio va en peso normal', (await js(`(() => {
+    const n = document.querySelector('#o-previa .item .nombre');
+    return n && getComputedStyle(n).fontWeight;
+  })()`)) === '400');
+  await click('#o-numerar');
+  await sleep(400);
+  ok('apagada, la previa no numera',
+    (await js(`document.querySelectorAll('#o-previa .item .num').length`)) === 0);
+  await click('#o-numerar');
+  await sleep(400);
+  ok('y vuelve a numerar al prenderla',
+    (await js(`document.querySelectorAll('#o-previa .item .num').length`)) > 0);
   ok('la orden retro sigue en una sola hoja',
     (await js(`document.querySelectorAll('#o-previa .rx-hoja').length`)) === 1
     && (await js(`document.getElementById('o-hojas')?.textContent`)) === 'una hoja');

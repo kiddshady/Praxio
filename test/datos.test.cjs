@@ -175,6 +175,22 @@ app.whenReady().then(async () => {
     db.ordenes.remove(o.id);
   });
 
+  /* Reimprimir sale como salió: la numeración apagada viaja congelada. */
+  await prueba('la numeración apagada queda en la instantánea, y por defecto va prendida', () => {
+    const p = db.pacientes.list()[0];
+    const sin = db.ordenes.get(db.ordenes.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'retro', numerar: false,
+      items: [{ nombre: 'TSH' }],
+    }).id);
+    assert.equal(sin.snapshot.numerar, false);
+    const con = db.ordenes.get(db.ordenes.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'retro', items: [{ nombre: 'TSH' }],
+    }).id);
+    assert.equal(con.snapshot.numerar, true);
+    db.ordenes.remove(sin.id);
+    db.ordenes.remove(con.id);
+  });
+
   await prueba('rechaza una fecha inválida', () => {
     const p = db.pacientes.list()[0];
     assert.throws(

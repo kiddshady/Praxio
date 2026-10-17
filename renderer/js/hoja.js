@@ -370,11 +370,15 @@ function orden(o) {
    libre («Solicito:» si no se escribió otro). Los estudios van numerados en el
    margen como los medicamentos, pero sin la raya doble entre uno y otro: un
    pedido de laboratorio puede tener diez renglones y la raya los separaría de
-   más. El diagnóstico va una sola vez, al final, porque es de la orden entera. */
+   más. El número se apaga con `numerar: false`; sin el campo (órdenes de antes)
+   sale numerada, como salió. Los estudios van en peso normal, no en el T1
+   negrita de los medicamentos. El diagnóstico va una sola vez, al final,
+   porque es de la orden entera. */
 function ordenRetro(o) {
   const p = o.paciente || {};
   const m = o.medico || {};
   const items = o.items || [];
+  const numerar = o.numerar !== false;
 
   let h = `<section class="rx-hoja rx-hoja--retro rx-hoja--orden">`;
   h += membreteRetro(o.membrete === false ? {} : m, '');
@@ -383,8 +387,8 @@ function ordenRetro(o) {
   h += `<div class="encabezado-rp"><div class="rp">${esc(encabezadoOrden(o))}</div></div>`;
 
   items.forEach((it, i) => {
-    h += `<div class="item estudio"><div class="num">${i + 1}.</div><div class="principal">`;
-    h += `<div class="dato t1">${esc(it.nombre || '—')}</div>`;
+    h += `<div class="item estudio">${numerar ? `<div class="num">${i + 1}.</div>` : ''}<div class="principal">`;
+    h += `<div class="dato t1 nombre">${esc(it.nombre || '—')}</div>`;
     if (it.aclaracion) h += `<div class="det"><span class="dato">${esc(it.aclaracion)}</span></div>`;
     h += `</div></div>`;
   });

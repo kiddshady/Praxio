@@ -72,6 +72,15 @@ console.log('\n2b. La orden retro');
   ok('vaciado a propósito, no imprime nada', vacio.includes('class="rp"></div>') && !vacio.includes('Solicito:'));
   const sinMembrete = juego({ ...base, plantilla: 'retro', membrete: false });
   ok('con el membrete apagado no lo imprime', !sinMembrete.includes('class="membrete"'));
+  const sinNumeros = juego({ ...base, plantilla: 'retro', numerar: false });
+  ok('con la numeración apagada no numera', !sinNumeros.includes('class="num"')
+    && sinNumeros.includes('Hemograma completo') && sinNumeros.includes('Rx de tórax'));
+
+  /* Los estudios van en peso normal (17 oct 2026): la negrita es de los medicamentos. */
+  ok('el estudio de la retro va en peso normal',
+    /\.rx-hoja--retro\.rx-hoja--orden \.item \.nombre \{ font-weight: normal; \}/.test(css));
+  ok('y el de la RPE también',
+    /\.rx-hoja--rpe\.rx-hoja--orden \.item \.nombre \{ font-weight: normal; \}/.test(css));
 }
 
 console.log('\n3. La hoja');

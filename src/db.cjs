@@ -684,17 +684,19 @@ const ordenes = {
     /* La plantilla, el encabezado del pedido y el membrete van solo en la
        instantánea, que es de donde se imprime: no migran nada. Una orden sin
        ellos (de antes de la 0.3.0) sale RPE y con «Solicito:». El encabezado
-       es texto libre; vacío a propósito, se guarda vacío. */
+       es texto libre; vacío a propósito, se guarda vacío. La numeración de
+       los estudios (solo la retro numera) también: sin el campo, numerada. */
     const plantilla = PLANTILLAS_ORDEN.includes(datos?.plantilla) ? datos.plantilla : 'rpe';
     const encabezado = datos?.encabezado == null
       ? 'Solicito:' : String(datos.encabezado).trim().slice(0, 80);
     const membrete = datos?.membrete !== false;
+    const numerar = datos?.numerar !== false;
     const prof = medico.get();
     const oid = id();
     const creado = ahora();
     const snapshot = JSON.stringify({
       paciente, medico: prof, items, fecha, diagnostico, observaciones,
-      plantilla, encabezado, membrete,
+      plantilla, encabezado, membrete, numerar,
     });
 
     const guardar = c.transaction(() => {

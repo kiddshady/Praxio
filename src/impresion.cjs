@@ -58,6 +58,7 @@ function datosDeOrden(o) {
     plantilla: s.plantilla,
     encabezado: s.encabezado,
     membrete: s.membrete,
+    numerar: s.numerar,
   };
 }
 

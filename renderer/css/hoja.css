@@ -229,6 +229,8 @@
    estilizan sus datos propios, que no existen en la receta. */
 
 .rx-hoja--rpe.rx-hoja--orden .item { margin-bottom: 2mm; }
+/* El estudio en peso normal: la negrita es de los medicamentos (pedido de Fran). */
+.rx-hoja--rpe.rx-hoja--orden .item .nombre { font-weight: normal; }
 .rx-hoja--rpe.rx-hoja--orden .item .aclaracion { font-size: 12pt; }
 
 .rx-hoja--rpe.rx-hoja--orden .datos-orden {
@@ -383,6 +385,8 @@
    encabezado es texto libre y puede ser largo: parte en vez de desbordar. */
 .rx-hoja--retro.rx-hoja--orden .rp { min-width: 0; overflow-wrap: anywhere; }
 .rx-hoja--retro.rx-hoja--orden .item { margin-bottom: 1.6mm; }
+/* Mismo cuerpo que el T1, en peso normal: la negrita es de los medicamentos. */
+.rx-hoja--retro.rx-hoja--orden .item .nombre { font-weight: normal; }
 .rx-hoja--retro.rx-hoja--orden .datos-orden { margin-top: 2.4mm; }
 
 /* Firma: mismo criterio que la RPE, el mínimo es el piso y no el ideal. */

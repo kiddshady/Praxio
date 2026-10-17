@@ -56,6 +56,7 @@ export async function vistaOrden(pacienteId = null) {
       ? S.ajustes.plantillaOrden : 'rpe',
     encabezado: ENCABEZADO_ORDEN,
     membrete: S.ajustes?.membreteRetro !== false,
+    numerar: S.ajustes?.numerarOrden !== false,
     items: [itemVacio()],
   };
   if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId);
@@ -117,6 +118,17 @@ export async function vistaOrden(pacienteId = null) {
                   role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"><span></span></button>
         </div>
 
+        <div class="op-row op-plegable" id="o-numerar-campo"
+             style="gap:var(--op-3);align-items:center;--op-plegable-gap:var(--op-4)"
+             ${E.plantilla === 'retro' ? '' : 'hidden'}>
+          <div class="op-grow">
+            <div>Numerar estudios</div>
+            <div class="op-meta">1., 2., 3. en el margen de cada estudio.</div>
+          </div>
+          <button type="button" class="op-switch${E.numerar ? ' is-on' : ''}" id="o-numerar"
+                  role="switch" aria-checked="${E.numerar}" aria-label="Numerar estudios"><span></span></button>
+        </div>
+
         <div class="op-section">
           <div class="op-section__head">
             <div class="op-section__title">Estudios</div>
@@ -159,6 +171,7 @@ export async function vistaOrden(pacienteId = null) {
       plantilla: E.plantilla,
       encabezado: E.encabezado,
       membrete: E.membrete,
+      numerar: E.numerar,
     };
   }
 
@@ -318,10 +331,13 @@ export async function vistaOrden(pacienteId = null) {
   });
 
   const campoMembrete = document.getElementById('o-membrete-campo');
+  const campoNumerar = document.getElementById('o-numerar-campo');
   asentarPlegables(campoMembrete);
+  asentarPlegables(campoNumerar);
   bindSwitcher(document.getElementById('o-plantilla'), (valor) => {
     E.plantilla = valor;
     campoMembrete.hidden = valor !== 'retro';
+    campoNumerar.hidden = valor !== 'retro';
     pintarPrevia();
     opal.settings.save({ plantillaOrden: valor })
       .then((a) => { S.ajustes = a; })
@@ -346,6 +362,17 @@ export async function vistaOrden(pacienteId = null) {
     S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
   };
 
+  /* Los números en el margen son opcionales: quien no los quiere los apaga
+     una vez, como el membrete. */
+  const elNumerar = document.getElementById('o-numerar');
+  elNumerar.onclick = async () => {
+    E.numerar = !E.numerar;
+    elNumerar.classList.toggle('is-on', E.numerar);
+    elNumerar.setAttribute('aria-checked', String(E.numerar));
+    pintarPrevia();
+    S.ajustes = await opal.settings.save({ numerarOrden: E.numerar });
+  };
+
   document.getElementById('o-agregar').onclick = () => {
     const nuevo = itemVacio();
     E.items.push(nuevo);
@@ -366,6 +393,7 @@ export async function vistaOrden(pacienteId = null) {
       plantilla: E.plantilla,
       encabezado: E.encabezado,
       membrete: E.membrete,
+      numerar: E.numerar,
       items,
       desdeCatalogo: items.map((i) => i.desde).filter(Boolean),
     }), { errorTitle: 'No se pudo emitir la orden' });
@@ -550,6 +578,7 @@ async function verOrden(id) {
     plantilla: o.snapshot?.plantilla,
     encabezado: o.snapshot?.encabezado,
     membrete: o.snapshot?.membrete,
+    numerar: o.snapshot?.numerar,
   };
 
   const caja = document.createElement('div');

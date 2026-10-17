@@ -194,7 +194,11 @@ las mismas funciones y reglas de `hoja.js` y `hoja.css`, y los estudios van
 **sin numerar**; en la retro, el membrete (sin número: la orden no lleva), las
 cajas, el pie y la tinta son los de la receta retro, y los estudios van
 numerados en el margen como los medicamentos pero **sin la raya doble** entre
-uno y otro. Dentro del pedido hay aire, no líneas. Dos copias del mismo
+uno y otro. Desde la 0.3.1 la numeración de la retro es **opcional**
+(interruptor «Numerar estudios», ajuste `numerarOrden`, congelada en la
+instantánea como `numerar`; una orden sin el campo sale numerada, como salió),
+y en las dos plantillas el nombre del estudio va en **peso normal**: la negrita
+queda para los medicamentos. Dentro del pedido hay aire, no líneas. Dos copias del mismo
 milímetro se desincronizan el día que una se toca — y acá eso significa dos
 papeles que se ven distinto. El membrete de la orden retro usa el mismo
 interruptor y el mismo ajuste (`membreteRetro`) que la receta retro.

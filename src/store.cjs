@@ -69,6 +69,8 @@ const DEFAULT_SETTINGS = {
   membreteRetro: true,
   /** Con cuál plantilla arranca una orden nueva. La deja la última orden. */
   plantillaOrden: 'rpe',
+  /** Si la orden retro numera los estudios. Lo deja la última orden. */
+  numerarOrden: true,
   ultimaVista: null,
 };
 
