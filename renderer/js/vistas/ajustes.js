@@ -2,14 +2,14 @@
 
 import { Modal, Toast } from '../overlays.js';
 import { paint, head, esc, attempt } from '../ui.js';
-import { bindSwitcher, frase } from '../motion.js';
+import { bindSwitcher } from '../motion.js';
 import { campoFecha, cablearFechas, isoDe } from '../campo-fecha.js';
 import { S } from '../tienda.js';
 import { PLANTILLAS } from '../hoja.js';
 import Router from '../router.js';
 import {
   estadoActualizacion, describirEstado, buscarActualizacion,
-  instalarActualizacion, onActualizacion,
+  instalarActualizacion, onActualizacion, pintarEstado,
 } from '../actualizacion.js';
 
 const rx = window.rx;
@@ -246,9 +246,8 @@ export async function vistaAjustes() {
 
   /* ── Actualizaciones ── */
   const pintarActualizacion = (e) => {
-    const texto = document.getElementById('upd-estado');
-    // frase(): si cambia solo el porcentaje destella; si cambia la frase, relevo.
-    if (texto) frase(texto, esc(describirEstado(e)));
+    // Cada fase nueva, relevo; bajando, el porcentaje corre sin destello.
+    pintarEstado(document.getElementById('upd-estado'), e);
     const instalar = document.getElementById('btn-instalar-upd');
     if (instalar) instalar.hidden = e.fase !== 'listo';
     const buscar = document.getElementById('btn-buscar-upd');

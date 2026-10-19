@@ -10,7 +10,7 @@ import { Icons } from './icons.js';
 import { Toast } from './overlays.js';
 import Router from './router.js';
 import { esc } from './ui.js';
-import { swap, deslizarAncho } from './motion.js';
+import { swap, deslizarAncho, frase, roll } from './motion.js';
 import { fmtBytes, relTime } from './format.js';
 
 const rx = window.rx;
@@ -39,6 +39,37 @@ export function describirEstado(e = estado) {
         ? 'Las actualizaciones automáticas corren sólo en la app instalada.'
         : 'Todavía no se buscó.';
   }
+}
+
+const velocidadDe = (e) => (e.velocidad ? ` · ${fmtBytes(e.velocidad)}/s` : '');
+
+/**
+ * La línea de estado de Ajustes. Cada fase nueva es un relevo (frase). Bajando,
+ * la frase queda armada y el porcentaje corre (roll) en su span, en el lugar y
+ * sin destello. Antes iba entera por frase(): como solo cambiaban las cifras,
+ * destellaba en el acento con cada aviso de la descarga, varias veces por
+ * segundo, y el número titilaba sin parar.
+ */
+export function pintarEstado(el, e = estado) {
+  if (!el) return;
+  const nueva = String(e.nueva || '');
+  if (e.fase === 'descargando' && el.dataset.fase === 'descargando' && el.dataset.nueva === nueva) {
+    // `:scope >`: durante el relevo, la frase de antes sigue en el calco que se va.
+    const pct = el.querySelector(':scope > [data-pct]');
+    if (pct) {
+      roll(pct, Math.round(e.progreso || 0), (v) => { pct.textContent = String(Math.round(v)); },
+        { from: parseInt(pct.textContent, 10) });
+      const vel = el.querySelector(':scope > [data-vel]');
+      if (vel) vel.textContent = velocidadDe(e);
+      return;
+    }
+  }
+  el.dataset.fase = e.fase || '';
+  el.dataset.nueva = nueva;
+  frase(el, e.fase === 'descargando'
+    ? `Descargando la ${esc(nueva)}: <span class="op-num" data-pct>${Math.round(e.progreso || 0)}</span> %`
+      + `<span data-vel>${esc(velocidadDe(e))}</span>.`
+    : esc(describirEstado(e)));
 }
 
 function pintarStatusbar() {

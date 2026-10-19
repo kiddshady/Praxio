@@ -174,6 +174,30 @@ app.whenReady().then(async () => {
     await js(`document.getElementById('upd-estado')?.textContent.includes('app instalada')`));
   ok('Ajustes permite buscar actualizaciones a mano',
     await js(`!!document.getElementById('btn-buscar-upd')`));
+
+  /* Bajando, el porcentaje corre en su lugar y sin destello. Antes la frase
+     entera iba por frase(), que destellaba con cada aviso de la descarga. */
+  const mandarUpd = (progreso) => win.webContents.send('actualizacion:estado',
+    { fase: 'descargando', nueva: '9.9.9', version: '0.0.0', progreso, velocidad: 1048576, manual: false });
+  mandarUpd(10);
+  await sleep(500);
+  await js(`window.__updPct = document.querySelector('#upd-estado > [data-pct]'); true`);
+  const corriendo = js(`(async () => { const v = [];
+    for (let i = 0; i < 8; i++) { await new Promise((r) => requestAnimationFrame(r));
+      const el = document.getElementById('upd-estado');
+      v.push({ n: parseInt(el.querySelector(':scope > [data-pct]')?.textContent, 10),
+        tick: el.classList.contains('op-ticked') || !!el.querySelector('.op-ticked') }); }
+    return v; })()`);
+  mandarUpd(60);
+  const cuadros = await corriendo;
+  await sleep(600);
+  const updPct = await js(`(() => { const n = document.querySelector('#upd-estado > [data-pct]');
+    return { mismo: !!n && n === window.__updPct, txt: n?.textContent }; })()`);
+  ok('bajando, el porcentaje corre en el mismo nodo hasta el último dato',
+    updPct.mismo && updPct.txt === '60' && cuadros.some((f) => f.n > 10 && f.n < 60), JSON.stringify({ updPct, cuadros }));
+  ok('y sin destellar', !cuadros.some((f) => f.tick), JSON.stringify(cuadros));
+  win.webContents.send('actualizacion:estado', updDev);
+  await sleep(500);
   // La carpeta de datos sigue llamándose Rx a propósito; el nombre de la app no.
   ok('Ajustes dice Quiron, no Rx, en la versión',
     await js(`(() => { const t = document.getElementById('view').innerText;
