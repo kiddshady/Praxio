@@ -1,7 +1,7 @@
 {
   "name": "praxio",
   "productName": "Praxio",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "Medical records, prescriptions and test orders for a private practice. Data encrypted on disk, signed by hand.",
   "main": "main.cjs",
   "author": "Kidd Shady · Umbrovex Systems",
