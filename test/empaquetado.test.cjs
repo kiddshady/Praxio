@@ -198,7 +198,7 @@ app.whenReady().then(async () => {
     assert.ok(v.splashIdo, 'el splash sigue puesto: app.js no llegó a correr');
     assert.ok(v.cerradura && v.visible, 'la cerradura no se dibujó');
     assert.ok(v.iconosSVG, 'los <i data-icon> no se reemplazaron: los módulos ES no cargaron');
-    assert.ok(/Crear y entrar|Desbloquear/.test(v.boton),
+    assert.ok(/Create and enter|Unlock/.test(v.boton),
       `el botón de la cerradura dice "${v.boton}"`);
   });
 
