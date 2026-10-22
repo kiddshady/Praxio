@@ -74,18 +74,18 @@ export function edad(nacimiento) {
 export function validarDNI(dni) {
   const d = String(dni || '').replace(/[.\s]/g, '');
   if (!d) return null;
-  return /^\d{7,8}$/.test(d) ? null : 'El DNI tiene que tener 7 u 8 dígitos.';
+  return /^\d{7,8}$/.test(d) ? null : 'The DNI must have 7 or 8 digits.';
 }
 
 export function validarCUIL(cuil) {
   const c = String(cuil || '').replace(/[-\s]/g, '');
   if (!c) return null;
-  if (!/^\d{11}$/.test(c)) return 'El CUIL tiene que tener 11 dígitos.';
+  if (!/^\d{11}$/.test(c)) return 'The CUIL must have 11 digits.';
   const pesos = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
   let suma = 0;
   for (let i = 0; i < 10; i++) suma += Number(c[i]) * pesos[i];
   const resto = suma % 11;
-  if (resto === 1) return 'El CUIL no es válido (dígito verificador).';
+  if (resto === 1) return 'The CUIL is not valid (check digit).';
   const dv = resto === 0 ? 0 : 11 - resto;
-  return Number(c[10]) === dv ? null : 'El CUIL no es válido (dígito verificador).';
+  return Number(c[10]) === dv ? null : 'The CUIL is not valid (check digit).';
 }

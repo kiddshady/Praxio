@@ -68,7 +68,7 @@ function iniciar(getWin, { auto = true } = {}) {
   try {
     ({ autoUpdater } = require('electron-updater'));
   } catch (err) {
-    emitir({ fase: 'error', error: `No cargó electron-updater: ${err.message}` });
+    emitir({ fase: 'error', error: `Could not load electron-updater: ${err.message}` });
     return;
   }
 

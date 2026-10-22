@@ -81,7 +81,7 @@ app.whenReady().then(async () => {
   ok('la cerradura está en pantalla', await js(`!document.getElementById('cerradura').hidden`));
   ok('primera vez: pide crear la contraseña', await js(`!!document.getElementById('clave2')`));
   ok('avisa que no hay recuperación',
-    await js(`document.querySelector('.rx-aviso')?.textContent.includes('No hay forma de recuperarla')`));
+    await js(`document.querySelector('.rx-aviso')?.textContent.includes('There is no way to recover it')`));
 
   const cajaCaja = await caja('.rx-cerradura__caja');
   ok('la caja cae dentro de la ventana',
@@ -171,7 +171,7 @@ app.whenReady().then(async () => {
       await js(`document.querySelector('.op-navitem[data-view="${vista}"]')?.classList.contains('is-active')`));
   }
   ok('Ajustes muestra el estado de actualización',
-    await js(`document.getElementById('upd-estado')?.textContent.includes('app instalada')`));
+    await js(`document.getElementById('upd-estado')?.textContent.includes('installed app')`));
   ok('Ajustes permite buscar actualizaciones a mano',
     await js(`!!document.getElementById('btn-buscar-upd')`));
 
@@ -199,9 +199,9 @@ app.whenReady().then(async () => {
   win.webContents.send('actualizacion:estado', updDev);
   await sleep(500);
   // La carpeta de datos sigue llamándose Rx a propósito; el nombre de la app no.
-  ok('Ajustes dice Quiron, no Rx, en la versión',
+  ok('Ajustes dice Praxio, no Rx, en la versión',
     await js(`(() => { const t = document.getElementById('view').innerText;
-      return /Quiron v\\d/.test(t) && !/\\bRx v\\d/.test(t); })()`));
+      return /Praxio v\\d/.test(t) && !/\\bRx v\\d/.test(t); })()`));
 
   /* ── 4. Alta de un paciente por la UI real ────────────────────────────── */
   console.log('\n4. Paciente');
@@ -217,7 +217,7 @@ app.whenReady().then(async () => {
     JSON.stringify(cajaModal));
 
   const guardar = () => js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
-             .find(b => b.textContent.trim() === 'Guardar')?.click()`);
+             .find(b => b.textContent.trim() === 'Save')?.click()`);
 
   await escribir('#p-nombre', 'GÓMEZ, MARÍA ELENA');
   await escribir('#p-dni', '28123456');
@@ -299,7 +299,7 @@ app.whenReady().then(async () => {
   ok('una sola opción del segmentado lleva la cápsula prendida',
     capsula.filter(Boolean).length === 1, JSON.stringify(capsula));
   ok('y el texto de las opciones se lee',
-    await js(`document.querySelector('#r-plantilla .op-segmented__opt')?.textContent.trim()`) === 'Clásica');
+    await js(`document.querySelector('#r-plantilla .op-segmented__opt')?.textContent.trim()`) === 'Classic');
 
   ok('trajo al paciente de la ficha',
     await js(`document.getElementById('r-paciente-txt')?.textContent.includes('GÓMEZ')`));
@@ -352,9 +352,9 @@ app.whenReady().then(async () => {
   await click('#r-emitir');
   await sleep(900);
   ok('ofrece imprimir o guardar después de emitir',
-    await js(`document.querySelector('.op-modal')?.textContent.includes('Receta emitida')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Prescription issued')`));
   await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
-             .find(b => b.textContent.trim() === 'Después')?.click()`);
+             .find(b => b.textContent.trim() === 'Later')?.click()`);
   await sleep(1200);
 
   ok('la receta quedó en el historial',
@@ -367,14 +367,14 @@ app.whenReady().then(async () => {
   await click('[data-abrir]');
   await sleep(900);
   ok('la receta guardada se puede volver a ver',
-    await js(`document.querySelector('.op-modal')?.textContent.includes('Receta del')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Prescription of')`));
   ok('la hoja guardada muestra el medicamento',
     await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Sertralina')`));
   const centrada = await hojaCentrada();
   ok('la hoja guardada queda centrada en el modal',
     Math.abs(centrada.cuerpo - centrada.hoja) <= 2, JSON.stringify(centrada));
   await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
-             .find(b => b.textContent.trim() === 'Cerrar')?.click()`);
+             .find(b => b.textContent.trim() === 'Close')?.click()`);
   await sleep(500);
 
   /* ── 7. Emitir una orden de estudios ──────────────────────────────────── */
@@ -420,7 +420,7 @@ app.whenReady().then(async () => {
       && (!datos || parseFloat(getComputedStyle(datos).borderTopWidth) === 0);
   })()`));
   ok('el rótulo del panel dice que entra en una hoja',
-    (await js(`document.getElementById('o-hojas')?.textContent`)) === 'una hoja');
+    (await js(`document.getElementById('o-hojas')?.textContent`)) === 'one sheet');
   const contenidaOrden = await previaContenida('o-previa');
   ok('el panel de la previa de la orden termina dentro de la ventana',
     contenidaOrden.fondo <= contenidaOrden.ventana, JSON.stringify(contenidaOrden));
@@ -466,7 +466,7 @@ app.whenReady().then(async () => {
     (await js(`document.querySelectorAll('#o-previa .item .num').length`)) > 0);
   ok('la orden retro sigue en una sola hoja',
     (await js(`document.querySelectorAll('#o-previa .rx-hoja').length`)) === 1
-    && (await js(`document.getElementById('o-hojas')?.textContent`)) === 'una hoja');
+    && (await js(`document.getElementById('o-hojas')?.textContent`)) === 'one sheet');
   await escribir('#o-encabezado', 'Se solicita:');
   await sleep(400);
   ok('el encabezado editado llega a la hoja',
@@ -475,9 +475,9 @@ app.whenReady().then(async () => {
   await click('#o-emitir');
   await sleep(900);
   ok('ofrece imprimir o guardar después de emitir',
-    await js(`document.querySelector('.op-modal')?.textContent.includes('Orden emitida')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Test order issued')`));
   await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
-             .find(b => b.textContent.trim() === 'Después')?.click()`);
+             .find(b => b.textContent.trim() === 'Later')?.click()`);
   await sleep(1200);
 
   ok('la orden quedó en el historial',
@@ -488,7 +488,7 @@ app.whenReady().then(async () => {
   await click('[data-abrir]');
   await sleep(900);
   ok('la orden guardada se puede volver a ver',
-    await js(`document.querySelector('.op-modal')?.textContent.includes('Orden del')`));
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Test order of')`));
   ok('la hoja guardada muestra el estudio',
     await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Hemograma')`));
   ok('y conserva la retro y el encabezado con que se emitió', await js(`(() => {
@@ -499,7 +499,7 @@ app.whenReady().then(async () => {
   ok('la hoja de la orden queda centrada en el modal',
     Math.abs(centradaOrden.cuerpo - centradaOrden.hoja) <= 2, JSON.stringify(centradaOrden));
   await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
-             .find(b => b.textContent.trim() === 'Cerrar')?.click()`);
+             .find(b => b.textContent.trim() === 'Close')?.click()`);
   await sleep(500);
 
   /* El subtítulo de cada vista dice cuántos hay. Durante un tiempo dijo el
@@ -537,7 +537,7 @@ app.whenReady().then(async () => {
   ok('un pedido largo sigue siendo una sola hoja en el DOM',
     (await js(`document.querySelectorAll('#o-previa .rx-hoja').length`)) === 1);
   ok('pero la previa avisa que no va a entrar',
-    (await js(`document.getElementById('o-hojas')?.textContent`) || '').includes('segunda hoja'));
+    (await js(`document.getElementById('o-hojas')?.textContent`) || '').includes('second sheet'));
 
   /* Quitar una fila: las filas van por reconcile(), con una clave por ítem.
      La de abajo tiene que VIAJAR a su lugar (no saltar), quedar con su valor,
@@ -586,7 +586,7 @@ app.whenReady().then(async () => {
     await escribir('input[data-campo="nombre"][data-i="0"]', valor);
     await click(emitir);
     await sleep(900);
-    await apretar('Después');
+    await apretar('Later');
     await sleep(1200);
   };
   const cuantos = () => js(`document.querySelectorAll('[data-abrir]').length`);
@@ -605,13 +605,13 @@ app.whenReady().then(async () => {
   await click('[data-borrar]');
   await sleep(700);
   ok('el tacho pide confirmación',
-    await js(`document.querySelector('.op-modal')?.textContent.includes('Eliminar la receta')`));
-  await apretar('Cancelar');
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Delete the prescription')`));
+  await apretar('Cancel');
   await sleep(600);
   ok('cancelar no borra nada', (await cuantos()) === 2);
   await click('[data-borrar]');
   await sleep(700);
-  await apretar('Eliminar');
+  await apretar('Delete');
   await sleep(1400);
   ok('confirmar borra esa receta y deja la otra', (await cuantos()) === 1);
 
@@ -626,16 +626,16 @@ app.whenReady().then(async () => {
     !!cajaVaciar && cajaVaciar.y >= 0 && cajaVaciar.x >= 0
     && cajaVaciar.y + cajaVaciar.h <= H + 1 && cajaVaciar.x + cajaVaciar.w <= W + 1,
     JSON.stringify(cajaVaciar));
-  ok('el botón de confirmar arranca apagado', (await apagado('Borrar historial')) === true);
+  ok('el botón de confirmar arranca apagado', (await apagado('Clear history')) === true);
   ok('el foco está en el campo de la palabra',
     await js(`document.activeElement === document.querySelector('.op-modal input')`));
-  await escribir('.op-modal input', 'borra');
+  await escribir('.op-modal input', 'delet');
   await sleep(200);
-  ok('con la palabra a medias sigue apagado', (await apagado('Borrar historial')) === true);
-  await escribir('.op-modal input', 'BORRAR');
+  ok('con la palabra a medias sigue apagado', (await apagado('Clear history')) === true);
+  await escribir('.op-modal input', 'DELETE');
   await sleep(200);
-  ok('con la palabra completa se enciende', (await apagado('Borrar historial')) === false);
-  await apretar('Borrar historial');
+  ok('con la palabra completa se enciende', (await apagado('Clear history')) === false);
+  await apretar('Clear history');
   await sleep(1400);
   ok('el historial quedó vacío',
     (await cuantos()) === 0 && await js(`!!document.querySelector('.op-empty')`));
@@ -651,17 +651,17 @@ app.whenReady().then(async () => {
   await click('[data-borrar]');
   await sleep(700);
   ok('el tacho de la orden pide confirmación',
-    await js(`document.querySelector('.op-modal')?.textContent.includes('Eliminar la orden')`));
-  await apretar('Eliminar');
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Delete the test order')`));
+  await apretar('Delete');
   await sleep(1400);
   ok('confirmar borra esa orden y deja la otra', (await cuantos()) === 1);
   await click('#ho-vaciar');
   await sleep(700);
-  ok('el botón de confirmar de las órdenes arranca apagado', (await apagado('Borrar historial')) === true);
-  await escribir('.op-modal input', 'borrar');
+  ok('el botón de confirmar de las órdenes arranca apagado', (await apagado('Clear history')) === true);
+  await escribir('.op-modal input', 'delete');
   await sleep(200);
-  ok('y se enciende con la palabra', (await apagado('Borrar historial')) === false);
-  await apretar('Borrar historial');
+  ok('y se enciende con la palabra', (await apagado('Clear history')) === false);
+  await apretar('Clear history');
   await sleep(1400);
   ok('el historial de órdenes quedó vacío',
     (await cuantos()) === 0 && await js(`!!document.querySelector('.op-empty')`));
@@ -677,7 +677,7 @@ app.whenReady().then(async () => {
   await js(`[...document.querySelectorAll('[data-ficha]')].find((e) => e.textContent.includes('GÓMEZ'))?.click()`);
   await sleep(1200);
   ok('la ficha volvió a llenar el panel',
-    await js(`document.getElementById('panel').textContent.includes('Filiación')`));
+    await js(`document.getElementById('panel').textContent.includes('Personal details')`));
   await click('#btn-bloquear');
   await sleep(1200);
   ok('vuelve la cerradura', await js(`!document.getElementById('cerradura').hidden`));

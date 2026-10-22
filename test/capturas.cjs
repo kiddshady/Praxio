@@ -11,7 +11,7 @@ const fs = require('fs');
 const os = require('os');
 
 const ROOT = path.join(__dirname, '..');
-const DESTINO = process.argv[2] || path.join(os.tmpdir(), 'quirotech-capturas');
+const DESTINO = process.argv[2] || path.join(os.tmpdir(), 'praxio-capturas');
 const datos = fs.mkdtempSync(path.join(os.tmpdir(), 'rx-demo-'));
 process.env.RX_DATA = datos;
 

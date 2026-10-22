@@ -6,7 +6,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /** Cambialo si tu app no es para acá. Afecta números, relojes y fechas. */
-export const locale = { tag: 'es-AR' };
+export const locale = { tag: 'en-GB' };
 
 /* ── El separador decimal ────────────────────────────────────────────────────
    `toFixed()` escribe SIEMPRE con punto, sin mirar el locale. Eso deja la app
@@ -109,19 +109,19 @@ export function fmtDate(ts, { withTime = false } = {}) {
   });
 }
 
-/** "hace 2 min" — para que nadie tenga que restar fechas mentalmente. */
+/** "2 min ago" — para que nadie tenga que restar fechas mentalmente. */
 export function relTime(ts) {
-  if (!ts) return 'nunca';
+  if (!ts) return 'never';
   const diff = Date.now() - Number(ts);
-  if (diff < 0) return 'recién';
+  if (diff < 0) return 'just now';
   const s = Math.round(diff / 1000);
-  if (s < 45) return 'recién';
+  if (s < 45) return 'just now';
   const m = Math.round(s / 60);
-  if (m < 60) return `hace ${m} min`;
+  if (m < 60) return `${m} min ago`;
   const h = Math.round(m / 60);
-  if (h < 24) return `hace ${h} h`;
+  if (h < 24) return `${h} h ago`;
   const d = Math.round(h / 24);
-  return d === 1 ? 'ayer' : `hace ${d} días`;
+  return d === 1 ? 'yesterday' : `${d} days ago`;
 }
 
 /** Iniciales para un monograma cuando no hay avatar propio. */

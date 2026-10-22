@@ -225,8 +225,8 @@ function migrar(conn) {
   if (version === ESQUEMA) return;
   if (version > ESQUEMA) {
     throw new Error(
-      `Estos datos son de una versión más nueva de Quiron (esquema ${version}, esta app entiende ${ESQUEMA}). ` +
-      'Actualizá la app antes de abrirlos.',
+      `This data comes from a newer version of Praxio (schema ${version}, this app understands ${ESQUEMA}). ` +
+      'Update the app before opening it.',
     );
   }
 
@@ -234,7 +234,7 @@ function migrar(conn) {
   const correr = conn.transaction(() => {
     while (version < ESQUEMA) {
       const paso = MIGRACIONES[version + 1];
-      if (!paso) throw new Error(`Falta la migración a la versión ${version + 1}.`);
+      if (!paso) throw new Error(`The migration to version ${version + 1} is missing.`);
       paso(conn);
       version += 1;
       conn.pragma(`user_version = ${version}`);
@@ -246,7 +246,7 @@ function migrar(conn) {
 /**
  * Abre (o crea) la base con la clave dada.
  * @param {Buffer} clave 32 bytes derivados por el llavero.
- * @throws si la clave es incorrecta o el archivo no es una base de Quiron (ni de Quirotech o Rx, sus nombres anteriores).
+ * @throws si la clave es incorrecta o el archivo no es una base de Praxio (ni de Quiron, Quirotech o Rx, sus nombres anteriores).
  */
 function abrir(clave) {
   if (db) cerrar();
@@ -271,7 +271,7 @@ function abrir(clave) {
     conn.close();
     const msg = String(err?.code || err?.message || err);
     if (/NOTADB|file is not a database|HMAC/i.test(msg)) {
-      throw new Error('Contraseña incorrecta.');
+      throw new Error('Wrong password.');
     }
     throw err;
   }
@@ -289,7 +289,7 @@ function cerrar() {
 function abierta() { return !!db; }
 
 function conexion() {
-  if (!db) throw new Error('La base está cerrada. Desbloqueá la app primero.');
+  if (!db) throw new Error('The database is closed. Unlock the app first.');
   return db;
 }
 
@@ -362,7 +362,7 @@ const pacientes = {
   save(datos) {
     const c = conexion();
     const nombre = String(datos?.apellido_nombre || '').trim();
-    if (!nombre) throw new Error('El paciente necesita apellido y nombre.');
+    if (!nombre) throw new Error('The patient needs a surname and first name.');
 
     const fila = Object.fromEntries(CAMPOS_PACIENTE.map((k) => [k, String(datos?.[k] ?? '').trim()]));
     fila.apellido_nombre = nombre;
@@ -373,7 +373,7 @@ const pacientes = {
       fila.id = datos.id;
       const set = [...CAMPOS_PACIENTE, 'busqueda', 'actualizado'].map((k) => `${k} = @${k}`).join(', ');
       const r = c.prepare(`UPDATE paciente SET ${set} WHERE id = @id`).run(fila);
-      if (r.changes === 0) throw new Error('Ese paciente ya no existe.');
+      if (r.changes === 0) throw new Error('That patient no longer exists.');
       return pacientes.get(fila.id);
     }
 
@@ -415,12 +415,12 @@ const evoluciones = {
   save(datos) {
     const c = conexion();
     const pid = datos?.paciente_id;
-    if (!pid) throw new Error('La evolución tiene que pertenecer a un paciente.');
+    if (!pid) throw new Error('The progress note must belong to a patient.');
     if (!c.prepare('SELECT 1 FROM paciente WHERE id = ?').get(pid)) {
-      throw new Error('Ese paciente no existe.');
+      throw new Error('That patient does not exist.');
     }
     const fila = Object.fromEntries(CAMPOS_EVOLUCION.map((k) => [k, String(datos?.[k] ?? '').trim()]));
-    if (!fila.fecha) throw new Error('La evolución necesita una fecha.');
+    if (!fila.fecha) throw new Error('The progress note needs a date.');
     fila.paciente_id = pid;
     fila.actualizado = ahora();
 
@@ -428,7 +428,7 @@ const evoluciones = {
       fila.id = datos.id;
       const set = [...CAMPOS_EVOLUCION, 'actualizado'].map((k) => `${k} = @${k}`).join(', ');
       const r = c.prepare(`UPDATE evolucion SET ${set} WHERE id = @id`).run(fila);
-      if (r.changes === 0) throw new Error('Esa evolución ya no existe.');
+      if (r.changes === 0) throw new Error('That progress note no longer exists.');
     } else {
       fila.id = id();
       fila.creado = fila.actualizado;
@@ -461,7 +461,7 @@ const medicamentos = {
   save(datos) {
     const c = conexion();
     const nombre = String(datos?.nombre || '').trim();
-    if (!nombre) throw new Error('El medicamento necesita un nombre.');
+    if (!nombre) throw new Error('The medication needs a name.');
 
     const fila = Object.fromEntries(CAMPOS_MEDICAMENTO.map((k) => [k, String(datos?.[k] ?? '').trim()]));
     fila.nombre = nombre;
@@ -472,7 +472,7 @@ const medicamentos = {
       fila.id = datos.id;
       const set = [...CAMPOS_MEDICAMENTO, 'envases', 'busqueda'].map((k) => `${k} = @${k}`).join(', ');
       const r = c.prepare(`UPDATE medicamento SET ${set} WHERE id = @id`).run(fila);
-      if (r.changes === 0) throw new Error('Ese medicamento ya no existe.');
+      if (r.changes === 0) throw new Error('That medication no longer exists.');
     } else {
       fila.id = id();
       fila.creado = ahora();
@@ -522,7 +522,7 @@ const recetas = {
     const c = conexion();
     const pid = datos?.paciente_id;
     const paciente = pid ? c.prepare('SELECT * FROM paciente WHERE id = ?').get(pid) : null;
-    if (!paciente) throw new Error('Elegí un paciente antes de emitir la receta.');
+    if (!paciente) throw new Error('Choose a patient before issuing the prescription.');
 
     const items = (Array.isArray(datos?.items) ? datos.items : [])
       .map((it) => {
@@ -531,14 +531,14 @@ const recetas = {
         return fila;
       })
       .filter((it) => it.nombre);
-    if (items.length === 0) throw new Error('La receta necesita al menos un medicamento.');
+    if (items.length === 0) throw new Error('The prescription needs at least one medication.');
     if (items.length > MAX_MEDICAMENTOS) {
       throw new Error(
-        `Una receta no puede llevar más de ${MAX_MEDICAMENTOS} medicamentos. Para el resto, emití otra.`);
+        `A prescription cannot carry more than ${MAX_MEDICAMENTOS} medications. Issue another one for the rest.`);
     }
 
     const fecha = String(datos?.fecha || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('La fecha de la receta es inválida.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('The prescription date is not valid.');
 
     const prof = medico.get();
     const rid = id();
@@ -625,7 +625,7 @@ const estudios = {
   save(datos) {
     const c = conexion();
     const nombre = String(datos?.nombre || '').trim();
-    if (!nombre) throw new Error('El estudio necesita un nombre.');
+    if (!nombre) throw new Error('The test needs a name.');
 
     const fila = Object.fromEntries(CAMPOS_ESTUDIO.map((k) => [k, String(datos?.[k] ?? '').trim()]));
     fila.nombre = nombre;
@@ -635,7 +635,7 @@ const estudios = {
       fila.id = datos.id;
       const set = [...CAMPOS_ESTUDIO, 'busqueda'].map((k) => `${k} = @${k}`).join(', ');
       const r = c.prepare(`UPDATE estudio SET ${set} WHERE id = @id`).run(fila);
-      if (r.changes === 0) throw new Error('Ese estudio ya no existe.');
+      if (r.changes === 0) throw new Error('That test no longer exists.');
     } else {
       fila.id = id();
       fila.creado = ahora();
@@ -666,7 +666,7 @@ const ordenes = {
     const c = conexion();
     const pid = datos?.paciente_id;
     const paciente = pid ? c.prepare('SELECT * FROM paciente WHERE id = ?').get(pid) : null;
-    if (!paciente) throw new Error('Elegí un paciente antes de emitir la orden.');
+    if (!paciente) throw new Error('Choose a patient before issuing the test order.');
 
     const items = (Array.isArray(datos?.items) ? datos.items : [])
       .map((it) => ({
@@ -674,10 +674,10 @@ const ordenes = {
         aclaracion: String(it?.aclaracion ?? '').trim(),
       }))
       .filter((it) => it.nombre);
-    if (items.length === 0) throw new Error('La orden necesita al menos un estudio.');
+    if (items.length === 0) throw new Error('The test order needs at least one test.');
 
     const fecha = String(datos?.fecha || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('La fecha de la orden es inválida.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('The test order date is not valid.');
 
     const diagnostico = String(datos?.diagnostico ?? '').trim();
     const observaciones = String(datos?.observaciones ?? '').trim();

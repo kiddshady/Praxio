@@ -27,7 +27,7 @@ const DOCUMENTO = path.join(__dirname, '..', 'renderer', 'imprimir.html');
 
 /** Traduce una fila de `receta` a lo que espera la plantilla. */
 function datosDeReceta(r) {
-  if (!r) throw new Error('Esa receta no existe.');
+  if (!r) throw new Error('That prescription does not exist.');
   const s = r.snapshot || {};
   return {
     tipo: 'receta',
@@ -46,7 +46,7 @@ function datosDeReceta(r) {
 
 /** Traduce una fila de `orden` a lo que espera la plantilla. */
 function datosDeOrden(o) {
-  if (!o) throw new Error('Esa orden no existe.');
+  if (!o) throw new Error('That test order does not exist.');
   const s = o.snapshot || {};
   return {
     tipo: 'orden',
@@ -97,7 +97,7 @@ async function ventanaConHoja(datos) {
         const desde = Date.now();
         (function esperar() {
           if (window.__pintar) return listo(window.__pintar(${json}));
-          if (Date.now() - desde > 5000) return error(new Error('la plantilla de la hoja no cargó'));
+          if (Date.now() - desde > 5000) return error(new Error('the sheet template did not load'));
           setTimeout(esperar, 16);
         })();
       })
@@ -135,7 +135,7 @@ async function guardarPdf(padre, datos) {
   const pdf = await pdfDe(datos);
 
   const res = await dialog.showSaveDialog(padre, {
-    title: esOrden(datos) ? 'Guardar la orden como PDF' : 'Guardar la receta como PDF',
+    title: esOrden(datos) ? 'Save the test order as PDF' : 'Save the prescription as PDF',
     defaultPath: nombreSugerido(datos),
     filters: [{ name: 'PDF', extensions: ['pdf'] }],
   });

@@ -35,16 +35,16 @@ function filaItem(it, i) {
     <div class="rx-item__campos">
       <div class="rx-item__grid">
         <input class="op-input" data-campo="nombre" data-i="${i}" spellcheck="false"
-               placeholder="Estudio o práctica" value="${esc(it.nombre)}">
+               placeholder="Test or procedure" value="${esc(it.nombre)}">
         <input class="op-input" data-campo="aclaracion" data-i="${i}" spellcheck="false"
-               placeholder="Aclaración (lado, región, ayuno…)" value="${esc(it.aclaracion)}">
+               placeholder="Note (side, region, fasting…)" value="${esc(it.aclaracion)}">
       </div>
     </div>
     <div class="rx-item__acciones">
       <button class="op-iconbtn op-iconbtn--sm" data-catalogo="${i}"
-              data-tip="Cargar del catálogo"><i data-icon="estudio"></i></button>
+              data-tip="Load from the catalog"><i data-icon="estudio"></i></button>
       <button class="op-iconbtn op-iconbtn--sm" data-quitar="${i}"
-              data-tip="Quitar"><i data-icon="trash"></i></button>
+              data-tip="Remove"><i data-icon="trash"></i></button>
     </div>
   </div>`;
 }
@@ -70,20 +70,20 @@ export async function vistaOrden(pacienteId = null) {
   if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId);
 
   paint(head({
-    title: 'Nueva orden',
-    sub: 'La hoja de la derecha es exactamente lo que va a salir impreso',
-    crumbs: [{ label: 'Órdenes', view: 'ordenes' }],
+    title: 'New test order',
+    sub: 'The sheet on the right is exactly what will be printed',
+    crumbs: [{ label: 'Test orders', view: 'ordenes' }],
     actions: `<button class="op-btn op-btn--primary op-flashable" id="o-emitir">
-                <i data-icon="check"></i> Emitir</button>`,
+                <i data-icon="check"></i> Issue</button>`,
   }) + `
     <div class="rx-receta">
       <div class="op-scroll rx-receta__form op-scroll--line-bottom">
 
         <div class="op-field">
-          <label class="op-field__label">Paciente</label>
+          <label class="op-field__label">Patient</label>
           <button class="op-select" id="o-paciente" type="button">
             <span id="o-paciente-txt">${E.paciente
-      ? esc(E.paciente.apellido_nombre) : 'Elegir paciente…'}</span>
+      ? esc(E.paciente.apellido_nombre) : 'Choose a patient…'}</span>
             <i data-icon="chevronDown"></i>
           </button>
           <span class="op-field__hint" id="o-paciente-hint"></span>
@@ -92,56 +92,56 @@ export async function vistaOrden(pacienteId = null) {
         <div id="o-alergias"></div>
 
         <div class="rx-fila">
-          ${campoFecha({ id: 'o-fecha', label: 'Fecha', valor: E.fecha })}
+          ${campoFecha({ id: 'o-fecha', label: 'Date', valor: E.fecha })}
           <div class="op-field">
-            <label class="op-field__label" for="o-diagnostico">Diagnóstico o indicación</label>
+            <label class="op-field__label" for="o-diagnostico">Diagnosis or indication</label>
             <input class="op-input" id="o-diagnostico" spellcheck="false"
-                   placeholder="Lo que motiva el pedido">
+                   placeholder="What prompts the request">
           </div>
         </div>
 
         <div class="rx-fila">
           <div class="op-field">
-            <label class="op-field__label">Plantilla</label>
+            <label class="op-field__label">Template</label>
             <div class="op-segmented" id="o-plantilla">
               ${PLANTILLAS_ORDEN.map(([v, n]) => `<button class="op-segmented__opt${E.plantilla === v ? ' is-active' : ''}"
                       data-value="${v}">${n}</button>`).join('')}
             </div>
           </div>
           <div class="op-field">
-            <label class="op-field__label" for="o-encabezado">Encabezado del pedido</label>
+            <label class="op-field__label" for="o-encabezado">Request heading</label>
             <input class="op-input" id="o-encabezado" spellcheck="false" maxlength="80"
-                   value="${esc(E.encabezado)}" placeholder="Vacío, la hoja no lo imprime">
+                   value="${esc(E.encabezado)}" placeholder="Empty, the sheet leaves it out">
           </div>
         </div>
 
         <div class="op-row rx-solo-retro${E.plantilla === 'retro' ? '' : ' is-apagada'}" id="o-membrete-campo"
              style="gap:var(--op-3);align-items:center">
           <div class="op-grow">
-            <div>Membrete del profesional</div>
-            <div class="op-meta">Nombre, especialidad, matrícula y domicilio arriba de la hoja.</div>
+            <div>Professional letterhead</div>
+            <div class="op-meta">Retro template only. Name, specialty, license number and address at the top of the sheet.</div>
           </div>
           <button type="button" class="op-switch${E.membrete ? ' is-on' : ''}" id="o-membrete"
-                  role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"
+                  role="switch" aria-checked="${E.membrete}" aria-label="Professional letterhead"
                   ${E.plantilla === 'retro' ? '' : 'disabled'}><span></span></button>
         </div>
 
         <div class="op-row rx-solo-retro${E.plantilla === 'retro' ? '' : ' is-apagada'}" id="o-numerar-campo"
              style="gap:var(--op-3);align-items:center">
           <div class="op-grow">
-            <div>Numerar estudios</div>
-            <div class="op-meta">1., 2., 3. en el margen de cada estudio.</div>
+            <div>Number the tests</div>
+            <div class="op-meta">Retro template only. 1., 2., 3. in the margin of each test.</div>
           </div>
           <button type="button" class="op-switch${E.numerar ? ' is-on' : ''}" id="o-numerar"
-                  role="switch" aria-checked="${E.numerar}" aria-label="Numerar estudios"
+                  role="switch" aria-checked="${E.numerar}" aria-label="Number the tests"
                   ${E.plantilla === 'retro' ? '' : 'disabled'}><span></span></button>
         </div>
 
         <div class="op-section">
           <div class="op-section__head">
-            <div class="op-section__title">Estudios</div>
+            <div class="op-section__title">Tests</div>
             <button class="op-btn op-btn--secondary op-btn--sm op-flashable" id="o-agregar">
-              <i data-icon="plus"></i> Agregar</button>
+              <i data-icon="plus"></i> Add</button>
           </div>
           <div class="op-col" id="o-items" style="gap:var(--op-3)"></div>
         </div>
@@ -151,9 +151,9 @@ export async function vistaOrden(pacienteId = null) {
       <div class="rx-receta__previa">
         <div class="rx-previa op-grow">
           <div class="rx-previa__head">
-            <i data-icon="printer"></i> Vista previa
+            <i data-icon="printer"></i> Preview
             <span class="op-spacer"></span>
-            <span class="op-meta" id="o-hojas">una hoja</span>
+            <span class="op-meta" id="o-hojas">one sheet</span>
           </div>
           <div class="rx-previa__scroll" id="o-previa"></div>
         </div>
@@ -195,7 +195,7 @@ export async function vistaOrden(pacienteId = null) {
     if (!papel) return;
     const caja = papel.getBoundingClientRect();
     const sePasa = caja.height > caja.width * (194 / 132) + 1;
-    elHojas.textContent = sePasa ? 'no entra: sigue en una segunda hoja' : 'una hoja';
+    elHojas.textContent = sePasa ? 'does not fit: it runs onto a second sheet' : 'one sheet';
     elHojas.classList.toggle('rx-previa__alerta', sePasa);
   }
 
@@ -215,7 +215,7 @@ export async function vistaOrden(pacienteId = null) {
        que algo falló. */
     swap(elAlergias, `<div class="rx-alergias">
       <i data-icon="cruz"></i>
-      <div><div class="rx-alergias__rotulo">Alergias</div>
+      <div><div class="rx-alergias__rotulo">Allergies</div>
       <div>${esc(a)}</div></div></div>`);
     /* `paint()` monta los íconos una sola vez, al pintar la vista. Todo lo que
        se inyecte después tiene que montar los suyos o queda un hueco. */
@@ -261,7 +261,7 @@ export async function vistaOrden(pacienteId = null) {
     const a = edad(E.paciente.nacimiento);
     elHint.textContent = [
       E.paciente.dni && `DNI ${E.paciente.dni}`,
-      a != null && `${a} años`,
+      a != null && `${a} years`,
       E.paciente.cobertura,
     ].filter(Boolean).join(' · ');
   }
@@ -291,7 +291,7 @@ export async function vistaOrden(pacienteId = null) {
 
     el.querySelector('[data-catalogo]').onclick = (ev) => {
       if (catalogo.length === 0) {
-        Toast.show({ title: 'El catálogo está vacío', text: 'Cargalo desde Estudios.', icon: 'estudio' });
+        Toast.show({ title: 'The catalog is empty', text: 'Fill it in from Tests.', icon: 'estudio' });
         return;
       }
       Menu.show(ev.currentTarget, catalogo.slice(0, 40).map((e) => ({
@@ -310,7 +310,7 @@ export async function vistaOrden(pacienteId = null) {
 
   document.getElementById('o-paciente').onclick = (ev) => {
     if (pacientes.length === 0) {
-      Toast.show({ title: 'No hay pacientes', text: 'Cargá uno desde Pacientes.', icon: 'users' });
+      Toast.show({ title: 'There are no patients', text: 'Add one from Patients.', icon: 'users' });
       return;
     }
     Menu.show(ev.currentTarget, pacientes.slice(0, 60).map((p) => ({
@@ -388,9 +388,9 @@ export async function vistaOrden(pacienteId = null) {
   };
 
   document.getElementById('o-emitir').onclick = async () => {
-    if (!E.paciente) return Toast.error('Falta el paciente', 'Elegí a quién va dirigida la orden.');
+    if (!E.paciente) return Toast.error('The patient is missing', 'Choose who the test order is for.');
     const items = E.items.filter((i) => i.nombre.trim());
-    if (items.length === 0) return Toast.error('Falta el estudio', 'La orden necesita al menos uno.');
+    if (items.length === 0) return Toast.error('The test is missing', 'The test order needs at least one.');
 
     const orden = await attempt(() => rx.ordenes.emitir({
       paciente_id: E.paciente.id,
@@ -402,10 +402,10 @@ export async function vistaOrden(pacienteId = null) {
       numerar: E.numerar,
       items,
       desdeCatalogo: items.map((i) => i.desde).filter(Boolean),
-    }), { errorTitle: 'No se pudo emitir la orden' });
+    }), { errorTitle: 'Could not issue the test order' });
     if (!orden) return;
 
-    await ofrecerSalida(orden.id, 'Orden emitida');
+    await ofrecerSalida(orden.id, 'Test order issued');
     Router.go('ordenes');
   };
 
@@ -425,24 +425,24 @@ export async function vistaOrden(pacienteId = null) {
 async function ofrecerSalida(ordenId, titulo) {
   const val = await Modal.show({
     title: titulo,
-    sub: 'Se imprime una sola hoja. El espacio de la firma queda en blanco para firmar a mano.',
+    sub: 'A single sheet is printed. The signature space is left blank to sign by hand.',
     width: 460,
     actions: [
-      { label: 'Después', value: null },
-      { label: 'Guardar PDF', value: 'pdf' },
-      { label: 'Imprimir', value: 'imprimir', variant: 'primary', autofocus: true },
+      { label: 'Later', value: null },
+      { label: 'Save PDF', value: 'pdf' },
+      { label: 'Print', value: 'imprimir', variant: 'primary', autofocus: true },
     ],
   });
   if (val === 'pdf') {
     await attempt(async () => {
       const r = await rx.ordenes.pdf(ordenId);
-      if (!r.cancelado) Toast.show({ title: 'PDF guardado', text: r.ruta, icon: 'save' });
-    }, { errorTitle: 'No se pudo generar el PDF' });
+      if (!r.cancelado) Toast.show({ title: 'PDF saved', text: r.ruta, icon: 'save' });
+    }, { errorTitle: 'Could not create the PDF' });
   } else if (val === 'imprimir') {
     await attempt(async () => {
       const r = await rx.ordenes.imprimir(ordenId);
-      if (!r.cancelado && !r.ok) throw new Error(r.motivo || 'La impresora rechazó el trabajo.');
-    }, { errorTitle: 'No se pudo imprimir' });
+      if (!r.cancelado && !r.ok) throw new Error(r.motivo || 'The printer rejected the job.');
+    }, { errorTitle: 'Could not print' });
   }
 }
 
@@ -452,39 +452,37 @@ export async function vistaOrdenes(ordenId = null) {
   const lista = await rx.ordenes.list({ limite: 300 });
 
   paint(head({
-    title: 'Órdenes',
-    /* `plural()` ya trae el número adelante, así que no se le antepone otro.
-       Y el plural va explícito: "orden" se acentúa al pluralizar y la regla de
-       agregarle una "s" da "ordens". */
+    title: 'Test orders',
+    /* `plural()` ya trae el número adelante, así que no se le antepone otro. */
     sub: lista.length
-      ? `${plural(lista.length, 'orden', 'órdenes')} ${lista.length === 1 ? 'emitida' : 'emitidas'}`
-      : 'Todavía no emitiste ninguna',
+      ? `${plural(lista.length, 'test order')} issued`
+      : 'You have not issued any yet',
     /* Igual que en recetas: el de borrar todo solo existe cuando hay algo que
        borrar, y va en fantasma. El rojo aparece recién en la confirmación. */
     actions: `${lista.length ? `
               <button class="op-btn op-btn--ghost op-flashable" id="ho-vaciar">
-                <i data-icon="trash"></i> Borrar historial</button>` : ''}
+                <i data-icon="trash"></i> Clear history</button>` : ''}
               <button class="op-btn op-btn--primary op-flashable" id="ho-nueva">
-                <i data-icon="plus"></i> Nueva orden</button>`,
+                <i data-icon="plus"></i> New test order</button>`,
   }) + `
     <div class="op-scroll op-grow op-scroll--line-bottom">
       ${lista.length === 0
-      ? empty({ icon: 'orden', title: 'Sin órdenes', text: 'La primera sale del botón de arriba.' })
+      ? empty({ icon: 'orden', title: 'No test orders', text: 'The first one starts with the button above.' })
       : `<div class="op-list">${lista.map((o) => `
         <div class="op-listitem" data-abrir="${esc(o.id)}" role="button" tabindex="0">
           <div class="op-iconcell"><i data-icon="orden"></i></div>
           <div class="op-listitem__main">
-            <div class="op-listitem__title">${esc(o.paciente || '— paciente eliminado —')}</div>
+            <div class="op-listitem__title">${esc(o.paciente || '— deleted patient —')}</div>
             <div class="op-listitem__sub op-truncate">${esc(o.detalle || '')}</div>
           </div>
           <div class="op-listitem__aside op-num">${esc(fecha(o.fecha))}</div>
           <div class="op-rowactions">
             <button class="op-iconbtn op-iconbtn--sm" data-imprimir="${esc(o.id)}"
-                    data-tip="Imprimir"><i data-icon="printer"></i></button>
+                    data-tip="Print"><i data-icon="printer"></i></button>
             <button class="op-iconbtn op-iconbtn--sm" data-pdf="${esc(o.id)}"
-                    data-tip="Guardar PDF"><i data-icon="download"></i></button>
+                    data-tip="Save PDF"><i data-icon="download"></i></button>
             <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(o.id)}"
-                    data-tip="Eliminar"><i data-icon="trash"></i></button>
+                    data-tip="Delete"><i data-icon="trash"></i></button>
           </div>
         </div>`).join('')}</div>`}
     </div>`);
@@ -508,15 +506,15 @@ export async function vistaOrdenes(ordenId = null) {
   for (const b of document.querySelectorAll('[data-imprimir]')) {
     b.onclick = () => attempt(async () => {
       const r = await rx.ordenes.imprimir(b.dataset.imprimir);
-      if (!r.cancelado && !r.ok) throw new Error(r.motivo || 'La impresora rechazó el trabajo.');
-    }, { errorTitle: 'No se pudo imprimir' });
+      if (!r.cancelado && !r.ok) throw new Error(r.motivo || 'The printer rejected the job.');
+    }, { errorTitle: 'Could not print' });
   }
 
   for (const b of document.querySelectorAll('[data-pdf]')) {
     b.onclick = () => attempt(async () => {
       const r = await rx.ordenes.pdf(b.dataset.pdf);
-      if (!r.cancelado) Toast.show({ title: 'PDF guardado', text: r.ruta, icon: 'save' });
-    }, { errorTitle: 'No se pudo generar el PDF' });
+      if (!r.cancelado) Toast.show({ title: 'PDF saved', text: r.ruta, icon: 'save' });
+    }, { errorTitle: 'Could not create the PDF' });
   }
 
   for (const b of document.querySelectorAll('[data-borrar]')) {
@@ -535,15 +533,15 @@ export async function vistaOrdenes(ordenId = null) {
     del modal de la orden. Devuelve si se borró. */
 async function borrarOrden(id, { antesDeRepintar = (listo) => listo() } = {}) {
   const ok = await Modal.confirm({
-    title: 'Eliminar la orden',
-    sub: 'Se borra del historial. Si ya salió impresa, el papel sigue existiendo. No hay vuelta atrás.',
-    confirmLabel: 'Eliminar',
+    title: 'Delete the test order',
+    sub: 'It is removed from the history. If it was already printed, the paper still exists. This cannot be undone.',
+    confirmLabel: 'Delete',
     danger: true,
   });
   if (!ok) return false;
-  const hecho = await attempt(() => rx.ordenes.remove(id), { errorTitle: 'No se pudo eliminar' });
+  const hecho = await attempt(() => rx.ordenes.remove(id), { errorTitle: 'Could not delete' });
   if (!hecho) return false;
-  Toast.show({ title: 'Orden eliminada', icon: 'trash' });
+  Toast.show({ title: 'Test order deleted', icon: 'trash' });
   antesDeRepintar(() => Router.refresh());
   return true;
 }
@@ -551,19 +549,19 @@ async function borrarOrden(id, { antesDeRepintar = (listo) => listo() } = {}) {
 /** Borra el historial de órdenes ENTERO, escribiendo la palabra. */
 async function vaciarHistorial(cuantas) {
   const ok = await Modal.confirmTyped({
-    title: 'Borrar todo el historial',
-    sub: `Se borran ${plural(cuantas, 'orden', 'órdenes')} ${cuantas === 1 ? 'emitida' : 'emitidas'}. `
-      + 'Los pacientes, el catálogo de estudios y las recetas quedan. Si querés conservarlas, '
-      + 'guardá antes un respaldo desde Ajustes. No hay vuelta atrás.',
-    word: 'borrar',
-    confirmLabel: 'Borrar historial',
+    title: 'Clear the whole history',
+    sub: `${plural(cuantas, 'issued test order')} will be deleted. `
+      + 'Patients, the test catalog and prescriptions stay. If you want to keep them, save a '
+      + 'backup from Settings first. This cannot be undone.',
+    word: 'delete',
+    confirmLabel: 'Clear history',
   });
   if (!ok) return;
-  const n = await attempt(() => rx.ordenes.vaciar(), { errorTitle: 'No se pudo borrar el historial' });
+  const n = await attempt(() => rx.ordenes.vaciar(), { errorTitle: 'Could not clear the history' });
   if (n == null) return;
   Toast.show({
-    title: 'Historial borrado',
-    text: `${plural(n, 'orden', 'órdenes')} ${n === 1 ? 'eliminada' : 'eliminadas'}.`,
+    title: 'History cleared',
+    text: `${plural(n, 'test order')} deleted.`,
     icon: 'trash',
   });
   Router.refresh();
@@ -572,7 +570,7 @@ async function vaciarHistorial(cuantas) {
 /** Muestra la hoja tal como se emitió, desde la instantánea. */
 async function verOrden(id) {
   const o = await rx.ordenes.get(id);
-  if (!o) return Toast.error('No está', 'Esa orden ya no existe.');
+  if (!o) return Toast.error('Not found', 'That test order no longer exists.');
 
   const datos = {
     tipo: 'orden',
@@ -592,15 +590,15 @@ async function verOrden(id) {
     ${hoja(datos)}</div>`;
 
   const val = await Modal.show({
-    title: `Orden del ${fecha(o.fecha)}`,
-    sub: 'Tal como se emitió. Los datos son los de ese día, no los actuales.',
+    title: `Test order of ${fecha(o.fecha)}`,
+    sub: 'Exactly as it was issued. The details are the ones from that day, not the current ones.',
     body: caja,
     width: 520,
     actions: [
-      { label: 'Cerrar', value: null },
-      { label: 'Eliminar', value: 'borrar', variant: 'danger' },
-      { label: 'Guardar PDF', value: 'pdf' },
-      { label: 'Imprimir', value: 'imprimir', variant: 'primary' },
+      { label: 'Close', value: null },
+      { label: 'Delete', value: 'borrar', variant: 'danger' },
+      { label: 'Save PDF', value: 'pdf' },
+      { label: 'Print', value: 'imprimir', variant: 'primary' },
     ],
   });
 
@@ -609,12 +607,12 @@ async function verOrden(id) {
   } else if (val === 'pdf') {
     await attempt(async () => {
       const res = await rx.ordenes.pdf(id);
-      if (!res.cancelado) Toast.show({ title: 'PDF guardado', text: res.ruta, icon: 'save' });
-    }, { errorTitle: 'No se pudo generar el PDF' });
+      if (!res.cancelado) Toast.show({ title: 'PDF saved', text: res.ruta, icon: 'save' });
+    }, { errorTitle: 'Could not create the PDF' });
   } else if (val === 'imprimir') {
     await attempt(async () => {
       const res = await rx.ordenes.imprimir(id);
-      if (!res.cancelado && !res.ok) throw new Error(res.motivo || 'La impresora rechazó el trabajo.');
-    }, { errorTitle: 'No se pudo imprimir' });
+      if (!res.cancelado && !res.ok) throw new Error(res.motivo || 'The printer rejected the job.');
+    }, { errorTitle: 'Could not print' });
   }
 }

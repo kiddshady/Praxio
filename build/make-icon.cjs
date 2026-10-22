@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quiron — genera el ícono en todos sus tamaños.
+   Praxio — genera el ícono en todos sus tamaños.
 
      npm run icon
 

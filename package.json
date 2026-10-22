@@ -1,10 +1,10 @@
 {
-  "name": "quiron",
-  "productName": "Quiron",
+  "name": "praxio",
+  "productName": "Praxio",
   "version": "0.3.2",
-  "description": "Historia clínica, recetas y órdenes de estudios para consultorio. Datos cifrados en disco, firma manuscrita.",
+  "description": "Medical records, prescriptions and test orders for a private practice. Data encrypted on disk, signed by hand.",
   "main": "main.cjs",
-  "author": "Francisco Pavez",
+  "author": "Kidd Shady · Umbrovex Systems",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
@@ -27,8 +27,8 @@
   },
   "build": {
     "appId": "com.kiddshady.rx",
-    "productName": "Quiron",
-    "copyright": "Copyright © 2026 Francisco Pavez",
+    "productName": "Praxio",
+    "copyright": "Copyright © 2026 Kidd Shady · Umbrovex Systems",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -63,7 +63,7 @@
     "publish": {
       "provider": "github",
       "owner": "kiddshady",
-      "repo": "Quiron"
+      "repo": "Praxio"
     }
   }
 }

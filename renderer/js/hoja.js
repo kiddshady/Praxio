@@ -19,10 +19,11 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /** Las plantillas de receta, en el orden en que se ofrecen, con el nombre que
-    ve el usuario. La misma lista vive en db.cjs (PLANTILLAS), que es la que
-    decide qué se guarda. */
+    ve el usuario (en inglés, como la interfaz: la hoja no lo imprime). La
+    misma lista vive en db.cjs (PLANTILLAS), que es la que decide qué se
+    guarda. */
 export const PLANTILLAS = [
-  ['clasica', 'Clásica'],
+  ['clasica', 'Classic'],
   ['rpe', 'RPE'],
   ['retro', 'Retro'],
 ];

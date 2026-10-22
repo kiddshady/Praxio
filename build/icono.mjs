@@ -1,4 +1,4 @@
-// Quiron — el dibujo del ícono (la vara de Asclepio con la serpiente).
+// Praxio — el dibujo del ícono (la vara de Asclepio con la serpiente).
 // Lo rasteriza build/make-icon.cjs (npm run icon); la maqueta original con su
 // muestrario está en S:\mockups\quirotech.
 // La serpiente es una hélice de verdad: cada tramo sabe si pasa por delante o

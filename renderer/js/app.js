@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quiron — arranque y shell
+   Praxio — arranque y shell
 
    El orden importa: NADA de dominio se pide antes de que la base esté abierta.
    Si el proceso principal responde "La app está bloqueada" es porque una vista
@@ -218,7 +218,7 @@ boot()
   .catch((err) => {
     console.error('[boot]', err);
     document.getElementById('view').innerHTML =
-      `<div class="op-empty"><div class="op-empty__title">Quiron no pudo arrancar</div>
+      `<div class="op-empty"><div class="op-empty__title">Praxio could not start</div>
        <div class="op-empty__text">${String(err?.message || err)}</div></div>`;
   })
   /* El splash se va SIEMPRE, incluso si el arranque falló: dejarlo puesto sobre

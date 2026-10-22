@@ -22,8 +22,10 @@ function campo(id, rotulo, valor, extra = '') {
   </div>`;
 }
 
-/* Los tres que admite el DNI. */
-const SEXOS = ['Femenino', 'Masculino', 'X'];
+/* Los tres que admite el DNI. Se guarda el valor en castellano, que es el que
+   imprime la hoja; la interfaz muestra el rótulo. */
+const SEXOS = [['Femenino', 'Female'], ['Masculino', 'Male'], ['X', 'X']];
+const rotuloSexo = (v) => (SEXOS.find(([s]) => s === v) || [v, v])[1];
 
 /* El sexo sale de una lista corta y cerrada, así que va en el select propio y
    no en un `<input list>`. El datalist abre el desplegable NATIVO de Chromium
@@ -35,9 +37,9 @@ const SEXOS = ['Femenino', 'Masculino', 'X'];
    input, sin tener que saber que este campo es distinto. */
 function campoSexo(valor) {
   return `<div class="op-field">
-    <label class="op-field__label">Sexo</label>
+    <label class="op-field__label">Sex</label>
     <button class="op-select" id="p-sexo" type="button" value="${esc(valor || '')}">
-      <span class="op-select__value" data-placeholder="Sin especificar">${esc(valor || '')}</span>
+      <span class="op-select__value" data-placeholder="Not specified">${esc(rotuloSexo(valor || ''))}</span>
       <i data-icon="chevronDown"></i>
     </button>
   </div>`;
@@ -46,15 +48,15 @@ function campoSexo(valor) {
 function cablearSexo(caja) {
   const btn = caja.querySelector('#p-sexo');
   const val = btn.querySelector('.op-select__value');
-  const poner = (v) => { btn.value = v; val.textContent = v; };
+  const poner = (v) => { btn.value = v; val.textContent = rotuloSexo(v); };
 
   btn.addEventListener('click', () => {
     Menu.show(btn, [
-      ...SEXOS.map((s) => ({ label: s, selected: btn.value === s, onSelect: () => poner(s) })),
+      ...SEXOS.map(([s, rotulo]) => ({ label: rotulo, selected: btn.value === s, onSelect: () => poner(s) })),
       { sep: true },
       /* Con el `<input>` el campo se vaciaba borrando el texto. Sin esta
          opción, un click equivocado no tendría vuelta atrás. */
-      { label: 'Sin especificar', selected: !btn.value, onSelect: () => poner('') },
+      { label: 'Not specified', selected: !btn.value, onSelect: () => poner('') },
     ]);
   });
 }
@@ -64,23 +66,23 @@ function formularioPaciente(p = {}) {
   caja.className = 'op-col';
   caja.style.gap = 'var(--op-3)';
   caja.innerHTML = `
-    ${campo('p-nombre', 'Apellido y nombre', p.apellido_nombre, 'placeholder="GÓMEZ, MARÍA ELENA"')}
+    ${campo('p-nombre', 'Surname and first name', p.apellido_nombre, 'placeholder="GÓMEZ, MARÍA ELENA"')}
     <div class="rx-fila">
       ${campo('p-dni', 'DNI', p.dni, 'placeholder="28123456" inputmode="numeric"')}
       ${campo('p-cuil', 'CUIL', p.cuil, 'placeholder="27-28123456-4"')}
     </div>
     <div class="rx-fila">
       ${campoSexo(p.sexo)}
-      ${campoFecha({ id: 'p-nac', label: 'Fecha de nacimiento', valor: p.nacimiento })}
+      ${campoFecha({ id: 'p-nac', label: 'Date of birth', valor: p.nacimiento })}
     </div>
-    ${campo('p-domicilio', 'Domicilio', p.domicilio)}
+    ${campo('p-domicilio', 'Address', p.domicilio)}
     <div class="rx-fila">
-      ${campo('p-telefono', 'Teléfono', p.telefono, 'inputmode="tel"')}
-      ${campo('p-email', 'Correo', p.email, 'inputmode="email"')}
+      ${campo('p-telefono', 'Phone', p.telefono, 'inputmode="tel"')}
+      ${campo('p-email', 'Email', p.email, 'inputmode="email"')}
     </div>
     <div class="rx-fila">
-      ${campo('p-cobertura', 'Cobertura', p.cobertura, 'placeholder="Particular / OSDE / PAMI"')}
-      ${campo('p-afiliado', 'Nº de afiliado', p.afiliado)}
+      ${campo('p-cobertura', 'Health coverage', p.cobertura, 'placeholder="Particular / OSDE / PAMI"')}
+      ${campo('p-afiliado', 'Member no.', p.afiliado)}
     </div>
     <div class="rx-cerradura__error" id="p-error"></div>`;
   cablearFechas(caja);
@@ -125,26 +127,26 @@ async function editarPaciente(p) {
   for (;;) {
     const caja = formularioPaciente(datos);
     const val = await Modal.show({
-      title: p?.id ? 'Editar paciente' : 'Nuevo paciente',
+      title: p?.id ? 'Edit patient' : 'New patient',
       body: caja,
       width: 620,
       actions: [
-        { label: 'Cancelar', value: null },
-        { label: 'Guardar', value: 'ok', variant: 'primary' },
+        { label: 'Cancel', value: null },
+        { label: 'Save', value: 'ok', variant: 'primary' },
       ],
     });
     if (val !== 'ok') return null;
 
     datos = leerFormulario(caja, p);
     const error = !datos.apellido_nombre.trim()
-      ? 'Falta el apellido y nombre.'
+      ? 'The surname and first name are missing.'
       : (validarDNI(datos.dni) || validarCUIL(datos.cuil));
 
     if (!error) {
       return attempt(() => rx.pacientes.save(datos),
-        { errorTitle: 'No se pudo guardar el paciente' });
+        { errorTitle: 'Could not save the patient' });
     }
-    Toast.error('Revisá los datos', error);
+    Toast.error('Check the details', error);
   }
 }
 
@@ -155,25 +157,25 @@ export async function vistaPacientes(busqueda = '') {
   const lista = await rx.pacientes.list({ busqueda: q });
 
   paint(head({
-    title: 'Pacientes',
+    title: 'Patients',
     /* `plural()` ya trae el número adelante: no se le antepone otro. */
     sub: lista.length
-      ? plural(lista.length, 'paciente')
-      : 'Todavía no hay pacientes cargados',
+      ? plural(lista.length, 'patient')
+      : 'No patients added yet',
     actions: `<button class="op-btn op-btn--primary op-flashable" id="p-nuevo">
-                <i data-icon="plus"></i> Nuevo paciente</button>`,
+                <i data-icon="plus"></i> New patient</button>`,
   }) + `
     <div class="op-scroll op-grow op-scroll--line-bottom">
       <div class="op-inputwrap rx-buscador" style="margin-bottom:var(--op-4)">
         <i data-icon="search"></i>
-        <input class="op-input" id="p-buscar" placeholder="Buscar por apellido, DNI o cobertura…"
+        <input class="op-input" id="p-buscar" placeholder="Search by surname, DNI or coverage…"
                spellcheck="false" value="${esc(q)}">
       </div>
       ${lista.length === 0
       ? empty({
         icon: 'users',
-        title: q ? 'Nadie coincide con esa búsqueda' : 'No hay pacientes todavía',
-        text: q ? 'Probá con el apellido o el DNI.' : 'Cargá el primero con el botón de arriba.',
+        title: q ? 'No one matches that search' : 'No patients yet',
+        text: q ? 'Try the surname or the DNI.' : 'Add the first one with the button above.',
       })
       : `<div class="op-list">${lista.map((p) => {
         const a = edad(p.nacimiento);
@@ -183,12 +185,12 @@ export async function vistaPacientes(busqueda = '') {
               <div class="op-listitem__title">${esc(p.apellido_nombre)}</div>
               <div class="op-listitem__sub op-truncate">${[
           p.dni && `DNI ${p.dni}`,
-          a != null && `${a} años`,
+          a != null && `${a} years`,
           p.cobertura,
         ].filter(Boolean).map(esc).join(' · ') || '—'}</div>
             </div>
             ${p.alergias ? `<div class="op-listitem__aside">
-              <span class="op-chip op-chip--danger" data-tip="${esc(p.alergias)}">Alergias</span></div>` : ''}
+              <span class="op-chip op-chip--danger" data-tip="${esc(p.alergias)}">Allergies</span></div>` : ''}
           </div>`;
       }).join('')}</div>`}
     </div>`);
@@ -223,32 +225,32 @@ function formularioEvolucion(e = {}) {
   caja.style.gap = 'var(--op-3)';
   caja.innerHTML = `
     <div class="rx-fila">
-      ${campoFecha({ id: 'e-fecha', label: 'Fecha', valor: e.fecha || hoyISO() })}
+      ${campoFecha({ id: 'e-fecha', label: 'Date', valor: e.fecha || hoyISO() })}
       <div class="op-field">
-        <label class="op-field__label" for="e-motivo">Motivo de consulta</label>
+        <label class="op-field__label" for="e-motivo">Reason for visit</label>
         <input class="op-input" id="e-motivo" spellcheck="false" value="${esc(e.motivo || '')}">
       </div>
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="e-notas">Evolución</label>
+      <label class="op-field__label" for="e-notas">Progress note</label>
       <textarea class="op-textarea" id="e-notas" rows="7"
-                placeholder="Qué se observó, qué se decidió, qué se indicó.">${esc(e.notas || '')}</textarea>
+                placeholder="What was observed, what was decided, what was prescribed.">${esc(e.notas || '')}</textarea>
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="e-diag">Diagnóstico</label>
+      <label class="op-field__label" for="e-diag">Diagnosis</label>
       <input class="op-input" id="e-diag" spellcheck="false" value="${esc(e.diagnostico || '')}">
     </div>
     <div class="rx-fila">
       <div class="op-field">
-        <label class="op-field__label" for="e-peso">Peso</label>
+        <label class="op-field__label" for="e-peso">Weight</label>
         <input class="op-input" id="e-peso" placeholder="72 kg" value="${esc(e.peso || '')}">
       </div>
       <div class="op-field">
-        <label class="op-field__label" for="e-talla">Talla</label>
-        <input class="op-input" id="e-talla" placeholder="1,68 m" value="${esc(e.talla || '')}">
+        <label class="op-field__label" for="e-talla">Height</label>
+        <input class="op-input" id="e-talla" placeholder="1.68 m" value="${esc(e.talla || '')}">
       </div>
       <div class="op-field">
-        <label class="op-field__label" for="e-presion">Presión</label>
+        <label class="op-field__label" for="e-presion">Blood pressure</label>
         <input class="op-input" id="e-presion" placeholder="120/80" value="${esc(e.presion || '')}">
       </div>
     </div>`;
@@ -259,12 +261,12 @@ function formularioEvolucion(e = {}) {
 async function editarEvolucion(pacienteId, e) {
   const caja = formularioEvolucion(e);
   const val = await Modal.show({
-    title: e?.id ? 'Editar evolución' : 'Nueva evolución',
+    title: e?.id ? 'Edit progress note' : 'New progress note',
     body: caja,
     width: 640,
     actions: [
-      { label: 'Cancelar', value: null },
-      { label: 'Guardar', value: 'ok', variant: 'primary' },
+      { label: 'Cancel', value: null },
+      { label: 'Save', value: 'ok', variant: 'primary' },
     ],
   });
   if (val !== 'ok') return false;
@@ -279,7 +281,7 @@ async function editarEvolucion(pacienteId, e) {
     peso: caja.querySelector('#e-peso').value,
     talla: caja.querySelector('#e-talla').value,
     presion: caja.querySelector('#e-presion').value,
-  }), { errorTitle: 'No se pudo guardar la evolución' });
+  }), { errorTitle: 'Could not save the progress note' });
   return !!r;
 }
 
@@ -291,7 +293,7 @@ async function editarEvolucion(pacienteId, e) {
     reemplaza al cartel separado que había antes arriba: mostrar el mismo texto
     dos veces a diez centímetros no lo hace más visible, lo hace ruido. Acá el
     dato salta a la vista Y se edita en el mismo lugar. Es ÁMBAR y no rojo:
-    en Quiron el rojo dice que algo falló, y una alergia no es una falla,
+    en Praxio el rojo dice que algo falló, y una alergia no es una falla,
     es lo que tiene que verse antes de recetar. */
 function bloqueClinico(id, rotulo, valor, placeholder, alerta = false) {
   const encendido = alerta && !!String(valor || '').trim();
@@ -310,7 +312,7 @@ function iniciales(apellidoNombre = '') {
 }
 
 /** La pestaña elegida de la ficha. Vive lo que vive la sesión: guardar algo
-    repinta la ficha, y volver a "Ficha clínica" cada vez sería un castigo. */
+    repinta la ficha, y volver a "Clinical record" cada vez sería un castigo. */
 let pestana = 'clinica';
 
 export async function vistaFicha(id) {
@@ -318,8 +320,8 @@ export async function vistaFicha(id) {
 
   const p = await rx.pacientes.get(id);
   if (!p) {
-    paint(head({ title: 'Paciente', crumbs: [{ label: 'Pacientes', view: 'pacientes' }] })
-      + empty({ icon: 'users', title: 'Ese paciente ya no existe' }));
+    paint(head({ title: 'Patient', crumbs: [{ label: 'Patients', view: 'pacientes' }] })
+      + empty({ icon: 'users', title: 'That patient no longer exists' }));
     return;
   }
 
@@ -333,8 +335,8 @@ export async function vistaFicha(id) {
   const filiacion = [
     p.dni && `DNI ${p.dni}`,
     p.cuil && `CUIL ${p.cuil}`,
-    p.nacimiento && `${fecha(p.nacimiento)}${años != null ? ` (${años} años)` : ''}`,
-    p.sexo,
+    p.nacimiento && `${fecha(p.nacimiento)}${años != null ? ` (${años} years)` : ''}`,
+    rotuloSexo(p.sexo),
     p.cobertura && (p.afiliado ? `${p.cobertura} · ${p.afiliado}` : p.cobertura),
     p.telefono,
     p.domicilio,
@@ -353,61 +355,61 @@ export async function vistaFicha(id) {
         <span>${esc(iniciales(p.apellido_nombre))}</span>
       </div>
       <div class="rx-pac__txt">
-        <nav class="op-crumbs"><span class="op-crumbs__item" data-goto="pacientes">Pacientes</span></nav>
+        <nav class="op-crumbs"><span class="op-crumbs__item" data-goto="pacientes">Patients</span></nav>
         <div class="rx-pac__nombre">${esc(p.apellido_nombre)}</div>
         <div class="rx-pac__meta op-num">
           ${p.dni ? `<span><i>DNI</i> ${esc(p.dni)}</span>` : ''}
-          ${años != null ? `<span><i>Edad</i> ${años}</span>` : ''}
+          ${años != null ? `<span><i>Age</i> ${años}</span>` : ''}
           ${p.cobertura ? `<span><i>${esc(p.cobertura)}</i>${p.afiliado ? ' ' + esc(p.afiliado) : ''}</span>` : ''}
         </div>
         ${alergia || p.archivado ? `<div class="rx-pac__chips">
           ${alergia ? `<span class="rx-chip-alerta" data-tip="${esc(alergia)}">
             <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 .8 9.2 5 5 9.2.8 5Z"/></svg>
-            <span class="op-truncate">Alergia: ${esc(alergia.split(/[.;\n]/)[0])}</span></span>` : ''}
-          ${p.archivado ? '<span class="op-chip">Archivado</span>' : ''}
+            <span class="op-truncate">Allergy: ${esc(alergia.split(/[.;\n]/)[0])}</span></span>` : ''}
+          ${p.archivado ? '<span class="op-chip">Archived</span>' : ''}
         </div>` : ''}
       </div>
       <!-- Dos emisiones y un solo primario: la receta es lo que más se hace
            desde una ficha, y la orden va al lado en secundario. -->
       <div class="op-viewhead__actions rx-pac__acciones">
         <button class="op-btn op-btn--secondary op-flashable" id="f-orden">
-          <i data-icon="orden"></i> Nueva orden</button>
+          <i data-icon="orden"></i> New test order</button>
         <button class="op-btn op-btn--primary op-flashable" id="f-receta">
-          <i data-icon="plus"></i> Nueva receta</button>
-        <button class="op-iconbtn" id="f-mas" data-tip="Más acciones"><i data-icon="more"></i></button>
+          <i data-icon="plus"></i> New prescription</button>
+        <button class="op-iconbtn" id="f-mas" data-tip="More actions"><i data-icon="more"></i></button>
       </div>
     </div>
 
     <div class="op-tabs rx-tabs" id="f-tabs">
-      ${tab('clinica', 'Ficha clínica')}
-      ${tab('evoluciones', 'Evoluciones', evoluciones.length)}
-      ${tab('recetas', 'Recetas', recetas.length >= 50 ? '50+' : recetas.length)}
-      ${tab('ordenes', 'Órdenes', ordenes.length >= 50 ? '50+' : ordenes.length)}
+      ${tab('clinica', 'Clinical record')}
+      ${tab('evoluciones', 'Progress notes', evoluciones.length)}
+      ${tab('recetas', 'Prescriptions', recetas.length >= 50 ? '50+' : recetas.length)}
+      ${tab('ordenes', 'Test orders', ordenes.length >= 50 ? '50+' : ordenes.length)}
     </div>
 
     <div class="op-scroll op-grow op-scroll--line-top op-scroll--line-bottom rx-panes">
 
       <div class="rx-pane" data-pane="clinica"${pestana === 'clinica' ? '' : ' hidden'}>
         <div class="op-section__head">
-          <div class="op-section__title">Se guarda al salir de cada campo</div>
+          <div class="op-section__title">Saved when you leave each field</div>
           <span class="op-meta" id="f-estado"></span>
         </div>
         <div class="op-card"><div class="op-card__body op-col" style="gap:var(--op-3)">
-          ${bloqueClinico('f-alergias', 'Alergias', p.alergias, 'Penicilina, AINEs…', true)}
-          ${bloqueClinico('f-antecedentes', 'Antecedentes', p.antecedentes, 'Personales, familiares, quirúrgicos.')}
-          ${bloqueClinico('f-medicacion', 'Medicación habitual', p.medicacion_habitual, 'Lo que ya toma, con dosis.')}
-          ${bloqueClinico('f-notas', 'Notas', p.notas, '')}
+          ${bloqueClinico('f-alergias', 'Allergies', p.alergias, 'Penicillin, NSAIDs…', true)}
+          ${bloqueClinico('f-antecedentes', 'Medical history', p.antecedentes, 'Personal, family, surgical.')}
+          ${bloqueClinico('f-medicacion', 'Current medication', p.medicacion_habitual, 'What they already take, with doses.')}
+          ${bloqueClinico('f-notas', 'Notes', p.notas, '')}
         </div></div>
       </div>
 
       <div class="rx-pane" data-pane="evoluciones"${pestana === 'evoluciones' ? '' : ' hidden'}>
         <div class="op-section__head">
-          <div class="op-section__title">${evoluciones.length ? 'De la más nueva a la más vieja' : 'Cada consulta se anota acá'}</div>
+          <div class="op-section__title">${evoluciones.length ? 'Newest first' : 'Every visit is written down here'}</div>
           <button class="op-btn op-btn--secondary op-btn--sm op-flashable" id="f-evo-nueva">
-            <i data-icon="plus"></i> Agregar</button>
+            <i data-icon="plus"></i> Add</button>
         </div>
         ${evoluciones.length === 0
-    ? empty({ icon: 'ficha', title: 'Sin evoluciones', text: 'La primera sale del botón de arriba.' })
+    ? empty({ icon: 'ficha', title: 'No progress notes', text: 'The first one starts with the button above.' })
     : `<div class="rx-linea">${evoluciones.map((e) => `
           <div class="rx-evolucion" data-evo="${esc(e.id)}">
             <div class="rx-evolucion__fecha op-num">${esc(fecha(e.fecha))}</div>
@@ -416,18 +418,18 @@ export async function vistaFicha(id) {
               <div class="rx-evolucion__cuerpo">
                 ${e.motivo ? `<div class="rx-evolucion__motivo">${esc(e.motivo)}</div>` : ''}
                 ${e.notas ? `<div class="rx-evolucion__notas op-copyable">${esc(e.notas)}</div>` : ''}
-                ${e.diagnostico ? `<div class="op-meta">Diagnóstico: ${esc(e.diagnostico)}</div>` : ''}
+                ${e.diagnostico ? `<div class="op-meta">Diagnosis: ${esc(e.diagnostico)}</div>` : ''}
                 ${(e.peso || e.talla || e.presion) ? `<div class="rx-evolucion__signos">
-                  ${e.presion ? `<span class="op-chip op-chip--mono">TA ${esc(e.presion)}</span>` : ''}
+                  ${e.presion ? `<span class="op-chip op-chip--mono">BP ${esc(e.presion)}</span>` : ''}
                   ${e.peso ? `<span class="op-chip op-chip--mono">${esc(e.peso)}</span>` : ''}
                   ${e.talla ? `<span class="op-chip op-chip--mono">${esc(e.talla)}</span>` : ''}
                 </div>` : ''}
               </div>
               <div class="op-rowactions">
                 <button class="op-iconbtn op-iconbtn--sm" data-evo-editar="${esc(e.id)}"
-                        data-tip="Editar"><i data-icon="edit"></i></button>
+                        data-tip="Edit"><i data-icon="edit"></i></button>
                 <button class="op-iconbtn op-iconbtn--sm" data-evo-borrar="${esc(e.id)}"
-                        data-tip="Eliminar"><i data-icon="trash"></i></button>
+                        data-tip="Delete"><i data-icon="trash"></i></button>
               </div>
             </div>
           </div>`).join('')}</div>`}
@@ -435,14 +437,14 @@ export async function vistaFicha(id) {
 
       <div class="rx-pane" data-pane="recetas"${pestana === 'recetas' ? '' : ' hidden'}>
         ${recetas.length === 0
-    ? empty({ icon: 'file', title: 'Sin recetas emitidas' })
+    ? empty({ icon: 'file', title: 'No prescriptions issued' })
     : `<div class="op-list">${recetas.map((r) => `
           <div class="op-listitem" data-receta="${esc(r.id)}" role="button" tabindex="0">
             <div class="op-iconcell"><i data-icon="file"></i></div>
             <div class="op-listitem__main">
               <div class="op-listitem__title op-truncate">${esc(r.detalle || '—')}</div>
-              <div class="op-listitem__sub">${plural(r.items, 'medicamento')} ·
-                plantilla ${esc(nombrePlantilla(r.plantilla))}</div>
+              <div class="op-listitem__sub">${plural(r.items, 'medication')} ·
+                ${esc(nombrePlantilla(r.plantilla))} template</div>
             </div>
             <div class="op-listitem__aside op-num">${esc(fecha(r.fecha))}</div>
           </div>`).join('')}</div>`}
@@ -450,13 +452,13 @@ export async function vistaFicha(id) {
 
       <div class="rx-pane" data-pane="ordenes"${pestana === 'ordenes' ? '' : ' hidden'}>
         ${ordenes.length === 0
-    ? empty({ icon: 'orden', title: 'Sin órdenes emitidas' })
+    ? empty({ icon: 'orden', title: 'No test orders issued' })
     : `<div class="op-list">${ordenes.map((o) => `
           <div class="op-listitem" data-orden="${esc(o.id)}" role="button" tabindex="0">
             <div class="op-iconcell"><i data-icon="orden"></i></div>
             <div class="op-listitem__main">
               <div class="op-listitem__title op-truncate">${esc(o.detalle || '—')}</div>
-              <div class="op-listitem__sub">${plural(o.items, 'estudio')}${
+              <div class="op-listitem__sub">${plural(o.items, 'test')}${
       o.diagnostico ? ` · ${esc(o.diagnostico)}` : ''}</div>
             </div>
             <div class="op-listitem__aside op-num">${esc(fecha(o.fecha))}</div>
@@ -487,21 +489,21 @@ export async function vistaFicha(id) {
   const conDatos = [p.dni, p.cuil, p.nacimiento, p.sexo, p.cobertura, p.telefono, p.domicilio].some(Boolean);
   const panel = document.getElementById('panel');
   panel.innerHTML = `<div class="op-panel__swap">
-    <div class="op-panel__head"><div class="op-panel__title">Filiación</div></div>
+    <div class="op-panel__head"><div class="op-panel__title">Personal details</div></div>
     <div class="op-panel__body op-scroll">
       ${conDatos ? `<div class="op-kv rx-kv">
         ${fila('DNI', p.dni)}
         ${fila('CUIL', p.cuil)}
-        ${fila('Nacimiento', p.nacimiento && `${fecha(p.nacimiento)}${años != null ? ` · ${años} años` : ''}`)}
-        ${fila('Sexo', p.sexo)}
-        ${fila('Cobertura', p.cobertura)}
-        ${fila('Afiliado', p.afiliado)}
-        ${fila('Teléfono', p.telefono)}
-        ${fila('Domicilio', p.domicilio)}
-      </div>` : '<div class="op-meta">Sin datos de filiación.</div>'}
+        ${fila('Born', p.nacimiento && `${fecha(p.nacimiento)}${años != null ? ` · ${años} years` : ''}`)}
+        ${fila('Sex', rotuloSexo(p.sexo))}
+        ${fila('Coverage', p.cobertura)}
+        ${fila('Member no.', p.afiliado)}
+        ${fila('Phone', p.telefono)}
+        ${fila('Address', p.domicilio)}
+      </div>` : '<div class="op-meta">No personal details.</div>'}
     </div>
     <div class="op-panel__foot">
-      <button class="op-btn op-btn--secondary op-flashable" id="f-editar"><i data-icon="edit"></i> Editar datos</button>
+      <button class="op-btn op-btn--secondary op-flashable" id="f-editar"><i data-icon="edit"></i> Edit details</button>
     </div>
   </div>`;
   Icons.mount(panel);
@@ -530,11 +532,11 @@ export async function vistaFicha(id) {
         await rx.pacientes.save({ ...p, ...Object.fromEntries(
           Object.entries(campos).map(([k, e2]) => [k, e2.value])) });
         original[clave] = el.value;
-        estado.textContent = 'Guardado';
-        setTimeout(() => { if (estado.textContent === 'Guardado') estado.textContent = ''; }, 2200);
+        estado.textContent = 'Saved';
+        setTimeout(() => { if (estado.textContent === 'Saved') estado.textContent = ''; }, 2200);
         /* Si tocó las alergias, el chip ámbar de arriba tiene que reflejarlo. */
         if (clave === 'alergias') vistaFicha(id);
-      }, { errorTitle: 'No se pudo guardar la ficha' });
+      }, { errorTitle: 'Could not save the record' });
     });
   }
 
@@ -544,41 +546,41 @@ export async function vistaFicha(id) {
 
   document.getElementById('f-mas').onclick = (ev) => {
     Menu.show(ev.currentTarget, [
-      { label: 'Editar datos personales', icon: 'edit', onSelect: async () => {
+      { label: 'Edit personal details', icon: 'edit', onSelect: async () => {
         if (await editarPaciente(p)) vistaFicha(id);
       } },
       { sep: true },
-      { label: p.archivado ? 'Desarchivar' : 'Archivar', icon: 'archivar', onSelect: async () => {
+      { label: p.archivado ? 'Unarchive' : 'Archive', icon: 'archivar', onSelect: async () => {
         await attempt(() => rx.pacientes.archivar(id, !p.archivado));
-        Toast.show({ title: p.archivado ? 'Desarchivado' : 'Archivado', icon: 'archivar' });
+        Toast.show({ title: p.archivado ? 'Unarchived' : 'Archived', icon: 'archivar' });
         Router.go('pacientes');
       } },
-      { label: 'Eliminar paciente', icon: 'trash', danger: true, onSelect: async () => {
+      { label: 'Delete patient', icon: 'trash', danger: true, onSelect: async () => {
         const emitidos = [
-          recetas.length && plural(recetas.length, 'receta'),
-          ordenes.length && plural(ordenes.length, 'orden', 'órdenes'),
+          recetas.length && plural(recetas.length, 'prescription'),
+          ordenes.length && plural(ordenes.length, 'test order'),
         ].filter(Boolean).join(', ');
 
         const ok = await Modal.confirm({
-          title: 'Eliminar el paciente',
+          title: 'Delete the patient',
           /* Cada cosa se nombra solo si existe: "0 órdenes se conservan" no
              dice nada y encima suena a que algo falló. Y la frase no concuerda
              con el número —"Lo ya emitido"— porque acá pueden quedar una sola
              receta, tres órdenes, o las dos cosas. */
           sub: (evoluciones.length
-               ? `Se borran también sus ${plural(evoluciones.length, 'evolución', 'evoluciones')}. `
+               ? `Their ${plural(evoluciones.length, 'progress note')} will be deleted too. `
                : '')
              + (emitidos
-               ? `Lo ya emitido se conserva (${emitidos}), porque son documentos `
-                 + 'que ya salieron impresos. '
+               ? `What was already issued is kept (${emitidos}), because those are documents `
+                 + 'that have already been printed. '
                : '')
-             + 'No hay vuelta atrás.',
-          confirmLabel: 'Eliminar',
+             + 'This cannot be undone.',
+          confirmLabel: 'Delete',
           danger: true,
         });
         if (!ok) return;
         await attempt(() => rx.pacientes.remove(id));
-        Toast.show({ title: 'Paciente eliminado', icon: 'trash' });
+        Toast.show({ title: 'Patient deleted', icon: 'trash' });
         Router.go('pacientes');
       } },
     ], { align: 'end' });
@@ -599,9 +601,9 @@ export async function vistaFicha(id) {
     b.onclick = async () => {
       const e = evoluciones.find((x) => x.id === b.dataset.evoBorrar);
       const ok = await Modal.confirm({
-        title: 'Eliminar la evolución',
-        sub: `La del ${fecha(e.fecha)}. No hay vuelta atrás.`,
-        confirmLabel: 'Eliminar',
+        title: 'Delete the progress note',
+        sub: `The one from ${fecha(e.fecha)}. This cannot be undone.`,
+        confirmLabel: 'Delete',
         danger: true,
       });
       if (!ok) return;

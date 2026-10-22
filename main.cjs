@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quiron — proceso principal (sobre el de Onyx)
+   Praxio — proceso principal (sobre el de Onyx)
    Acá pasa lo único de una app Electron que no se puede resolver con CSS: que
    la ventana aparezca SIN un solo frame blanco.
 
@@ -34,9 +34,10 @@
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
 
-/* Quiron se llamó Rx hasta la 0.1.12 y Quirotech de la 0.2.0 a la 0.2.6, y sus
-   datos vivieron en %APPDATA%\Rx (hasta la 0.2.3) y %APPDATA%\Quirotech. Desde
-   la 0.3.0 viven en %APPDATA%\Quiron, y quien viene de antes se muda acá, al
+/* Praxio se llamó Rx hasta la 0.1.12, Quirotech de la 0.2.0 a la 0.2.6 y Praxio
+   de la 0.3.0 a la 0.3.2, y sus datos vivieron en %APPDATA%\Rx (hasta la
+   0.2.3), %APPDATA%\Quirotech y %APPDATA%\Praxio. Desde la 1.0.0 viven en
+   %APPDATA%\Praxio, y quien viene de antes se muda acá, al
    arrancar: la carpeta entera se renombra, así la base, la sal y la llave de
    «recordar en esta PC» (safeStorage la ata a `Local State`) viajan juntas. Si
    no se puede mudar, esta vez se usa la vieja: nunca se abre vacía

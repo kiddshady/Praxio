@@ -35,21 +35,21 @@ async function cambiarClave() {
   caja.innerHTML = `
     <div class="rx-aviso">
       <i data-icon="key"></i>
-      <div>Se vuelve a cifrar la base entera con la contraseña nueva. Puede tardar unos
-      segundos. <strong>La contraseña vieja deja de servir</strong>, también para los
-      respaldos que hagas de ahora en más.</div>
+      <div>The whole database is encrypted again with the new password. It may take a few
+      seconds. <strong>The old password stops working</strong>, also for the backups
+      you make from now on.</div>
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="c-actual">Contraseña actual</label>
+      <label class="op-field__label" for="c-actual">Current password</label>
       <input class="op-input" type="password" id="c-actual" autocomplete="current-password">
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="c-nueva">Contraseña nueva</label>
+      <label class="op-field__label" for="c-nueva">New password</label>
       <input class="op-input" type="password" id="c-nueva" minlength="8" autocomplete="new-password">
-      <span class="op-field__hint">Mínimo 8 caracteres.</span>
+      <span class="op-field__hint">At least 8 characters.</span>
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="c-nueva2">Repetila</label>
+      <label class="op-field__label" for="c-nueva2">Repeat it</label>
       <input class="op-input" type="password" id="c-nueva2" autocomplete="new-password">
     </div>
     <div class="rx-cerradura__error" id="c-error"></div>`;
@@ -57,12 +57,12 @@ async function cambiarClave() {
   /* El modal se cierra con el valor del botón, así que la validación va acá
      adentro: si algo no cierra, se avisa y NO se deja cerrar el diálogo. */
   const val = await Modal.show({
-    title: 'Cambiar la contraseña',
+    title: 'Change the password',
     body: caja,
     width: 480,
     actions: [
-      { label: 'Cancelar', value: null },
-      { label: 'Cambiar', value: 'ok', variant: 'primary' },
+      { label: 'Cancel', value: null },
+      { label: 'Change', value: 'ok', variant: 'primary' },
     ],
   });
   if (val !== 'ok') return;
@@ -71,13 +71,13 @@ async function cambiarClave() {
   const nueva = caja.querySelector('#c-nueva').value;
   const nueva2 = caja.querySelector('#c-nueva2').value;
 
-  if (nueva.length < 8) return Toast.error('Contraseña muy corta', 'Necesita al menos 8 caracteres.');
-  if (nueva !== nueva2) return Toast.error('No coinciden', 'Las dos contraseñas nuevas tienen que ser iguales.');
+  if (nueva.length < 8) return Toast.error('Password too short', 'It needs at least 8 characters.');
+  if (nueva !== nueva2) return Toast.error('They do not match', 'The two new passwords must be the same.');
 
   await attempt(async () => {
     await rx.sesion.cambiarClave(actual, nueva);
-    Toast.show({ title: 'Contraseña cambiada', text: 'La base quedó recifrada.', icon: 'key' });
-  }, { errorTitle: 'No se pudo cambiar la contraseña' });
+    Toast.show({ title: 'Password changed', text: 'The database was re-encrypted.', icon: 'key' });
+  }, { errorTitle: 'Could not change the password' });
 }
 
 export async function vistaAjustes() {
@@ -88,41 +88,41 @@ export async function vistaAjustes() {
   S.ajustes = ajustes;
 
   paint(head({
-    title: 'Ajustes',
-    sub: 'Tus datos profesionales salen impresos al pie de cada receta',
+    title: 'Settings',
+    sub: 'Your professional details are printed at the foot of every prescription',
   }) + `
     <div class="op-scroll op-grow op-scroll--line-bottom">
 
       <div class="op-section">
-        <div class="op-section__head"><div class="op-section__title">Profesional</div></div>
+        <div class="op-section__head"><div class="op-section__title">Professional</div></div>
         <div class="op-card"><div class="op-card__body op-col" style="gap:var(--op-3)">
-          ${campo('a-nombre', 'Apellido y nombre', medico.apellido_nombre, { placeholder: 'DRA. LÓPEZ, ANA' })}
+          ${campo('a-nombre', 'Surname and first name', medico.apellido_nombre, { placeholder: 'DRA. LÓPEZ, ANA' })}
           <div class="rx-fila">
-            ${campo('a-matricula', 'Matrícula', medico.matricula, { placeholder: '12345' })}
-            ${campo('a-especialidad', 'Especialidad', medico.especialidad, { placeholder: 'Psiquiatría' })}
+            ${campo('a-matricula', 'License number', medico.matricula, { placeholder: '12345' })}
+            ${campo('a-especialidad', 'Specialty', medico.especialidad, { placeholder: 'Psiquiatría' })}
           </div>
-          ${campo('a-colegio', 'Colegio / Circunscripción', medico.colegio,
+          ${campo('a-colegio', 'Medical board / District', medico.colegio,
     { placeholder: 'Colegio de Médicos de Santa Fe, 1ra. Circ.' })}
           <div class="rx-fila">
-            ${campo('a-licencia', 'Licencia Sanitaria Federal', medico.licencia_sanitaria)}
-            ${campoFecha({ id: 'a-vigencia', label: 'Vigencia', valor: medico.fecha_vigencia })}
+            ${campo('a-licencia', 'Federal Health License', medico.licencia_sanitaria)}
+            ${campoFecha({ id: 'a-vigencia', label: 'Valid until', valor: medico.fecha_vigencia })}
           </div>
           <div class="rx-fila">
-            ${campo('a-domicilio', 'Domicilio del consultorio', medico.domicilio)}
-            ${campo('a-telefono', 'Teléfono', medico.telefono)}
+            ${campo('a-domicilio', 'Practice address', medico.domicilio)}
+            ${campo('a-telefono', 'Phone', medico.telefono)}
           </div>
           <div class="op-row" style="justify-content:flex-end;gap:var(--op-2)">
             <span class="op-meta" id="a-estado"></span>
-            <button class="op-btn op-btn--primary op-flashable" id="a-guardar">Guardar</button>
+            <button class="op-btn op-btn--primary op-flashable" id="a-guardar">Save</button>
           </div>
         </div></div>
       </div>
 
       <div class="op-section">
-        <div class="op-section__head"><div class="op-section__title">Recetas</div></div>
+        <div class="op-section__head"><div class="op-section__title">Prescriptions</div></div>
         <div class="op-card"><div class="op-card__body">
           <div class="op-field" style="max-width:320px">
-            <label class="op-field__label">Plantilla por defecto</label>
+            <label class="op-field__label">Default template</label>
             <div class="op-segmented" id="a-plantilla">
               ${PLANTILLAS.map(([v, n], i) => {
                 const activa = PLANTILLAS.some(([x]) => x === ajustes.plantillaPorDefecto)
@@ -136,84 +136,84 @@ export async function vistaAjustes() {
       </div>
 
       <div class="op-section">
-        <div class="op-section__head"><div class="op-section__title">Actualizaciones</div></div>
+        <div class="op-section__head"><div class="op-section__title">Updates</div></div>
         <div class="op-card"><div class="op-card__body">
           <div class="op-kv">
-            <span class="op-kv__k">Versión</span>
+            <span class="op-kv__k">Version</span>
             <span class="op-kv__v op-mono">${esc(S.info?.version || '—')}</span>
-            <span class="op-kv__k">Estado</span>
+            <span class="op-kv__k">Status</span>
             <span class="op-kv__v op-kv__v--wrap" id="upd-estado">${esc(describirEstado())}</span>
           </div>
           <div class="op-row" style="gap:var(--op-2);margin-top:var(--op-4);flex-wrap:wrap">
             <button class="op-btn op-btn--secondary op-flashable" id="btn-buscar-upd">
-              <i data-icon="retry"></i> Buscar actualizaciones</button>
+              <i data-icon="retry"></i> Check for updates</button>
             <button class="op-btn op-btn--ghost op-flashable" id="btn-releases">
-              <i data-icon="external"></i> Ver versiones en GitHub</button>
+              <i data-icon="external"></i> See releases on GitHub</button>
             <!-- Último: apagado guarda su hueco, y al final de la fila no se nota. -->
             <button class="op-btn op-btn--primary op-flashable op-plegable--ancho" id="btn-instalar-upd" hidden>
-              <i data-icon="download"></i> Reiniciar y actualizar</button>
+              <i data-icon="download"></i> Restart and update</button>
           </div>
           <p class="op-meta" style="margin-top:var(--op-4);line-height:1.65">
-            La app instalada busca una versión nueva al abrirse y la descarga en segundo plano.
-            Nunca se reinicia sola: cuando esté lista, elegís cuándo aplicarla.
+            The installed app looks for a new version when it opens and downloads it in the background.
+            It never restarts by itself: when it is ready, you choose when to apply it.
           </p>
         </div></div>
       </div>
 
       <div class="op-section">
-        <div class="op-section__head"><div class="op-section__title">Seguridad</div></div>
+        <div class="op-section__head"><div class="op-section__title">Security</div></div>
         <div class="op-card"><div class="op-card__body op-col" style="gap:var(--op-4)">
 
           <div class="op-row" style="gap:var(--op-3);align-items:flex-start">
             <div class="op-grow">
-              <div>Bloquear sola por inactividad</div>
-              <div class="op-meta">Cierra la base y pide la contraseña después de un rato sin uso.</div>
+              <div>Lock automatically when idle</div>
+              <div class="op-meta">Closes the database and asks for the password after a while without use.</div>
             </div>
             <div class="op-field" style="max-width:120px">
               <input class="op-input op-input--mono" id="a-inactividad" type="number" min="0" max="240"
                      value="${esc(ajustes.bloqueoInactividad ?? 15)}">
-              <span class="op-field__hint">minutos · 0 = nunca</span>
+              <span class="op-field__hint">minutes · 0 = never</span>
             </div>
           </div>
 
           <div class="op-row" style="gap:var(--op-3);align-items:center">
             <div class="op-grow">
-              <div>Recordar la contraseña en esta computadora</div>
+              <div>Remember the password on this computer</div>
               <div class="op-meta">${sesion.recordada
-      ? 'Está recordada: la app abre sin pedirla. Apagalo si la PC es compartida.'
-      : 'Ahora pide la contraseña en cada arranque.'}</div>
+      ? 'It is remembered: the app opens without asking for it. Turn it off if the PC is shared.'
+      : 'Right now it asks for the password on every start.'}</div>
             </div>
             ${interruptor('a-recordar', sesion.recordada)}
           </div>
 
           <div class="op-row" style="gap:var(--op-2);flex-wrap:wrap">
             <button class="op-btn op-btn--secondary op-flashable" id="a-clave">
-              <i data-icon="key"></i> Cambiar la contraseña</button>
+              <i data-icon="key"></i> Change the password</button>
             <button class="op-btn op-btn--secondary op-flashable" id="a-respaldo">
-              <i data-icon="save"></i> Guardar un respaldo cifrado</button>
+              <i data-icon="save"></i> Save an encrypted backup</button>
             <button class="op-btn op-btn--ghost op-flashable" id="a-carpeta">
-              <i data-icon="folder"></i> Abrir la carpeta de datos</button>
+              <i data-icon="folder"></i> Open the data folder</button>
           </div>
         </div></div>
       </div>
 
       <div class="op-section">
-        <div class="op-section__head"><div class="op-section__title">Importar</div></div>
+        <div class="op-section__head"><div class="op-section__title">Import</div></div>
         <div class="op-card"><div class="op-card__body op-row" style="gap:var(--op-3);align-items:center">
           <div class="op-grow">
-            <div>Traer los datos del prototipo viejo</div>
-            <div class="op-meta">Lee el <span class="op-mono">store.json</span> de la app anterior
-              y suma pacientes, medicamentos y tus datos. No pisa nada de lo que ya haya.</div>
+            <div>Bring in the data from the old prototype</div>
+            <div class="op-meta">Reads the <span class="op-mono">store.json</span> of the previous app
+              and adds patients, medications and your details. It does not overwrite anything already here.</div>
           </div>
           <button class="op-btn op-btn--secondary op-flashable" id="a-importar">
-            <i data-icon="upload"></i> Elegir archivo</button>
+            <i data-icon="upload"></i> Choose file</button>
         </div></div>
       </div>
 
       <div class="op-meta" style="padding:var(--op-4) 0">
-        Quiron v${esc(S.info?.version || '')} · Electron ${esc(S.info?.electron || '')} ·
-        esquema ${esc(S.info?.esquema || '')}<br>
-        Datos en <span class="op-mono op-copyable">${esc(sesion.carpeta || '')}</span>
+        Praxio v${esc(S.info?.version || '')} · Electron ${esc(S.info?.electron || '')} ·
+        schema ${esc(S.info?.esquema || '')}<br>
+        Data in <span class="op-mono op-copyable">${esc(sesion.carpeta || '')}</span>
       </div>
     </div>`);
 
@@ -231,9 +231,9 @@ export async function vistaAjustes() {
         domicilio: document.getElementById('a-domicilio').value,
         telefono: document.getElementById('a-telefono').value,
       });
-      estado.textContent = 'Guardado';
+      estado.textContent = 'Saved';
       setTimeout(() => { estado.textContent = ''; }, 2400);
-    }, { errorTitle: 'No se pudo guardar' });
+    }, { errorTitle: 'Could not save' });
   };
 
   /* ── Plantilla ──
@@ -278,8 +278,8 @@ export async function vistaAjustes() {
       /* Para recordarla hay que tenerla: la clave derivada no está en el
          renderer, y volver a pedirla es más honesto que guardar algo a medias. */
       Toast.show({
-        title: 'Se pide al desbloquear',
-        text: 'Marcá "Recordar en esta computadora" la próxima vez que la app te pida la contraseña.',
+        title: 'It is set when you unlock',
+        text: 'Tick "Remember on this computer" the next time the app asks for your password.',
         icon: 'info',
       });
       return;
@@ -288,17 +288,17 @@ export async function vistaAjustes() {
       await rx.sesion.olvidarPC();
       recordar.classList.remove('is-on');
       recordar.setAttribute('aria-checked', 'false');
-      Toast.show({ title: 'Listo', text: 'A partir del próximo arranque va a pedir la contraseña.', icon: 'lock' });
+      Toast.show({ title: 'Done', text: 'From the next start on it will ask for the password.', icon: 'lock' });
       vistaAjustes();
-    }, { errorTitle: 'No se pudo olvidar la contraseña' });
+    }, { errorTitle: 'Could not forget the password' });
   };
 
   document.getElementById('a-clave').onclick = cambiarClave;
 
   document.getElementById('a-respaldo').onclick = () => attempt(async () => {
     const r = await rx.respaldo.exportar();
-    if (!r.cancelado) Toast.show({ title: 'Respaldo guardado', text: r.ruta, icon: 'save' });
-  }, { errorTitle: 'No se pudo guardar el respaldo' });
+    if (!r.cancelado) Toast.show({ title: 'Backup saved', text: r.ruta, icon: 'save' });
+  }, { errorTitle: 'Could not save the backup' });
 
   document.getElementById('a-carpeta').onclick = () => rx.respaldo.carpeta();
 
@@ -306,10 +306,10 @@ export async function vistaAjustes() {
     const r = await rx.respaldo.importarPrototipo();
     if (r.cancelado) return;
     Toast.show({
-      title: 'Importado',
-      text: `${r.pacientes} pacientes y ${r.medicamentos} medicamentos.`,
+      title: 'Imported',
+      text: `${r.pacientes} patients and ${r.medicamentos} medications.`,
       icon: 'upload',
     });
     vistaAjustes();
-  }, { errorTitle: 'No se pudo importar' });
+  }, { errorTitle: 'Could not import' });
 }

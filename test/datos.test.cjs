@@ -50,7 +50,7 @@ app.whenReady().then(async () => {
   });
 
   await prueba('rechaza contraseñas cortas', async () => {
-    await assert.rejects(() => llave.configurar('corta'), /8 caracteres/);
+    await assert.rejects(() => llave.configurar('corta'), /8 characters/);
   });
 
   await prueba('guarda y relee un paciente', () => {
@@ -72,7 +72,7 @@ app.whenReady().then(async () => {
   });
 
   await prueba('exige apellido y nombre', () => {
-    assert.throws(() => db.pacientes.save({ apellido_nombre: '   ' }), /apellido y nombre/);
+    assert.throws(() => db.pacientes.save({ apellido_nombre: '   ' }), /surname and first name/);
   });
 
   await prueba('el archivo en disco está cifrado de verdad', () => {
@@ -103,7 +103,7 @@ app.whenReady().then(async () => {
     const p = db.pacientes.list()[0];
     assert.throws(
       () => db.recetas.emitir({ paciente_id: p.id, fecha: '2026-08-07', items: [] }),
-      /al menos un medicamento/);
+      /at least one medication/);
   });
 
   /* El tope de dos es legal, no de la hoja. Que la vista apague el botón no
@@ -116,7 +116,7 @@ app.whenReady().then(async () => {
         paciente_id: p.id, fecha: '2026-08-07',
         items: [{ nombre: 'Uno' }, { nombre: 'Dos' }, { nombre: 'Tres' }],
       }),
-      /no puede llevar más de 2/);
+      /cannot carry more than 2/);
   });
 
   await prueba('pero dos sí entran', () => {
@@ -195,7 +195,7 @@ app.whenReady().then(async () => {
     const p = db.pacientes.list()[0];
     assert.throws(
       () => db.recetas.emitir({ paciente_id: p.id, fecha: '7/8/2026', items: [{ nombre: 'X' }] }),
-      /fecha .* inválida/);
+      /date is not valid/);
   });
 
   await prueba('la receta emitida NO cambia si después cambian los datos vivos', () => {
@@ -234,7 +234,7 @@ app.whenReady().then(async () => {
     const p = db.pacientes.list()[0];
     assert.throws(
       () => db.ordenes.emitir({ paciente_id: p.id, fecha: '2026-08-07', items: [] }),
-      /al menos un estudio/);
+      /at least one test/);
   });
 
   await prueba('pedir del catálogo le suma uso al estudio', () => {
@@ -279,7 +279,7 @@ app.whenReady().then(async () => {
 
   await prueba('la evolución exige un paciente que exista', () => {
     assert.throws(() => db.evoluciones.save({ paciente_id: 'inventado', fecha: '2026-08-07' }),
-      /no existe/);
+      /does not exist/);
   });
 
   await prueba('guarda evoluciones y las borra en cascada con el paciente', () => {
@@ -295,7 +295,7 @@ app.whenReady().then(async () => {
   await prueba('una contraseña equivocada NO abre la base', async () => {
     db.cerrar();
     const mala = await llave.derivarGuardada(CLAVE_MALA);
-    assert.throws(() => db.abrir(mala), /Contraseña incorrecta/);
+    assert.throws(() => db.abrir(mala), /Wrong password/);
   });
 
   await prueba('la contraseña correcta reabre con los datos intactos', async () => {
@@ -387,7 +387,7 @@ app.whenReady().then(async () => {
     db.cerrar();
 
     const vieja = await llave.derivarGuardada(CLAVE_BUENA);
-    assert.throws(() => db.abrir(vieja), /Contraseña incorrecta/,
+    assert.throws(() => db.abrir(vieja), /Wrong password/,
       'la contraseña vieja todavía abre');
 
     db.abrir(nueva);

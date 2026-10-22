@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quiron — la cerradura
+   Praxio — la cerradura
 
    Lo primero que se ve. Tiene tres caras según el estado de la instalación:
 
@@ -40,59 +40,59 @@ function check(id, etiqueta, marcado) {
 function pantallaCrear(estado) {
   return `
     ${MARCA}
-    <div class="rx-cerradura__titulo">Quiron</div>
+    <div class="rx-cerradura__titulo">Praxio</div>
     <p class="rx-cerradura__sub">
-      Elegí la contraseña que va a proteger la historia clínica de tus pacientes.
+      Choose the password that will protect your patients' medical records.
     </p>
     <form class="rx-cerradura__form" id="form-cerradura" autocomplete="off">
       <div class="rx-aviso">
         ${Icons.svg('key', 'op-icon--sm')}
         <div>
-          <strong>No hay forma de recuperarla.</strong> Los datos se cifran con esta
-          contraseña y nadie —ni esta app, ni yo, ni nadie— puede abrirlos sin ella.
-          Si la perdés, perdés los datos. Anotala en un lugar seguro.
+          <strong>There is no way to recover it.</strong> Your data is encrypted with
+          this password, and no one (not this app, not its developer, not anyone) can
+          open it without it. If you lose it, you lose the data. Write it down somewhere safe.
         </div>
       </div>
       <div class="op-field">
-        <label class="op-field__label" for="clave">Contraseña</label>
+        <label class="op-field__label" for="clave">Password</label>
         <input class="op-input" type="password" id="clave" minlength="8"
                autocomplete="new-password" spellcheck="false" required>
-        <span class="op-field__hint">Mínimo 8 caracteres.</span>
+        <span class="op-field__hint">At least 8 characters.</span>
       </div>
       <div class="op-field">
-        <label class="op-field__label" for="clave2">Repetila</label>
+        <label class="op-field__label" for="clave2">Repeat it</label>
         <input class="op-input" type="password" id="clave2"
                autocomplete="new-password" spellcheck="false" required>
       </div>
-      ${estado.puedeRecordar ? check('recordar', 'Recordar en esta computadora', false) : ''}
+      ${estado.puedeRecordar ? check('recordar', 'Remember on this computer', false) : ''}
       <div class="rx-cerradura__error" id="error"></div>
       <button class="op-btn op-btn--primary op-flashable" type="submit" id="enviar">
-        Crear y entrar
+        Create and enter
       </button>
     </form>`;
 }
 
 function pantallaAbrir(estado, motivo) {
   const sub = motivo === 'inactividad'
-    ? 'Se bloqueó sola por inactividad.'
-    : 'Ingresá tu contraseña para abrir la historia clínica.';
+    ? 'It locked itself after a period of inactivity.'
+    : 'Enter your password to open the medical records.';
   return `
     ${MARCA}
-    <div class="rx-cerradura__titulo">Quiron</div>
+    <div class="rx-cerradura__titulo">Praxio</div>
     <p class="rx-cerradura__sub">${esc(sub)}</p>
     <form class="rx-cerradura__form" id="form-cerradura" autocomplete="off">
       <div class="op-field">
-        <label class="op-field__label" for="clave">Contraseña</label>
+        <label class="op-field__label" for="clave">Password</label>
         <input class="op-input" type="password" id="clave"
                autocomplete="current-password" spellcheck="false" required>
       </div>
-      ${estado.puedeRecordar ? check('recordar', 'Recordar en esta computadora', !!estado.recordada) : ''}
+      ${estado.puedeRecordar ? check('recordar', 'Remember on this computer', !!estado.recordada) : ''}
       <div class="rx-cerradura__error" id="error"></div>
       <button class="op-btn op-btn--primary op-flashable" type="submit" id="enviar">
-        Desbloquear
+        Unlock
       </button>
     </form>
-    <div class="rx-cerradura__pie">${Icons.svg('lock', 'op-icon--sm')} Los datos están cifrados en disco</div>`;
+    <div class="rx-cerradura__pie">${Icons.svg('lock', 'op-icon--sm')} The data is encrypted on disk</div>`;
 }
 
 /**
@@ -154,14 +154,14 @@ export function pedirClave(estado, motivo = 'inicio') {
 
       const valor = clave.value;
       if (crear) {
-        if (valor.length < 8) return fallo('La contraseña necesita al menos 8 caracteres.');
-        if (valor !== clave2.value) return fallo('Las dos contraseñas no coinciden.');
+        if (valor.length < 8) return fallo('The password needs at least 8 characters.');
+        if (valor !== clave2.value) return fallo('The two passwords do not match.');
       } else if (!valor) {
-        return fallo('Escribí tu contraseña.');
+        return fallo('Type your password.');
       }
 
       enviar.disabled = true;
-      enviar.textContent = crear ? 'Creando…' : 'Abriendo…';
+      enviar.textContent = crear ? 'Creating…' : 'Opening…';
       const quiereRecordar = !!recordar?.classList.contains('is-on');
 
       try {
@@ -173,8 +173,8 @@ export function pedirClave(estado, motivo = 'inicio') {
         listo(true);
       } catch (err) {
         enviar.disabled = false;
-        enviar.textContent = crear ? 'Crear y entrar' : 'Desbloquear';
-        fallo(err.message || 'No se pudo abrir.');
+        enviar.textContent = crear ? 'Create and enter' : 'Unlock';
+        fallo(err.message || 'Could not open.');
       }
     });
 

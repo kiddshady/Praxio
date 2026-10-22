@@ -6,14 +6,15 @@ import { paint, esc, empty } from '../ui.js';
 import { countTo } from '../motion.js';
 import { S, refrescar, fecha } from '../tienda.js';
 
-const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
-  'septiembre', 'octubre', 'noviembre', 'diciembre'];
-const MES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const DIAS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MESES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+  'September', 'October', 'November', 'December'];
+const MES_CORTO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+/** "Thursday 22 October": el día antes del mes, como se escribe la fecha acá. */
 function hoyLargo() {
   const d = new Date();
-  return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+  return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
 }
 
 function cifra(rotulo, id) {
@@ -23,7 +24,7 @@ function cifra(rotulo, id) {
   </div>`;
 }
 
-/** "2026-10-05" → "5 oct". */
+/** "2026-10-05" → "5 Oct". */
 function corta(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${d} ${MES_CORTO[m - 1]}`;
@@ -44,67 +45,67 @@ export async function vistaTablero() {
   const atendidos = r.atendidosHoy || [];
   const max = Math.max(0, ...serie.map((x) => x.n));
   const enElMes = serie.reduce((a, x) => a + x.n, 0);
-  const marcas = serie.length ? [0, 7, 14, 21].map((i) => corta(serie[i].fecha)).concat('hoy') : [];
+  const marcas = serie.length ? [0, 7, 14, 21].map((i) => corta(serie[i].fecha)).concat('today') : [];
 
   paint(`
     <div class="op-viewhead">
       <div class="op-viewhead__text op-grow">
         <div class="rx-eyebrow">${esc(hoyLargo())}</div>
-        <div class="op-viewhead__title">Tablero</div>
+        <div class="op-viewhead__title">Dashboard</div>
         <div class="op-viewhead__sub">${esc(sinConfigurar
-          ? 'Antes de emitir la primera receta, cargá tus datos profesionales en Ajustes.'
-          : medico.apellido_nombre + (medico.matricula ? ` · Mat. ${medico.matricula}` : '')
+          ? 'Before issuing your first prescription, enter your professional details in Settings.'
+          : medico.apellido_nombre + (medico.matricula ? ` · Lic. ${medico.matricula}` : '')
             + (medico.especialidad ? ` · ${medico.especialidad}` : ''))}</div>
       </div>
       <div class="op-viewhead__actions">
         <button class="op-btn op-btn--secondary op-flashable" id="t-orden">
-          <i data-icon="orden"></i> Nueva orden</button>
+          <i data-icon="orden"></i> New test order</button>
         <button class="op-btn op-btn--primary op-flashable" id="t-nueva">
-          <i data-icon="plus"></i> Nueva receta</button>
+          <i data-icon="plus"></i> New prescription</button>
       </div>
     </div>
     <div class="op-scroll op-grow op-scroll--line-bottom">
       ${sinConfigurar ? `
         <div class="rx-aviso" style="margin-bottom:var(--op-4)">
           <i data-icon="info"></i>
-          <div><strong>Faltan tus datos.</strong> El pie de la receta sale de lo que cargues
-          en Ajustes: apellido, matrícula y especialidad.
+          <div><strong>Your details are missing.</strong> The prescription footer comes from
+          what you enter in Settings: name, license number and specialty.
           <button class="op-btn op-btn--ghost op-btn--sm" id="t-ajustes"
-                  style="margin-left:var(--op-2)">Ir a Ajustes</button></div>
+                  style="margin-left:var(--op-2)">Go to Settings</button></div>
         </div>` : ''}
 
       <!-- Las cifras: una tira con divisiones, no cinco cajas. -->
       <div class="op-card rx-cifras">
-        ${cifra('Pacientes', 'c-pac')}
-        ${cifra('Recetas emitidas', 'c-rec')}
-        ${cifra('Recetas hoy', 'c-hoy')}
-        ${cifra('Órdenes emitidas', 'c-ord')}
-        ${cifra('Evoluciones', 'c-evo')}
+        ${cifra('Patients', 'c-pac')}
+        ${cifra('Prescriptions issued', 'c-rec')}
+        ${cifra('Prescriptions today', 'c-hoy')}
+        ${cifra('Test orders issued', 'c-ord')}
+        ${cifra('Progress notes', 'c-evo')}
       </div>
 
       <div class="rx-doble">
         <div class="op-card rx-traza">
           <div class="rx-tarjeta__cab">
-            <div class="rx-tarjeta__tit">Recetas por día</div>
-            <div class="rx-tarjeta__meta op-num">últimos 30 días · ${enElMes} en total · máx. ${max}</div>
+            <div class="rx-tarjeta__tit">Prescriptions per day</div>
+            <div class="rx-tarjeta__meta op-num">last 30 days · ${enElMes} in total · max. ${max}</div>
           </div>
-          <div class="rx-traza__lienzo"><canvas id="t-traza" aria-label="Recetas por día en los últimos 30 días"></canvas></div>
+          <div class="rx-traza__lienzo"><canvas id="t-traza" aria-label="Prescriptions per day over the last 30 days"></canvas></div>
           <div class="rx-traza__ejes op-num">${marcas.map((m) => `<span>${esc(m)}</span>`).join('')}</div>
         </div>
 
         <div class="op-card rx-hoy">
           <div class="rx-tarjeta__cab">
-            <div class="rx-tarjeta__tit">Atendidos hoy</div>
+            <div class="rx-tarjeta__tit">Seen today</div>
             <div class="rx-tarjeta__meta op-num">${atendidos.length
-              ? `${atendidos.length} ${atendidos.length === 1 ? 'evolución' : 'evoluciones'}` : ''}</div>
+              ? `${atendidos.length} ${atendidos.length === 1 ? 'progress note' : 'progress notes'}` : ''}</div>
           </div>
           ${atendidos.length === 0
-      ? '<div class="rx-hoy__vacio">Cuando anotes una evolución con fecha de hoy, aparece acá.</div>'
+      ? '<div class="rx-hoy__vacio">When you write a progress note dated today, it shows up here.</div>'
       : `<div class="rx-hoy__lista">${atendidos.map((a) => `
               <div class="rx-turno" data-ficha="${esc(a.paciente_id || '')}" role="button" tabindex="0">
                 <div class="rx-turno__h op-num">${esc(hora(a.creado))}</div>
                 <div class="rx-turno__txt">
-                  <div class="rx-turno__n op-truncate">${esc(a.paciente || '— paciente eliminado —')}</div>
+                  <div class="rx-turno__n op-truncate">${esc(a.paciente || '— deleted patient —')}</div>
                   ${a.motivo ? `<div class="rx-turno__m op-truncate">${esc(a.motivo)}</div>` : ''}
                 </div>
               </div>`).join('')}</div>`}
@@ -113,16 +114,16 @@ export async function vistaTablero() {
 
       <div class="op-section">
         <div class="op-section__head">
-          <div class="op-section__title">Últimas recetas</div>
-          <button class="op-btn op-btn--ghost op-btn--sm" id="t-todas">Ver todas</button>
+          <div class="op-section__title">Latest prescriptions</div>
+          <button class="op-btn op-btn--ghost op-btn--sm" id="t-todas">See all</button>
         </div>
         ${r.ultimasRecetas.length === 0
-      ? empty({ icon: 'file', title: 'Todavía no emitiste ninguna receta', text: 'La primera sale del botón de arriba.' })
+      ? empty({ icon: 'file', title: 'You have not issued any prescriptions yet', text: 'The first one starts with the button above.' })
       : `<div class="op-list">${r.ultimasRecetas.map((x) => `
             <div class="op-listitem" data-receta="${esc(x.id)}" role="button" tabindex="0">
               <div class="op-iconcell"><i data-icon="file"></i></div>
               <div class="op-listitem__main">
-                <div class="op-listitem__title">${esc(x.paciente || '— paciente eliminado —')}</div>
+                <div class="op-listitem__title">${esc(x.paciente || '— deleted patient —')}</div>
                 <div class="op-listitem__sub op-truncate">${esc(x.detalle || '')}</div>
               </div>
               <div class="op-listitem__aside op-num">${esc(fecha(x.fecha))}</div>

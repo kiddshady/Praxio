@@ -45,7 +45,7 @@ async function leerArchivo() {
     return JSON.parse(await fsp.readFile(rutas.llave(), 'utf8'));
   } catch (err) {
     if (err.code === 'ENOENT') return null;
-    throw new Error('El archivo de llave está ilegible: ' + err.message);
+    throw new Error('The key file cannot be read: ' + err.message);
   }
 }
 
@@ -80,7 +80,7 @@ async function estado() {
 /** Primera vez: crea la sal y devuelve la clave con la que se creará la base. */
 async function configurar(password) {
   if (!password || String(password).length < 8) {
-    throw new Error('La contraseña tiene que tener al menos 8 caracteres.');
+    throw new Error('The password must have at least 8 characters.');
   }
   const sal = crypto.randomBytes(16).toString('base64');
   const clave = await derivar(password, sal, KDF);
@@ -91,7 +91,7 @@ async function configurar(password) {
 /** Deriva la clave de una contraseña usando la sal y los parámetros guardados. */
 async function derivarGuardada(password) {
   const f = await leerArchivo();
-  if (!f?.sal) throw new Error('Todavía no hay una contraseña configurada.');
+  if (!f?.sal) throw new Error('No password has been set up yet.');
   return derivar(password, f.sal, { N: f.N, r: f.r, p: f.p, largo: KDF.largo });
 }
 
@@ -113,7 +113,7 @@ async function recuperarRecordada() {
 
 async function recordar(clave) {
   if (!safeStorage.isEncryptionAvailable()) {
-    throw new Error('Windows no tiene disponible el cifrado de credenciales en esta sesión.');
+    throw new Error('Windows credential encryption is not available in this session.');
   }
   const f = (await leerArchivo()) || {};
   f.recordada = safeStorage.encryptString(clave.toString('hex')).toString('base64');
@@ -130,7 +130,7 @@ async function olvidar() {
 /** Cambio de contraseña: sal nueva (no se reusa) y clave nueva para el rekey. */
 async function reconfigurar(passwordNueva) {
   if (!passwordNueva || String(passwordNueva).length < 8) {
-    throw new Error('La contraseña tiene que tener al menos 8 caracteres.');
+    throw new Error('The password must have at least 8 characters.');
   }
   const f = (await leerArchivo()) || {};
   const sal = crypto.randomBytes(16).toString('base64');

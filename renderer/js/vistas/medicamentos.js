@@ -15,33 +15,33 @@ function formulario(m = {}) {
   caja.style.gap = 'var(--op-3)';
   caja.innerHTML = `
     <div class="op-field">
-      <label class="op-field__label" for="m-nombre">Nombre y presentación</label>
+      <label class="op-field__label" for="m-nombre">Name and presentation</label>
       <input class="op-input" id="m-nombre" spellcheck="false"
              placeholder="Sertralina 50 mg" value="${esc(m.nombre || '')}">
     </div>
     <div class="rx-fila--dos" style="display:grid;gap:var(--op-3)">
       <div class="op-field">
-        <label class="op-field__label" for="m-marca">Marca sugerida</label>
+        <label class="op-field__label" for="m-marca">Suggested brand</label>
         <input class="op-input" id="m-marca" spellcheck="false" value="${esc(m.marca || '')}">
       </div>
       <div class="op-field">
-        <label class="op-field__label" for="m-dosis">Dosis</label>
+        <label class="op-field__label" for="m-dosis">Dose</label>
         <input class="op-input" id="m-dosis" spellcheck="false"
                placeholder="1 comp. cada 12 h" value="${esc(m.dosis || '')}">
       </div>
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="m-diag">Diagnóstico habitual</label>
+      <label class="op-field__label" for="m-diag">Usual diagnosis</label>
       <input class="op-input" id="m-diag" spellcheck="false"
              placeholder="F31 — Trastorno bipolar" value="${esc(m.diagnostico || '')}">
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="m-ind">Indicaciones</label>
+      <label class="op-field__label" for="m-ind">Instructions</label>
       <input class="op-input" id="m-ind" spellcheck="false"
              placeholder="2 comprimidos por día" value="${esc(m.indicaciones || '')}">
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="m-env">Envases por defecto</label>
+      <label class="op-field__label" for="m-env">Default packs</label>
       <input class="op-input op-input--mono" id="m-env" type="number" min="1"
              style="max-width:110px" value="${esc(m.envases ?? 1)}">
     </div>`;
@@ -51,12 +51,12 @@ function formulario(m = {}) {
 async function editar(m) {
   const cuerpo = formulario(m);
   const val = await Modal.show({
-    title: m?.id ? 'Editar medicamento' : 'Nuevo medicamento',
+    title: m?.id ? 'Edit medication' : 'New medication',
     body: cuerpo,
     width: 520,
     actions: [
-      { label: 'Cancelar', value: null },
-      { label: 'Guardar', value: 'ok', variant: 'primary' },
+      { label: 'Cancel', value: null },
+      { label: 'Save', value: 'ok', variant: 'primary' },
     ],
   });
   if (val !== 'ok') return false;
@@ -70,7 +70,7 @@ async function editar(m) {
     indicaciones: cuerpo.querySelector('#m-ind').value,
     envases: cuerpo.querySelector('#m-env').value,
   };
-  const ok = await attempt(() => rx.medicamentos.save(datos), { errorTitle: 'No se pudo guardar' });
+  const ok = await attempt(() => rx.medicamentos.save(datos), { errorTitle: 'Could not save' });
   return ok !== undefined;
 }
 
@@ -78,25 +78,25 @@ export async function vistaMedicamentos(busqueda = '') {
   const lista = await rx.medicamentos.list({ busqueda });
 
   paint(head({
-    title: 'Medicamentos',
+    title: 'Medications',
     /* `plural()` ya trae el número adelante: no se le antepone otro. */
     sub: lista.length
-      ? `${plural(lista.length, 'medicamento')} en el catálogo`
-      : 'Los que uses seguido, para no volver a tipearlos',
+      ? `${plural(lista.length, 'medication')} in the catalog`
+      : 'The ones you use often, so you never type them again',
     actions: `<button class="op-btn op-btn--primary op-flashable" id="m-nuevo">
-                <i data-icon="plus"></i> Nuevo</button>`,
+                <i data-icon="plus"></i> New</button>`,
   }) + `
     <div class="op-scroll op-grow op-scroll--line-bottom">
       <div class="op-inputwrap rx-buscador" style="margin-bottom:var(--op-4)">
         <i data-icon="search"></i>
-        <input class="op-input" id="m-buscar" placeholder="Buscar…" spellcheck="false"
+        <input class="op-input" id="m-buscar" placeholder="Search…" spellcheck="false"
                value="${esc(busqueda)}">
       </div>
       ${lista.length === 0
       ? empty({
         icon: 'pill',
-        title: busqueda ? 'Nada coincide con esa búsqueda' : 'El catálogo está vacío',
-        text: busqueda ? '' : 'Cargá los que recetes seguido y aparecerán acá arriba.',
+        title: busqueda ? 'Nothing matches that search' : 'The catalog is empty',
+        text: busqueda ? '' : 'Add the ones you prescribe often and they will show up here.',
       })
       : `<div class="op-list">${lista.map((m) => `
           <div class="op-listitem">
@@ -104,19 +104,19 @@ export async function vistaMedicamentos(busqueda = '') {
             <div class="op-listitem__main">
               <div class="op-listitem__title">${esc(m.nombre)}</div>
               <div class="op-listitem__sub op-truncate">${[
-        m.marca && `Marca: ${m.marca}`,
+        m.marca && `Brand: ${m.marca}`,
         m.dosis,
         m.indicaciones,
       ].filter(Boolean).map(esc).join(' · ') || '—'}</div>
             </div>
             <div class="op-listitem__aside">
-              ${m.usos > 0 ? `<span class="op-chip op-chip--mono" data-tip="Veces que lo recetaste">${m.usos}</span>` : ''}
+              ${m.usos > 0 ? `<span class="op-chip op-chip--mono" data-tip="Times you prescribed it">${m.usos}</span>` : ''}
             </div>
             <div class="op-rowactions">
               <button class="op-iconbtn op-iconbtn--sm" data-editar="${esc(m.id)}"
-                      data-tip="Editar"><i data-icon="edit"></i></button>
+                      data-tip="Edit"><i data-icon="edit"></i></button>
               <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(m.id)}"
-                      data-tip="Eliminar"><i data-icon="trash"></i></button>
+                      data-tip="Delete"><i data-icon="trash"></i></button>
             </div>
           </div>`).join('')}</div>`}
     </div>`);
@@ -145,14 +145,14 @@ export async function vistaMedicamentos(busqueda = '') {
     b.onclick = async () => {
       const m = lista.find((x) => x.id === b.dataset.borrar);
       const ok = await Modal.confirm({
-        title: 'Eliminar del catálogo',
-        sub: `"${m.nombre}" se saca de la lista. Las recetas ya emitidas no se tocan.`,
-        confirmLabel: 'Eliminar',
+        title: 'Remove from the catalog',
+        sub: `"${m.nombre}" is taken off the list. Prescriptions already issued are not touched.`,
+        confirmLabel: 'Remove',
         danger: true,
       });
       if (!ok) return;
-      await attempt(() => rx.medicamentos.remove(m.id), { errorTitle: 'No se pudo eliminar' });
-      Toast.show({ title: 'Eliminado', text: m.nombre, icon: 'trash' });
+      await attempt(() => rx.medicamentos.remove(m.id), { errorTitle: 'Could not remove' });
+      Toast.show({ title: 'Removed', text: m.nombre, icon: 'trash' });
       vistaMedicamentos(busqueda);
     };
   }

@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   La mudanza a %APPDATA%\Quiron desde los nombres anteriores, Quirotech y Rx
-   (src/carpeta.cjs).
+   La mudanza a %APPDATA%\Praxio desde los nombres anteriores, Quiron,
+   Quirotech y Rx (src/carpeta.cjs).
 
    Del otro lado hay una médica con historias clínicas reales en una de esas
-   dos carpetas: lo que importa es que en NINGÚN caso arranque con la app
-   vacía ni se pise nada. Cada caso arma un %APPDATA% falso en una carpeta
+   carpetas: lo que importa es que en NINGÚN caso arranque con la app vacía
+   ni se pise nada. Cada caso arma un %APPDATA% falso en una carpeta
    temporal, y los casos de la mudanza se corren una vez por cada nombre viejo.
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -19,7 +19,11 @@ const { elegir } = require('../src/carpeta.cjs');
 let pass = 0; let fail = 0;
 const ok = (n, c, x = '') => { if (c) { pass++; console.log(`  ok   ${n}`); } else { fail++; console.log(`  FALLA ${n} ${x}`); } };
 
-const RAIZ = fs.mkdtempSync(path.join(os.tmpdir(), 'qt-carpeta-'));
+const NUEVA = 'Praxio';
+/** Del más nuevo al más viejo, como en carpeta.cjs. */
+const VIEJAS = ['Quiron', 'Quirotech', 'Rx'];
+
+const RAIZ = fs.mkdtempSync(path.join(os.tmpdir(), 'px-carpeta-'));
 let n = 0;
 const appData = () => { const d = path.join(RAIZ, String(n++)); fs.mkdirSync(d); return d; };
 const poner = (dir, archivo, texto = 'x') => {
@@ -33,11 +37,11 @@ console.log('\n1. Instalación nueva');
 {
   const a = appData();
   const r = elegir(a);
-  ok('sin nada, usa Quiron', r.dir === path.join(a, 'Quiron') && r.paso === 'nueva');
-  ok('y no inventa ninguna vieja', !hay(a, 'Rx') && !hay(a, 'Quirotech'));
+  ok(`sin nada, usa ${NUEVA}`, r.dir === path.join(a, NUEVA) && r.paso === 'nueva');
+  ok('y no inventa ninguna vieja', VIEJAS.every((v) => !hay(a, v)));
 }
 
-for (const V of ['Quirotech', 'Rx']) {
+for (const V of VIEJAS) {
   console.log(`\n2. Viene de ${V}: se muda entera`);
   {
     const a = appData();
@@ -47,46 +51,46 @@ for (const V of ['Quirotech', 'Rx']) {
     poner(vieja, 'Local State', 'llave-de-safeStorage');
     poner(vieja, path.join('respaldos', 'rx-v1.db'), 'respaldo');
     const r = elegir(a);
-    const qn = path.join(a, 'Quiron');
-    ok(`[${V}] devuelve Quiron como mudada`, r.dir === qn && r.paso === 'mudada', JSON.stringify(r));
-    ok(`[${V}] la base llegó intacta`, leer(qn, 'rx.db') === 'base');
-    ok(`[${V}] la sal llegó intacta`, leer(qn, 'llave.json') === 'sal');
-    ok(`[${V}] Local State viajó con ellas (la contraseña recordada)`, leer(qn, 'Local State') === 'llave-de-safeStorage');
-    ok(`[${V}] los respaldos también`, leer(qn, path.join('respaldos', 'rx-v1.db')) === 'respaldo');
+    const nn = path.join(a, NUEVA);
+    ok(`[${V}] devuelve ${NUEVA} como mudada`, r.dir === nn && r.paso === 'mudada', JSON.stringify(r));
+    ok(`[${V}] la base llegó intacta`, leer(nn, 'rx.db') === 'base');
+    ok(`[${V}] la sal llegó intacta`, leer(nn, 'llave.json') === 'sal');
+    ok(`[${V}] Local State viajó con ellas (la contraseña recordada)`, leer(nn, 'Local State') === 'llave-de-safeStorage');
+    ok(`[${V}] los respaldos también`, leer(nn, path.join('respaldos', 'rx-v1.db')) === 'respaldo');
     ok(`[${V}] la vieja ya no está`, !hay(vieja));
     const r2 = elegir(a);
-    ok(`[${V}] el arranque siguiente usa Quiron sin mudar de nuevo`, r2.dir === qn && r2.paso === 'nueva');
+    ok(`[${V}] el arranque siguiente usa ${NUEVA} sin mudar de nuevo`, r2.dir === nn && r2.paso === 'nueva');
   }
 
-  console.log(`\n3. Quiron ya tiene datos: manda esa (${V} no se toca)`);
+  console.log(`\n3. ${NUEVA} ya tiene datos: manda esa (${V} no se toca)`);
   {
     const a = appData();
     poner(path.join(a, V), 'rx.db', 'vieja');
-    poner(path.join(a, 'Quiron'), 'rx.db', 'nueva');
+    poner(path.join(a, NUEVA), 'rx.db', 'nueva');
     const r = elegir(a);
-    ok(`[${V}] usa Quiron`, r.dir === path.join(a, 'Quiron') && r.paso === 'nueva');
+    ok(`[${V}] usa ${NUEVA}`, r.dir === path.join(a, NUEVA) && r.paso === 'nueva');
     ok(`[${V}] la vieja queda como estaba`, leer(path.join(a, V), 'rx.db') === 'vieja');
-    ok(`[${V}] Quiron queda como estaba`, leer(path.join(a, 'Quiron'), 'rx.db') === 'nueva');
+    ok(`[${V}] ${NUEVA} queda como estaba`, leer(path.join(a, NUEVA), 'rx.db') === 'nueva');
   }
 
-  console.log(`\n4. Quiron existe vacía del todo: se saca y se muda ${V}`);
+  console.log(`\n4. ${NUEVA} existe vacía del todo: se saca y se muda ${V}`);
   {
     const a = appData();
     poner(path.join(a, V), 'llave.json', 'sal');
-    fs.mkdirSync(path.join(a, 'Quiron'));
+    fs.mkdirSync(path.join(a, NUEVA));
     const r = elegir(a);
-    ok(`[${V}] se mudó`, r.paso === 'mudada' && leer(path.join(a, 'Quiron'), 'llave.json') === 'sal');
+    ok(`[${V}] se mudó`, r.paso === 'mudada' && leer(path.join(a, NUEVA), 'llave.json') === 'sal');
   }
 
-  console.log(`\n5. Quiron tiene algo que no son datos: no se pisa (${V})`);
+  console.log(`\n5. ${NUEVA} tiene algo que no son datos: no se pisa (${V})`);
   {
     const a = appData();
     poner(path.join(a, V), 'rx.db', 'base');
-    poner(path.join(a, 'Quiron'), 'Preferences', '{}');
+    poner(path.join(a, NUEVA), 'Preferences', '{}');
     const r = elegir(a);
     ok(`[${V}] usa la vieja`, r.dir === path.join(a, V) && r.paso === 'vieja');
     ok(`[${V}] no tocó ninguna de las dos`,
-      leer(path.join(a, V), 'rx.db') === 'base' && leer(path.join(a, 'Quiron'), 'Preferences') === '{}');
+      leer(path.join(a, V), 'rx.db') === 'base' && leer(path.join(a, NUEVA), 'Preferences') === '{}');
   }
 
   console.log(`\n6. ${V} sin datos de la app (solo caché de Chromium): no se muda`);
@@ -94,7 +98,7 @@ for (const V of ['Quirotech', 'Rx']) {
     const a = appData();
     poner(path.join(a, V), path.join('GPUCache', 'data_0'));
     const r = elegir(a);
-    ok(`[${V}] arranca de cero en Quiron`, r.dir === path.join(a, 'Quiron') && r.paso === 'nueva');
+    ok(`[${V}] arranca de cero en ${NUEVA}`, r.dir === path.join(a, NUEVA) && r.paso === 'nueva');
     ok(`[${V}] la vieja queda donde estaba`, hay(path.join(a, V)));
   }
 
@@ -113,24 +117,31 @@ for (const V of ['Quirotech', 'Rx']) {
   }
 }
 
-console.log('\n8. Hay datos en Quirotech Y en Rx: se muda la más nueva');
-{
-  const a = appData();
-  poner(path.join(a, 'Rx'), 'rx.db', 'de-rx');
-  poner(path.join(a, 'Quirotech'), 'rx.db', 'de-quirotech');
-  const r = elegir(a);
-  ok('se mudó Quirotech', r.paso === 'mudada' && leer(path.join(a, 'Quiron'), 'rx.db') === 'de-quirotech');
-  ok('Rx queda como estaba', leer(path.join(a, 'Rx'), 'rx.db') === 'de-rx');
-}
+/* Con datos en dos viejas se muda la más nueva y la otra no se toca; con la
+   más nueva solo de caché, se muda la otra. Cada par de nombres viejos. */
+for (let i = 0; i < VIEJAS.length; i++) {
+  for (let j = i + 1; j < VIEJAS.length; j++) {
+    const [nueva, vieja] = [VIEJAS[i], VIEJAS[j]];
+    console.log(`\n8. Hay datos en ${nueva} Y en ${vieja}: se muda ${nueva}`);
+    {
+      const a = appData();
+      poner(path.join(a, vieja), 'rx.db', `de-${vieja}`);
+      poner(path.join(a, nueva), 'rx.db', `de-${nueva}`);
+      const r = elegir(a);
+      ok(`se mudó ${nueva}`, r.paso === 'mudada' && leer(path.join(a, NUEVA), 'rx.db') === `de-${nueva}`);
+      ok(`${vieja} queda como estaba`, leer(path.join(a, vieja), 'rx.db') === `de-${vieja}`);
+    }
 
-console.log('\n9. Quirotech sin datos y Rx con datos: se muda Rx');
-{
-  const a = appData();
-  poner(path.join(a, 'Quirotech'), path.join('GPUCache', 'data_0'));
-  poner(path.join(a, 'Rx'), 'llave.json', 'sal');
-  const r = elegir(a);
-  ok('se mudó Rx', r.paso === 'mudada' && leer(path.join(a, 'Quiron'), 'llave.json') === 'sal');
-  ok('la Quirotech de caché queda donde estaba', hay(path.join(a, 'Quirotech')));
+    console.log(`\n9. ${nueva} sin datos y ${vieja} con datos: se muda ${vieja}`);
+    {
+      const a = appData();
+      poner(path.join(a, nueva), path.join('GPUCache', 'data_0'));
+      poner(path.join(a, vieja), 'llave.json', 'sal');
+      const r = elegir(a);
+      ok(`se mudó ${vieja}`, r.paso === 'mudada' && leer(path.join(a, NUEVA), 'llave.json') === 'sal');
+      ok(`la ${nueva} de caché queda donde estaba`, hay(path.join(a, nueva)));
+    }
+  }
 }
 
 fs.rmSync(RAIZ, { recursive: true, force: true });

@@ -134,7 +134,7 @@ for (const cls of ['.op-field__hint', '.op-tooltip__key', '.op-menuitem__key', '
   ok(`${cls} no usa text-4`, !!rule && !rule.includes('--op-text-4'), rule.slice(0, 80) || 'no está la regla');
 }
 
-/* ── La marca de Quiron ────────────────────────────────────────────────────
+/* ── La marca de Praxio ────────────────────────────────────────────────────
    La vara de Asclepio sale de UN solo dibujo (build/icono.mjs) y npm run icon
    la rasteriza a todo lo que la muestra: el .ico, el splash, la titlebar y la
    cerradura. Lo que hay que vigilar es que todos apunten a esos archivos y que

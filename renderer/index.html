@@ -3,7 +3,7 @@
      clínicas adentro no tiene ningún motivo para hablar con la red. -->
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
-<title>Quiron</title>
+<title>Praxio</title>
 
 <link rel="stylesheet" href="./css/fonts.css">
 <link rel="stylesheet" href="./css/tokens.css">
@@ -57,7 +57,7 @@
   <header class="op-titlebar">
     <div class="op-brand op-no-drag" id="brand">
       <img class="op-brand__img" src="./img/marca-chica.png" srcset="./img/marca-chica.png 1x, ./img/marca-chica@2x.png 2x" alt="">
-      <span class="op-brand__name">Quiron</span>
+      <span class="op-brand__name">Praxio</span>
     </div>
 
     <!-- Contexto de la vista actual. Lo llena el router. -->
@@ -66,9 +66,9 @@
 
   <!-- Los controles de ventana viven aparte de la titlebar (Opal). -->
   <div class="op-wincontrols">
-    <button class="op-wincontrol" id="win-min"   aria-label="Minimizar"><i data-icon="winMin"></i></button>
-    <button class="op-wincontrol op-iconswap" id="win-max" aria-label="Maximizar"><i data-icon="winMax"></i><i data-icon="winRestore"></i></button>
-    <button class="op-wincontrol op-wincontrol--close" id="win-close" aria-label="Cerrar"><i data-icon="winClose"></i></button>
+    <button class="op-wincontrol" id="win-min"   aria-label="Minimize"><i data-icon="winMin"></i></button>
+    <button class="op-wincontrol op-iconswap" id="win-max" aria-label="Maximize"><i data-icon="winMax"></i><i data-icon="winRestore"></i></button>
+    <button class="op-wincontrol op-wincontrol--close" id="win-close" aria-label="Close"><i data-icon="winClose"></i></button>
   </div>
 
   <div class="op-body">
@@ -77,48 +77,48 @@
     <nav class="op-rail">
       <div class="op-rail__top">
         <button class="op-btn op-btn--primary op-flashable" id="btn-nueva-receta" style="width:100%">
-          <i data-icon="plus"></i> Nueva receta
+          <i data-icon="plus"></i> New prescription
         </button>
       </div>
 
       <div class="op-rail__nav op-scroll">
         <div class="op-rail__group">
           <button class="op-navitem" data-view="tablero">
-            <i data-icon="home"></i> Tablero
+            <i data-icon="home"></i> Dashboard
           </button>
           <button class="op-navitem" data-view="pacientes">
-            <i data-icon="users"></i> Pacientes <span class="op-navitem__count" id="cuenta-pacientes"></span>
+            <i data-icon="users"></i> Patients <span class="op-navitem__count" id="cuenta-pacientes"></span>
           </button>
           <button class="op-navitem" data-view="recetas">
-            <i data-icon="file"></i> Recetas <span class="op-navitem__count" id="cuenta-recetas"></span>
+            <i data-icon="file"></i> Prescriptions <span class="op-navitem__count" id="cuenta-recetas"></span>
           </button>
           <button class="op-navitem" data-view="ordenes">
-            <i data-icon="orden"></i> Órdenes <span class="op-navitem__count" id="cuenta-ordenes"></span>
+            <i data-icon="orden"></i> Test orders <span class="op-navitem__count" id="cuenta-ordenes"></span>
           </button>
         </div>
 
         <div class="op-rail__group">
-          <div class="op-rail__group-label">Catálogo</div>
+          <div class="op-rail__group-label">Catalog</div>
           <button class="op-navitem" data-view="medicamentos">
-            <i data-icon="pill"></i> Medicamentos
+            <i data-icon="pill"></i> Medications
           </button>
           <button class="op-navitem" data-view="estudios">
-            <i data-icon="estudio"></i> Estudios
+            <i data-icon="estudio"></i> Tests
           </button>
         </div>
 
         <div class="op-rail__group">
-          <div class="op-rail__group-label">Sistema</div>
+          <div class="op-rail__group-label">System</div>
           <button class="op-navitem" data-view="ajustes">
-            <i data-icon="settings"></i> Ajustes
+            <i data-icon="settings"></i> Settings
           </button>
         </div>
       </div>
 
       <div class="op-rail__foot" id="rail-foot">
         <button class="op-btn op-btn--ghost op-flashable" id="btn-bloquear" style="width:100%"
-                data-tip="Cierra la base y pide la contraseña" data-tip-side="top">
-          <i data-icon="lock"></i> Bloquear
+                data-tip="Closes the database and asks for the password" data-tip-side="top">
+          <i data-icon="lock"></i> Lock
         </button>
       </div>
     </nav>
@@ -127,16 +127,16 @@
     <main class="op-main" id="view"></main>
 
     <!-- ── Panel derecho: la filiación del paciente en su ficha (.con-panel) ── -->
-    <aside class="op-panel" id="panel" aria-label="Datos del paciente" inert></aside>
+    <aside class="op-panel" id="panel" aria-label="Patient details" inert></aside>
   </div>
 
   <!-- ── Statusbar ───────────────────────────────────────────────────────── -->
   <footer class="op-statusbar">
-    <div class="op-statusbar__item" data-tip="Recetas emitidas hoy" data-tip-side="top">
-      <i data-icon="file"></i> <span class="op-statusbar__value op-num" id="stat-hoy"></span> hoy
+    <div class="op-statusbar__item" data-tip="Prescriptions issued today" data-tip-side="top">
+      <i data-icon="file"></i> <span class="op-statusbar__value op-num" id="stat-hoy"></span> today
     </div>
-    <div class="op-statusbar__item" id="stat-cifrado" data-tip="La base está cifrada en disco" data-tip-side="top">
-      <i data-icon="lock"></i> <span class="op-statusbar__value">Cifrada</span>
+    <div class="op-statusbar__item" id="stat-cifrado" data-tip="The database is encrypted on disk" data-tip-side="top">
+      <i data-icon="lock"></i> <span class="op-statusbar__value">Encrypted</span>
     </div>
     <button type="button" class="op-statusbar__item op-plegable--ancho rx-update" id="stat-update"
             data-tip-side="top" hidden></button>

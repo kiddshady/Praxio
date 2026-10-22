@@ -30,7 +30,7 @@ const SALIDA = path.join(RAIZ, 'dist');
 const pkg = require(path.join(RAIZ, 'package.json'));
 const VERSION = pkg.version;
 const DESEMPACADO_APP = path.join(SALIDA, 'win-unpacked');
-const EXE = path.join(SALIDA, 'win-unpacked', 'Quiron.exe');
+const EXE = path.join(SALIDA, 'win-unpacked', 'Praxio.exe');
 const DESEMPACADO = path.join(SALIDA, 'win-unpacked', 'resources', 'app.asar.unpacked');
 
 let pasaron = 0; let fallaron = 0;
@@ -78,7 +78,7 @@ app.whenReady().then(async () => {
   console.log('\npaquete\n');
 
   await prueba('el instalador existe y no está vacío', () => {
-    const inst = path.join(SALIDA, `Quiron-Setup-${VERSION}.exe`);
+    const inst = path.join(SALIDA, `Praxio-Setup-${VERSION}.exe`);
     assert.ok(fs.existsSync(inst), `no está ${path.basename(inst)}`);
     const mb = fs.statSync(inst).size / 1024 / 1024;
     assert.ok(mb > 40, `el instalador salió sospechosamente chico (${mb.toFixed(1)} MB)`);
@@ -87,12 +87,12 @@ app.whenReady().then(async () => {
   await prueba('latest.yml y el blockmap apuntan a este instalador', () => {
     const yml = fs.readFileSync(path.join(SALIDA, 'latest.yml'), 'utf8');
     assert.ok(yml.includes(`version: ${VERSION}`), `latest.yml no dice version: ${VERSION}`);
-    assert.ok(yml.includes(`Quiron-Setup-${VERSION}.exe`), 'latest.yml no nombra al instalador');
+    assert.ok(yml.includes(`Praxio-Setup-${VERSION}.exe`), 'latest.yml no nombra al instalador');
     assert.ok(/sha512:/.test(yml), 'latest.yml no trae sha512');
-    assert.ok(fs.existsSync(path.join(SALIDA, `Quiron-Setup-${VERSION}.exe.blockmap`)), 'falta el .blockmap');
+    assert.ok(fs.existsSync(path.join(SALIDA, `Praxio-Setup-${VERSION}.exe.blockmap`)), 'falta el .blockmap');
   });
 
-  await prueba('la app lleva app-update.yml apuntando al repo de Quiron', () => {
+  await prueba('la app lleva app-update.yml apuntando al repo de Praxio', () => {
     const f = path.join(DESEMPACADO_APP, 'resources', 'app-update.yml');
     assert.ok(fs.existsSync(f), 'no está resources/app-update.yml');
     const yml = fs.readFileSync(f, 'utf8');
@@ -155,7 +155,7 @@ app.whenReady().then(async () => {
   const PUERTO = 9333;
 
   await prueba('el .exe arranca, abre ventana y escribe en su carpeta de datos', async () => {
-    assert.ok(fs.existsSync(EXE), 'no está Quiron.exe');
+    assert.ok(fs.existsSync(EXE), 'no está Praxio.exe');
     hijo = spawn(EXE, [`--remote-debugging-port=${PUERTO}`, `--user-data-dir=${datos}`], {
       env: { ...process.env, RX_DATA: datos },
       detached: false, stdio: 'ignore',
@@ -169,7 +169,7 @@ app.whenReady().then(async () => {
     const titulos = execFileSync('powershell', ['-NoProfile', '-Command',
       `Get-Process -Id ${hijo.pid} -ErrorAction SilentlyContinue | ` +
       'Select-Object -ExpandProperty MainWindowTitle'], { encoding: 'utf8' }).trim();
-    assert.ok(titulos.includes('Quiron'), `la ventana no tiene título "Quiron" (vi: "${titulos}")`);
+    assert.ok(titulos.includes('Praxio'), `la ventana no tiene título "Praxio" (vi: "${titulos}")`);
 
     /* Al moverse a su posición final la ventana guarda su estado: si ese
        archivo aparece, el proceso principal pudo escribir donde le toca. */

@@ -18,7 +18,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 /** Desenvuelve {ok,data|error} y convierte el error en una excepción real. */
 const call = async (canal, ...args) => {
   const res = await ipcRenderer.invoke(canal, ...args);
-  if (!res?.ok) throw new Error(res?.error || `Falló ${canal}`);
+  if (!res?.ok) throw new Error(res?.error || `${canal} failed`);
   return res.data;
 };
 

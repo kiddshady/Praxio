@@ -44,7 +44,7 @@ export function campoFecha({ id, label, valor = '', hint = '' }) {
     <label class="op-field__label" for="${esc(id)}">${esc(label)}</label>
     <input class="op-input op-input--mono" id="${esc(id)}" data-fecha
            inputmode="numeric" maxlength="10" spellcheck="false" autocomplete="off"
-           placeholder="dd/mm/aaaa" value="${esc(deISO(valor))}"
+           placeholder="dd/mm/yyyy" value="${esc(deISO(valor))}"
            data-iso="${esc(valor || '')}">
     ${hint ? `<span class="op-field__hint">${esc(hint)}</span>` : ''}
   </div>`;

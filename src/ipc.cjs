@@ -78,7 +78,7 @@ function handle(canal, fn) {
 /** Envuelve un handler de dominio: exige base abierta y renueva la inactividad. */
 function conBase(fn) {
   return (...args) => {
-    if (!db.abierta()) throw new Error('La app está bloqueada.');
+    if (!db.abierta()) throw new Error('The app is locked.');
     reiniciarInactividad();
     return fn(...args);
   };
@@ -95,9 +95,9 @@ function registrarSesion() {
 
   /** Primera vez: crea la contraseña y con ella la base. */
   handle('sesion:configurar', async (password, recordar) => {
-    if (db.abierta()) throw new Error('La sesión ya está abierta.');
+    if (db.abierta()) throw new Error('The session is already open.');
     if ((await llave.estado()).configurada) {
-      throw new Error('Ya hay una contraseña configurada en esta instalación.');
+      throw new Error('A password is already set up in this installation.');
     }
     const clave = await llave.configurar(password);
     db.abrir(clave);
@@ -143,10 +143,10 @@ function registrarSesion() {
   handle('sesion:cambiar-clave', conBase(async (actual, nueva) => {
     const verifica = await llave.derivarGuardada(actual);
     if (!claveActual || !verifica.equals(claveActual)) {
-      throw new Error('La contraseña actual no es correcta.');
+      throw new Error('The current password is not correct.');
     }
     if (String(nueva) === String(actual)) {
-      throw new Error('La contraseña nueva tiene que ser distinta de la actual.');
+      throw new Error('The new password must be different from the current one.');
     }
     const clave = await llave.reconfigurar(nueva);
     db.recifrar(clave);
@@ -214,9 +214,9 @@ function registrarRespaldo() {
   handle('respaldo:exportar', conBase(async () => {
     const sello = db.hoyLocal();
     const res = await dialog.showSaveDialog(ventana(), {
-      title: 'Guardar respaldo cifrado',
-      defaultPath: `rx-respaldo-${sello}.db`,
-      filters: [{ name: 'Base cifrada de Quiron', extensions: ['db'] }],
+      title: 'Save encrypted backup',
+      defaultPath: `praxio-backup-${sello}.db`,
+      filters: [{ name: 'Praxio encrypted database', extensions: ['db'] }],
     });
     if (res.canceled || !res.filePath) return { cancelado: true };
     db.respaldar(res.filePath);
@@ -234,8 +234,8 @@ function registrarRespaldo() {
     let ruta = rutaArchivo;
     if (!ruta) {
       const res = await dialog.showOpenDialog(ventana(), {
-        title: 'Elegí el store.json del prototipo',
-        filters: [{ name: 'Datos del prototipo', extensions: ['json'] }],
+        title: 'Choose the prototype store.json',
+        filters: [{ name: 'Prototype data', extensions: ['json'] }],
         properties: ['openFile'],
       });
       if (res.canceled || !res.filePaths?.[0]) return { cancelado: true };
@@ -299,7 +299,7 @@ function register(opciones = {}) {
     dataDir: rutas.raiz(),
     electron: process.versions.electron,
     esquema: db.ESQUEMA,
-    repo: 'https://github.com/kiddshady/Quiron',
+    repo: 'https://github.com/kiddshady/Praxio',
     /* El tope legal viaja al renderer en vez de estar escrito de nuevo en la
        vista: el numero es uno solo y sale de donde se hace cumplir. */
     maxMedicamentos: db.MAX_MEDICAMENTOS,

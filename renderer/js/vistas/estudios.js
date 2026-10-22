@@ -16,15 +16,15 @@ function formulario(e = {}) {
   caja.style.gap = 'var(--op-3)';
   caja.innerHTML = `
     <div class="op-field">
-      <label class="op-field__label" for="e-nombre">Estudio o práctica</label>
+      <label class="op-field__label" for="e-nombre">Test or procedure</label>
       <input class="op-input" id="e-nombre" spellcheck="false"
              placeholder="Hemograma completo" value="${esc(e.nombre || '')}">
     </div>
     <div class="op-field">
-      <label class="op-field__label" for="e-aclaracion">Aclaración habitual</label>
+      <label class="op-field__label" for="e-aclaracion">Usual note</label>
       <input class="op-input" id="e-aclaracion" spellcheck="false"
              placeholder="En ayunas de 8 horas" value="${esc(e.aclaracion || '')}">
-      <span class="op-field__hint">Se carga sola al pedirlo, y se puede cambiar en la orden.</span>
+      <span class="op-field__hint">Filled in automatically when you order it, and it can be changed on the order.</span>
     </div>`;
   return caja;
 }
@@ -32,12 +32,12 @@ function formulario(e = {}) {
 async function editar(e) {
   const cuerpo = formulario(e);
   const val = await Modal.show({
-    title: e?.id ? 'Editar estudio' : 'Nuevo estudio',
+    title: e?.id ? 'Edit test' : 'New test',
     body: cuerpo,
     width: 520,
     actions: [
-      { label: 'Cancelar', value: null },
-      { label: 'Guardar', value: 'ok', variant: 'primary' },
+      { label: 'Cancel', value: null },
+      { label: 'Save', value: 'ok', variant: 'primary' },
     ],
   });
   if (val !== 'ok') return false;
@@ -47,7 +47,7 @@ async function editar(e) {
     nombre: cuerpo.querySelector('#e-nombre').value,
     aclaracion: cuerpo.querySelector('#e-aclaracion').value,
   };
-  const ok = await attempt(() => rx.estudios.save(datos), { errorTitle: 'No se pudo guardar' });
+  const ok = await attempt(() => rx.estudios.save(datos), { errorTitle: 'Could not save' });
   return ok !== undefined;
 }
 
@@ -55,25 +55,25 @@ export async function vistaEstudios(busqueda = '') {
   const lista = await rx.estudios.list({ busqueda });
 
   paint(head({
-    title: 'Estudios',
+    title: 'Tests',
     /* `plural()` ya trae el número adelante: no se le antepone otro. */
     sub: lista.length
-      ? `${plural(lista.length, 'estudio')} en el catálogo`
-      : 'Los que pidas seguido, para no volver a tipearlos',
+      ? `${plural(lista.length, 'test')} in the catalog`
+      : 'The ones you order often, so you never type them again',
     actions: `<button class="op-btn op-btn--primary op-flashable" id="e-nuevo">
-                <i data-icon="plus"></i> Nuevo</button>`,
+                <i data-icon="plus"></i> New</button>`,
   }) + `
     <div class="op-scroll op-grow op-scroll--line-bottom">
       <div class="op-inputwrap rx-buscador" style="margin-bottom:var(--op-4)">
         <i data-icon="search"></i>
-        <input class="op-input" id="e-buscar" placeholder="Buscar…" spellcheck="false"
+        <input class="op-input" id="e-buscar" placeholder="Search…" spellcheck="false"
                value="${esc(busqueda)}">
       </div>
       ${lista.length === 0
       ? empty({
         icon: 'estudio',
-        title: busqueda ? 'Nada coincide con esa búsqueda' : 'El catálogo está vacío',
-        text: busqueda ? '' : 'Cargá los que pidas seguido y aparecerán acá arriba.',
+        title: busqueda ? 'Nothing matches that search' : 'The catalog is empty',
+        text: busqueda ? '' : 'Add the ones you order often and they will show up here.',
       })
       : `<div class="op-list">${lista.map((e) => `
           <div class="op-listitem">
@@ -83,13 +83,13 @@ export async function vistaEstudios(busqueda = '') {
               <div class="op-listitem__sub op-truncate">${esc(e.aclaracion || '—')}</div>
             </div>
             <div class="op-listitem__aside">
-              ${e.usos > 0 ? `<span class="op-chip op-chip--mono" data-tip="Veces que lo pediste">${e.usos}</span>` : ''}
+              ${e.usos > 0 ? `<span class="op-chip op-chip--mono" data-tip="Times you ordered it">${e.usos}</span>` : ''}
             </div>
             <div class="op-rowactions">
               <button class="op-iconbtn op-iconbtn--sm" data-editar="${esc(e.id)}"
-                      data-tip="Editar"><i data-icon="edit"></i></button>
+                      data-tip="Edit"><i data-icon="edit"></i></button>
               <button class="op-iconbtn op-iconbtn--sm" data-borrar="${esc(e.id)}"
-                      data-tip="Eliminar"><i data-icon="trash"></i></button>
+                      data-tip="Delete"><i data-icon="trash"></i></button>
             </div>
           </div>`).join('')}</div>`}
     </div>`);
@@ -118,14 +118,14 @@ export async function vistaEstudios(busqueda = '') {
     b.onclick = async () => {
       const e = lista.find((x) => x.id === b.dataset.borrar);
       const ok = await Modal.confirm({
-        title: 'Eliminar del catálogo',
-        sub: `"${e.nombre}" se saca de la lista. Las órdenes ya emitidas no se tocan.`,
-        confirmLabel: 'Eliminar',
+        title: 'Remove from the catalog',
+        sub: `"${e.nombre}" is taken off the list. Test orders already issued are not touched.`,
+        confirmLabel: 'Remove',
         danger: true,
       });
       if (!ok) return;
-      await attempt(() => rx.estudios.remove(e.id), { errorTitle: 'No se pudo eliminar' });
-      Toast.show({ title: 'Eliminado', text: e.nombre, icon: 'trash' });
+      await attempt(() => rx.estudios.remove(e.id), { errorTitle: 'Could not remove' });
+      Toast.show({ title: 'Removed', text: e.nombre, icon: 'trash' });
       vistaEstudios(busqueda);
     };
   }

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Quiron — actualizaciones (renderer)
+   Praxio — actualizaciones (renderer)
 
    El proceso principal descarga; acá se presenta el estado en tres lugares:
    statusbar, toast al quedar lista y controles dentro de Ajustes. El chequeo
@@ -28,16 +28,16 @@ export function onActualizacion(fn) {
 
 export function describirEstado(e = estado) {
   switch (e.fase) {
-    case 'buscando': return 'Buscando…';
-    case 'al-dia': return `Al día${e.revisado ? ` · revisado ${relTime(e.revisado)}` : ''}.`;
-    case 'disponible': return `Hay una versión nueva, la ${e.nueva}. Se está descargando.`;
-    case 'descargando': return `Descargando la ${e.nueva}: ${Math.round(e.progreso || 0)} %${e.velocidad ? ` · ${fmtBytes(e.velocidad)}/s` : ''}.`;
-    case 'listo': return `La ${e.nueva} ya está descargada. Se instala al reiniciar.`;
-    case 'error': return `No se pudo buscar: ${e.error || 'error desconocido'}.`;
+    case 'buscando': return 'Checking…';
+    case 'al-dia': return `Up to date${e.revisado ? ` · checked ${relTime(e.revisado)}` : ''}.`;
+    case 'disponible': return `A new version is out, ${e.nueva}. It is downloading.`;
+    case 'descargando': return `Downloading ${e.nueva}: ${Math.round(e.progreso || 0)} %${e.velocidad ? ` · ${fmtBytes(e.velocidad)}/s` : ''}.`;
+    case 'listo': return `${e.nueva} is downloaded. It installs when you restart.`;
+    case 'error': return `Could not check: ${e.error || 'unknown error'}.`;
     default:
       return e.motivo === 'dev'
-        ? 'Las actualizaciones automáticas corren sólo en la app instalada.'
-        : 'Todavía no se buscó.';
+        ? 'Automatic updates only run in the installed app.'
+        : 'Not checked yet.';
   }
 }
 
@@ -67,7 +67,7 @@ export function pintarEstado(el, e = estado) {
   el.dataset.fase = e.fase || '';
   el.dataset.nueva = nueva;
   frase(el, e.fase === 'descargando'
-    ? `Descargando la ${esc(nueva)}: <span class="op-num" data-pct>${Math.round(e.progreso || 0)}</span> %`
+    ? `Downloading ${esc(nueva)}: <span class="op-num" data-pct>${Math.round(e.progreso || 0)}</span> %`
       + `<span data-vel>${esc(velocidadDe(e))}</span>.`
     : esc(describirEstado(e)));
 }
@@ -82,10 +82,10 @@ function pintarStatusbar() {
   if (!visible) return;
 
   const texto = {
-    buscando: 'buscando actualización…',
-    disponible: `Quiron ${estado.nueva} disponible`,
-    descargando: `descargando ${estado.nueva}`,
-    listo: `Reiniciar y actualizar a ${estado.nueva}`,
+    buscando: 'checking for updates…',
+    disponible: `Praxio ${estado.nueva} available`,
+    descargando: `downloading ${estado.nueva}`,
+    listo: `Restart and update to ${estado.nueva}`,
   }[f];
   el.classList.toggle('is-lista', f === 'listo');
   /* El rótulo cambia por relevo y el ancho del ítem viaja, en vez de saltar y
@@ -99,10 +99,10 @@ function pintarStatusbar() {
   // `:scope >`: durante el relevo, la barra de antes sigue en el calco que se va.
   el.querySelector(':scope > .op-meter')?.style.setProperty('--op-pct', `${Math.round(estado.progreso || 0)}%`);
   el.dataset.tip = f === 'listo'
-    ? 'Cierra Quiron, instala la versión nueva y la vuelve a abrir'
+    ? 'Closes Praxio, installs the new version and opens it again'
     : f === 'descargando'
       ? `${Math.round(estado.progreso || 0)} %${estado.velocidad ? ` · ${fmtBytes(estado.velocidad)}/s` : ''}`
-      : 'Ver en Ajustes';
+      : 'See in Settings';
 }
 
 function aplicar(e) {
@@ -112,15 +112,15 @@ function aplicar(e) {
   if (estado.fase === 'listo' && avisada !== estado.nueva) {
     avisada = estado.nueva;
     Toast.show({
-      title: `Quiron ${estado.nueva} está lista`,
-      text: 'Se instala al reiniciar. Tocá el aviso de la barra cuando quieras.',
+      title: `Praxio ${estado.nueva} is ready`,
+      text: 'It installs when you restart. Click the notice in the status bar whenever you like.',
       icon: 'download',
       duration: 9000,
     });
   } else if (estado.manual && estado.fase === 'al-dia') {
-    Toast.show({ title: 'Estás al día', text: `La ${estado.version} es la última versión.`, icon: 'check' });
+    Toast.show({ title: 'You are up to date', text: `${estado.version} is the latest version.`, icon: 'check' });
   } else if (estado.manual && estado.fase === 'error') {
-    Toast.error('No se pudo buscar la actualización', estado.error);
+    Toast.error('Could not check for updates', estado.error);
   }
   for (const fn of oyentes) fn(estado);
 }
