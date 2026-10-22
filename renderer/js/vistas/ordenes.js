@@ -7,11 +7,19 @@ import { Modal, Toast, Menu } from '../overlays.js';
 import { Icons } from '../icons.js';
 import Router from '../router.js';
 import { paint, head, esc, empty, attempt } from '../ui.js';
-import { exit, bindSwitcher, reconcile, swap, asentarPlegables } from '../motion.js';
+import { exit, bindSwitcher, reconcile, swap } from '../motion.js';
 import { campoFecha, cablearFechas } from '../campo-fecha.js';
 import { S, fecha, hoyISO, edad } from '../tienda.js';
 import { plural } from '../format.js';
 import { hoja, PLANTILLAS_ORDEN, ENCABEZADO_ORDEN } from '../hoja.js';
+
+/* Una fila que solo vale en la retro (rx.css, .rx-solo-retro): en las otras
+   plantillas queda en su lugar, apagada y sin tomar clicks ni foco. */
+function soloRetro(fila, on) {
+  fila.classList.toggle('is-apagada', !on);
+  const sw = fila.querySelector('.op-switch');
+  if (sw) sw.disabled = !on;
+}
 
 const rx = window.rx;
 const opal = window.opal;
@@ -107,26 +115,26 @@ export async function vistaOrden(pacienteId = null) {
           </div>
         </div>
 
-        <div class="op-row op-plegable" id="o-membrete-campo"
-             style="gap:var(--op-3);align-items:center;--op-plegable-gap:var(--op-4)"
-             ${E.plantilla === 'retro' ? '' : 'hidden'}>
+        <div class="op-row rx-solo-retro${E.plantilla === 'retro' ? '' : ' is-apagada'}" id="o-membrete-campo"
+             style="gap:var(--op-3);align-items:center">
           <div class="op-grow">
             <div>Membrete del profesional</div>
             <div class="op-meta">Nombre, especialidad, matrícula y domicilio arriba de la hoja.</div>
           </div>
           <button type="button" class="op-switch${E.membrete ? ' is-on' : ''}" id="o-membrete"
-                  role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"><span></span></button>
+                  role="switch" aria-checked="${E.membrete}" aria-label="Membrete del profesional"
+                  ${E.plantilla === 'retro' ? '' : 'disabled'}><span></span></button>
         </div>
 
-        <div class="op-row op-plegable" id="o-numerar-campo"
-             style="gap:var(--op-3);align-items:center;--op-plegable-gap:var(--op-4)"
-             ${E.plantilla === 'retro' ? '' : 'hidden'}>
+        <div class="op-row rx-solo-retro${E.plantilla === 'retro' ? '' : ' is-apagada'}" id="o-numerar-campo"
+             style="gap:var(--op-3);align-items:center">
           <div class="op-grow">
             <div>Numerar estudios</div>
             <div class="op-meta">1., 2., 3. en el margen de cada estudio.</div>
           </div>
           <button type="button" class="op-switch${E.numerar ? ' is-on' : ''}" id="o-numerar"
-                  role="switch" aria-checked="${E.numerar}" aria-label="Numerar estudios"><span></span></button>
+                  role="switch" aria-checked="${E.numerar}" aria-label="Numerar estudios"
+                  ${E.plantilla === 'retro' ? '' : 'disabled'}><span></span></button>
         </div>
 
         <div class="op-section">
@@ -332,12 +340,10 @@ export async function vistaOrden(pacienteId = null) {
 
   const campoMembrete = document.getElementById('o-membrete-campo');
   const campoNumerar = document.getElementById('o-numerar-campo');
-  asentarPlegables(campoMembrete);
-  asentarPlegables(campoNumerar);
   bindSwitcher(document.getElementById('o-plantilla'), (valor) => {
     E.plantilla = valor;
-    campoMembrete.hidden = valor !== 'retro';
-    campoNumerar.hidden = valor !== 'retro';
+    soloRetro(campoMembrete, valor === 'retro');
+    soloRetro(campoNumerar, valor === 'retro');
     pintarPrevia();
     opal.settings.save({ plantillaOrden: valor })
       .then((a) => { S.ajustes = a; })

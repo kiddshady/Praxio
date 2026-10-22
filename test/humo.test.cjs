@@ -291,12 +291,13 @@ app.whenReady().then(async () => {
   await sleep(900);
   ok('la vista de receta montó', await js(`!!document.getElementById('r-previa')`));
 
-  /* El segmentado sin cablear deja la cápsula sin medida y tapando el texto de
-     las dos opciones. Se ve horrible y ningún test de "¿existe?" lo agarra. */
-  const anchoSeg = await js(`(() => {
-    const s = document.getElementById('r-plantilla');
-    return parseFloat(getComputedStyle(s).getPropertyValue('--seg-w')) || 0; })()`);
-  ok('la cápsula del segmentado tiene ancho', anchoSeg > 20, `--seg-w=${anchoSeg}`);
+  /* Cada opción del segmentado lleva su cápsula (Opal, oct 2026): sin
+     cablear, ninguna queda prendida y no se ve cuál plantilla está elegida. */
+  const capsula = await js(`(() => {
+    const opts = [...document.querySelectorAll('#r-plantilla .op-segmented__opt')];
+    return opts.map((o) => +getComputedStyle(o, '::before').opacity > 0.99); })()`);
+  ok('una sola opción del segmentado lleva la cápsula prendida',
+    capsula.filter(Boolean).length === 1, JSON.stringify(capsula));
   ok('y el texto de las opciones se lee',
     await js(`document.querySelector('#r-plantilla .op-segmented__opt')?.textContent.trim()`) === 'Clásica');
 
@@ -428,16 +429,26 @@ app.whenReady().then(async () => {
      libre: se emite así para ver que la instantánea lo conserve. */
   ok('el encabezado arranca en «Solicito:»',
     (await js(`document.getElementById('o-encabezado')?.value`)) === 'Solicito:');
+  /* Fuera de la retro, sus interruptores quedan en su lugar pero apagados:
+     ni se esconden (dejaban un hueco) ni salen del flujo (saltaba lo de abajo). */
+  const filaRetro = () => js(`(() => {
+    const f = document.getElementById('o-membrete-campo');
+    return { apagada: f.classList.contains('is-apagada'), disabled: document.getElementById('o-membrete').disabled,
+             top: Math.round(document.getElementById('o-agregar').getBoundingClientRect().top) };
+  })()`);
+  const antesRetro = await filaRetro();
+  ok('fuera de la retro, el membrete está apagado', antesRetro.apagada && antesRetro.disabled, JSON.stringify(antesRetro));
   await click('#o-plantilla [data-value="retro"]');
   await sleep(600);
   ok('en retro la previa es la orden retro', await js(`(() => {
     const h = document.querySelector('#o-previa .rx-hoja');
     return h?.classList.contains('rx-hoja--retro') && h.classList.contains('rx-hoja--orden');
   })()`));
-  ok('en retro aparece el interruptor del membrete',
-    !(await js(`document.getElementById('o-membrete-campo').hidden`)));
+  const enRetro = await filaRetro();
+  ok('en retro se prende el interruptor del membrete', !enRetro.apagada && !enRetro.disabled, JSON.stringify(enRetro));
+  ok('y lo de abajo no se movió', enRetro.top === antesRetro.top, `${antesRetro.top} → ${enRetro.top}`);
   ok('y el de la numeración, prendido',
-    !(await js(`document.getElementById('o-numerar-campo').hidden`))
+    !(await js(`document.getElementById('o-numerar-campo').classList.contains('is-apagada')`))
     && (await js(`document.getElementById('o-numerar').getAttribute('aria-checked')`)) === 'true');
   ok('la previa numera los estudios',
     (await js(`document.querySelectorAll('#o-previa .item .num').length`)) > 0);

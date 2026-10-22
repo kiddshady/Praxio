@@ -26,6 +26,7 @@ const call = async (canal, ...args) => {
    es lo que hace que un arreglo del shell se pueda portar entre apps. */
 contextBridge.exposeInMainWorld('opal', {
   info: () => call('app:info'),
+  asides: () => call('store:asides'),
 
   win: {
     minimize: () => ipcRenderer.send('win:minimize'),

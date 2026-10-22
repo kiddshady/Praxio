@@ -137,6 +137,21 @@ function quitarSplash() {
   setTimeout(() => splash.remove(), 600);
 }
 
+/* Un archivo de ajustes ilegible se aparta (store.cjs) y la app arranca sin
+   él. Sin este aviso, para la persona sus preferencias simplemente se
+   borraron. Los datos clínicos no pasan por acá: viven en la base cifrada. */
+async function avisarApartados() {
+  const lista = await api.asides().catch(() => []);
+  if (!lista.length) return;
+  const files = [...new Set(lista.map((a) => a.file))];
+  Toast.show({
+    tone: 'error',
+    duration: 0,
+    title: files.length === 1 ? `${files[0]} was damaged` : `${files.join(', ')} were damaged`,
+    text: `${files.length === 1 ? 'It was' : 'They were'} set aside in the data folder with “.corrupto-” in the name, and the app started without ${files.length === 1 ? 'it' : 'them'}. Patient records are not affected.`,
+  });
+}
+
 async function boot() {
   Icons.mount(document);
   Tooltip.init();
@@ -196,6 +211,7 @@ async function boot() {
   });
 
   pintarChrome();
+  avisarApartados();
 }
 
 boot()

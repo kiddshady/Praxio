@@ -24,11 +24,11 @@
   animation: rx-cerradura-sale var(--op-t-3) var(--op-ease-in) both;
 }
 
+/* Nada cambia de lugar para entrar o salir (Opal, oct 2026): la cerradura y
+   su caja se encienden y se apagan donde están. La caja es vidrio, y un
+   vidrio que se mueve deja ver una línea clara en el canto. */
 @keyframes rx-cerradura-entra { from { opacity: 0 } to { opacity: 1 } }
-@keyframes rx-cerradura-sale {
-  from { opacity: 1; transform: scale(1) }
-  to   { opacity: 0; transform: scale(1.015) }
-}
+@keyframes rx-cerradura-sale  { from { opacity: 1 } to { opacity: 0 } }
 
 .rx-cerradura__caja {
   width: min(400px, calc(100vw - var(--op-8)));
@@ -43,11 +43,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--op-3);
-  animation: rx-caja-sube var(--op-t-4) var(--op-ease) both .06s;
-}
-@keyframes rx-caja-sube {
-  from { opacity: 0; transform: translateY(10px) }
-  to   { opacity: 1; transform: none }
+  animation: rx-cerradura-entra var(--op-t-4) var(--op-ease) both .06s;
 }
 
 /* El ícono de la app, con la sombra larga de lo que flota. */
@@ -220,10 +216,15 @@
   transition: var(--tr-surface);
   animation: rx-item-entra var(--op-t-3) var(--op-ease) both;
 }
-@keyframes rx-item-entra {
-  from { opacity: 0; transform: translateY(-6px) }
-  to   { opacity: 1; transform: none }
-}
+@keyframes rx-item-entra { from { opacity: 0 } to { opacity: 1 } }
+/* Los ajustes que solo existen en la retro (membrete, numerar estudios) quedan
+   siempre a la vista y se apagan en las otras plantillas. Plegarlos dejaba su
+   hueco vacío arriba de la lista (Opal, oct 2026: lo que se oculta guarda su
+   lugar), y sacarlos del flujo hacía saltar todo lo de abajo. */
+.rx-solo-retro { transition: opacity var(--op-t-2) var(--op-ease-soft); }
+.rx-solo-retro.is-apagada { opacity: .42; }
+.rx-solo-retro.is-apagada .op-switch { pointer-events: none; }
+
 /* La salida de una fila la hace reconcile() (vistas/recetas.js y ordenes.js):
    sale desde donde estaba, fuera del flujo, y las de abajo viajan a su lugar. */
 
@@ -369,7 +370,7 @@
 .rx-tabs { margin: 0 var(--op-6); }
 .rx-panes { padding-inline: var(--op-6); }
 .rx-pane.is-entrando { animation: rx-aflora var(--op-t-3) var(--op-ease) both; }
-@keyframes rx-aflora { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes rx-aflora { from { opacity: 0 } to { opacity: 1 } }
 
 /* ── Evoluciones: una línea de tiempo ────────────────────────────────────────
    La fecha a la izquierda, un punto sobre la línea, la consulta en su hoja.

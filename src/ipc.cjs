@@ -309,6 +309,7 @@ function register(opciones = {}) {
   handle('clip:read', async () => String(await clipboard.readText()).slice(0, 100000));
 
   handle('settings:get', () => store.loadSettings());
+  handle('store:asides', () => store.asides().map((a) => ({ file: path.basename(a.file), dead: a.dead })));
   handle('settings:save', async (patch) => {
     const s = await store.saveSettings(patch);
     minutosInactividad = Math.max(0, Number(s?.bloqueoInactividad) || 0);

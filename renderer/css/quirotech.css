@@ -72,11 +72,12 @@
   background: var(--op-accent);
   box-shadow: 0 0 10px rgb(var(--op-accent-rgb) / .85);
   opacity: 0;
-  transform: scaleY(.3);
-  transition: opacity var(--op-t-2) var(--op-ease-soft), transform var(--op-t-3) var(--op-ease);
+  /* Se enciende en su lugar, sin crecer: la barrita del rail ya no se mueve
+     (Opal, oct 2026). */
+  transition: opacity var(--op-t-2) var(--op-ease-soft);
   pointer-events: none;
 }
-.op-navitem.is-active::after { opacity: 1; transform: none; }
+.op-navitem.is-active::after { opacity: 1; }
 
 /* Los números de las cifras, en la mono y un punto más grandes. */
 .op-stat__value { font-family: var(--op-mono); letter-spacing: -.03em; }

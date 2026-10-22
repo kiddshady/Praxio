@@ -144,13 +144,14 @@ export async function vistaAjustes() {
             <span class="op-kv__k">Estado</span>
             <span class="op-kv__v op-kv__v--wrap" id="upd-estado">${esc(describirEstado())}</span>
           </div>
-          <div class="op-row" style="gap:var(--op-2);--op-plegable-gap:var(--op-2);margin-top:var(--op-4);flex-wrap:wrap">
+          <div class="op-row" style="gap:var(--op-2);margin-top:var(--op-4);flex-wrap:wrap">
             <button class="op-btn op-btn--secondary op-flashable" id="btn-buscar-upd">
               <i data-icon="retry"></i> Buscar actualizaciones</button>
-            <button class="op-btn op-btn--primary op-flashable op-plegable--ancho" id="btn-instalar-upd" hidden>
-              <i data-icon="download"></i> Reiniciar y actualizar</button>
             <button class="op-btn op-btn--ghost op-flashable" id="btn-releases">
               <i data-icon="external"></i> Ver versiones en GitHub</button>
+            <!-- Último: apagado guarda su hueco, y al final de la fila no se nota. -->
+            <button class="op-btn op-btn--primary op-flashable op-plegable--ancho" id="btn-instalar-upd" hidden>
+              <i data-icon="download"></i> Reiniciar y actualizar</button>
           </div>
           <p class="op-meta" style="margin-top:var(--op-4);line-height:1.65">
             La app instalada busca una versión nueva al abrirse y la descarga en segundo plano.

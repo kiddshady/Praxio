@@ -132,6 +132,22 @@ function saveWindowState() {
   }, 400);
 }
 
+/* Lo que el debounce tenía pendiente, al disco YA y sin soltar el hilo. Al
+   cerrar, la app se va antes de que llegue una escritura asíncrona; al
+   apagar Windows, el sistema puede matar el proceso en cualquier momento
+   después de avisar (store.cjs, trampa 4). Movida y cerrada enseguida, la
+   ventana volvía a abrir donde estaba antes. */
+function flushWindowState() {
+  if (!saveTimer) return;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if (!win || win.isDestroyed()) return;
+  const b = win.getNormalBounds();
+  try {
+    winState.writeSync({ x: b.x, y: b.y, width: b.width, height: b.height, maximized: win.isMaximized() });
+  } catch (err) { console.error('[window] no se pudo guardar el estado:', err.message); }
+}
+
 function createWindow(state) {
   win = new BrowserWindow({
     // Nace fuera de pantalla: el flash del compositor ocurre donde nadie lo ve.
@@ -186,6 +202,11 @@ function createWindow(state) {
   win.on('unmaximize', () => { pushMaximized(); saveWindowState(); });
   win.on('resize', saveWindowState);
   win.on('move', saveWindowState);
+  /* Apagar, reiniciar o cerrar la sesión de Windows no pasa por la cruz:
+     Windows avisa y después puede cortar. */
+  win.on('close', flushWindowState);
+  win.on('query-session-end', flushWindowState);
+  win.on('session-end', flushWindowState);
 
   // Nada de navegación fuera de la app; los links externos van al navegador.
   win.webContents.setWindowOpenHandler(({ url }) => {

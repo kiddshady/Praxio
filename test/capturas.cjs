@@ -172,6 +172,11 @@ app.whenReady().then(async () => {
     n.value = '1 por la mañana, con el desayuno'; n.dispatchEvent(new Event('input', {bubbles:true}));
   })()`);
   await sleep(700); await foto('4-receta');
+  // La retro suma el membrete: el formulario cambia de forma.
+  await js(`document.querySelector('#r-plantilla [data-value="retro"]').click()`);
+  await sleep(700); await foto('4b-receta-retro');
+  await js(`document.querySelector('#r-plantilla [data-value="clasica"]').click()`);
+  await sleep(700);
 
   await js(`document.querySelector('.op-navitem[data-view="medicamentos"]').click()`);
   await sleep(700); await foto('5-medicamentos');
