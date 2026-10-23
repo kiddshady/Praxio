@@ -472,6 +472,86 @@ app.whenReady().then(async () => {
   ok('el encabezado editado llega a la hoja',
     (await js(`document.querySelector('#o-previa .encabezado-rp .rp')?.textContent`)) === 'Se solicita:');
 
+  /* ── 7a. Reordenar los estudios ──────────────────────────────────────────
+     Con el mouse de verdad (sendInputEvent, no eventos sintéticos: la manija
+     captura el puntero), arrastrando la primera fila al final. Se mide qué
+     dice la hoja y DÓNDE cae la fila soltada: tiene que arrancar el viaje
+     desde donde se la veía, no desde su lugar viejo. */
+  console.log('\n7a. Reordenar');
+  for (const [i, n] of [[1, 'Glucemia'], [2, 'Uremia']]) {
+    await click('#o-agregar');
+    await sleep(500);
+    await escribir(`input[data-campo="nombre"][data-i="${i}"]`, n);
+  }
+  await sleep(400);
+  const ordenHoja = () => js(`[...document.querySelectorAll('#o-previa .item .nombre')].map(e => e.textContent.trim())`);
+  const ordenFilas = () => js(`[...document.querySelectorAll('#o-items > .rx-item:not([data-state="closing"]) input[data-campo="nombre"]')].map(e => e.value)`);
+  ok('cada fila tiene su manija', (await js(`document.querySelectorAll('#o-items .rx-item [data-asa]').length`)) === 3);
+  ok('la hoja arranca en el orden en que se cargó', JSON.stringify(await ordenHoja()) === '["Hemograma completo","Glucemia","Uremia"]', JSON.stringify(await ordenHoja()));
+
+  await js(`document.querySelector('#o-items .rx-item:last-child').scrollIntoView({ block: 'center' }); true`);
+  await sleep(300);
+  const asa0 = await caja('#o-items .rx-item:first-child [data-asa]');
+  const fila2 = await caja('#o-items .rx-item:last-child');
+  const mx = Math.round(asa0.x + asa0.w / 2);
+  const y0 = Math.round(asa0.y + asa0.h / 2);
+  const y1 = Math.round(fila2.y + fila2.h / 2 + 8);
+  const raton = (type, y) => win.webContents.sendInputEvent({ type, x: mx, y, button: 'left', clickCount: 1 });
+  await raton('mouseMove', y0);
+  await raton('mouseDown', y0);
+  for (let k = 1; k <= 12; k++) { await raton('mouseMove', Math.round(y0 + (y1 - y0) * k / 12)); await sleep(16); }
+  await sleep(350);
+  const medio = await js(`(() => {
+    const filas = [...document.querySelectorAll('#o-items > .rx-item')];
+    const t = (el) => new DOMMatrix(getComputedStyle(el).transform).m42;
+    return { levantada: filas[0].classList.contains('is-arrastrada'), sigue: Math.round(t(filas[0])),
+             corridas: filas.slice(1).map((f) => Math.round(t(f))), cursor: document.documentElement.classList.contains('rx-agarrando'),
+             visto: Math.round(filas[0].getBoundingClientRect().top) };
+  })()`);
+  ok('la fila agarrada se levanta y sigue al mouse', medio.levantada && medio.sigue > 40 && medio.cursor, JSON.stringify(medio));
+  ok('las de abajo suben a hacerle lugar', medio.corridas.every((v) => v < -20), JSON.stringify(medio.corridas));
+  ok('mientras se arrastra, la hoja no cambió', JSON.stringify(await ordenHoja()) === '["Hemograma completo","Glucemia","Uremia"]');
+
+  await raton('mouseUp', y1);
+  const caida = await js(`new Promise((res) => requestAnimationFrame(() => {
+    const f = [...document.querySelectorAll('#o-items > .rx-item')].find((e) => e.querySelector('input').value === 'Hemograma completo');
+    res({ top: Math.round(f.getBoundingClientRect().top), ultima: f === document.querySelector('#o-items > .rx-item:last-child') });
+  }))`);
+  ok('al soltar, arranca desde donde se la veía, sin salto', caida.ultima && Math.abs(caida.top - medio.visto) <= 6, JSON.stringify({ medio: medio.visto, caida }));
+  await sleep(600);
+  ok('la lista quedó en el orden nuevo', JSON.stringify(await ordenFilas()) === '["Glucemia","Uremia","Hemograma completo"]', JSON.stringify(await ordenFilas()));
+  ok('y la hoja también', JSON.stringify(await ordenHoja()) === '["Glucemia","Uremia","Hemograma completo"]', JSON.stringify(await ordenHoja()));
+  ok('sin desplazamientos colgados', await js(`[...document.querySelectorAll('#o-items > .rx-item')].every((f) => getComputedStyle(f).transform === 'none' && !f.classList.contains('is-arrastrada'))`)
+    && !(await js(`document.documentElement.classList.contains('rx-agarrando')`)));
+  ok('los campos siguen escribiendo en su estudio', await (async () => {
+    await escribir('input[data-campo="aclaracion"][data-i="0"]', 'basal');
+    await sleep(300);
+    return (await js(`document.getElementById('o-previa').textContent.includes('basal')`))
+      && (await js(`document.querySelector('#o-items > .rx-item:first-child input[data-campo="nombre"]').value`)) === 'Glucemia';
+  })());
+
+  /* Con el teclado: Alt+Arriba desde un campo de la fila, sin perder el foco. */
+  await js(`document.querySelector('#o-items > .rx-item:last-child input[data-campo="nombre"]').focus(); true`);
+  win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Up', modifiers: ['alt'] });
+  win.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Up', modifiers: ['alt'] });
+  await sleep(600);
+  ok('Alt+Arriba la sube un lugar', JSON.stringify(await ordenFilas()) === '["Glucemia","Hemograma completo","Uremia"]', JSON.stringify(await ordenFilas()));
+  ok('y el foco sigue en el mismo campo', (await js(`document.activeElement?.value`)) === 'Hemograma completo');
+  ok('la hoja lo acompaña', JSON.stringify(await ordenHoja()) === '["Glucemia","Hemograma completo","Uremia"]');
+
+  /* Esc en medio de un arrastre lo deshace. */
+  const asaE = await caja('#o-items .rx-item:first-child [data-asa]');
+  const ye = Math.round(asaE.y + asaE.h / 2);
+  const ratonE = (type, y) => win.webContents.sendInputEvent({ type, x: Math.round(asaE.x + asaE.w / 2), y, button: 'left', clickCount: 1 });
+  await ratonE('mouseMove', ye);
+  await ratonE('mouseDown', ye);
+  for (let k = 1; k <= 6; k++) { await ratonE('mouseMove', ye + k * 25); await sleep(16); }
+  win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+  await sleep(100);
+  await ratonE('mouseUp', ye + 150);
+  await sleep(600);
+  ok('Esc cancela el arrastre', JSON.stringify(await ordenFilas()) === '["Glucemia","Hemograma completo","Uremia"]', JSON.stringify(await ordenFilas()));
+
   await click('#o-emitir');
   await sleep(900);
   ok('ofrece imprimir o guardar después de emitir',

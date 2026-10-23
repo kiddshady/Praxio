@@ -203,11 +203,12 @@
    contenedor con scroll tiene mínimo cero de fábrica. */
 .rx-receta__previa { min-width: 0; min-height: 0; display: flex; }
 
-/* Un medicamento de la receta, o un estudio de la orden. */
+/* Un medicamento de la receta, o un estudio de la orden. La primera columna
+   es la manija para reordenar (reordenar.js). */
 .rx-item {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--op-3);
   padding: var(--op-3);
   border-radius: var(--op-r-md);
@@ -224,6 +225,41 @@
 .rx-solo-retro { transition: opacity var(--op-t-2) var(--op-ease-soft); }
 .rx-solo-retro.is-apagada { opacity: .42; }
 .rx-solo-retro.is-apagada .op-switch { pointer-events: none; }
+
+/* ── Reordenar ──────────────────────────────────────────────────────────────
+   La manija ocupa el margen izquierdo de la fila, de punta a punta, para que
+   se agarre sin apuntar. Es un botón: declara su padding (base.css lo pone en
+   cero) y no entra en el orden de Tab; con el teclado se reordena con
+   Alt+flechas desde los campos. */
+.rx-item__asa {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  margin: calc(var(--op-1) * -1) calc(var(--op-1) * -1) calc(var(--op-1) * -1) calc(var(--op-2) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--op-r-sm);
+  background: transparent;
+  color: var(--op-text-3);
+  cursor: grab;
+  touch-action: none;
+  transition: color var(--op-t-1) var(--op-ease-soft), background-color var(--op-t-1) var(--op-ease-soft);
+}
+.rx-item__asa:hover { color: var(--op-text-2); background: var(--op-wash-1); }
+.rx-item__asa .op-icon { width: 14px; height: 14px; }
+/* La que se arrastra sigue al mouse sin transición y se levanta; las demás le
+   hacen lugar con la transición de transform que ya tienen (--tr-surface). */
+.rx-item.is-arrastrada {
+  z-index: 3;
+  /* Sólida, como todo lo que flota (quirotech.css): pasa por encima de las
+     otras filas y translúcida se veían sus campos a través. */
+  background: var(--qt-flota);
+  box-shadow: var(--op-hairline), var(--op-e3);
+  transition: background-color var(--op-t-2) var(--op-ease-soft), box-shadow var(--op-t-2) var(--op-ease);
+}
+.rx-item.is-arrastrada .rx-item__asa { color: var(--op-text); background: var(--op-wash-2); }
+html.rx-agarrando, html.rx-agarrando * { cursor: grabbing !important; user-select: none !important; }
 
 /* La salida de una fila la hace reconcile() (vistas/recetas.js y ordenes.js):
    sale desde donde estaba, fuera del flujo, y las de abajo viajan a su lugar. */

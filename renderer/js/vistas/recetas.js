@@ -9,6 +9,7 @@ import { campoFecha, cablearFechas } from '../campo-fecha.js';
 import { S, fecha, hoyISO, edad } from '../tienda.js';
 import { plural } from '../format.js';
 import { hoja, PLANTILLAS, CON_NUMERO } from '../hoja.js';
+import { reordenable, ASA } from '../reordenar.js';
 
 /* Una fila que solo vale en la retro (rx.css, .rx-solo-retro): en las otras
    plantillas queda en su lugar, apagada y sin tomar clicks ni foco. */
@@ -29,6 +30,7 @@ function itemVacio() {
 
 function filaItem(it, i) {
   return `<div class="rx-item" data-item="${i}">
+    ${ASA}
     <div class="rx-item__campos">
       <input class="op-input" data-campo="nombre" data-i="${i}" spellcheck="false"
              placeholder="Medication and presentation" value="${esc(it.nombre)}">
@@ -244,6 +246,17 @@ export async function vistaReceta(pacienteId = null) {
   }
 
   /* ── Cableado ───────────────────────────────────────────────────────────── */
+
+  /* Las filas se reordenan arrastrando su manija (o con Alt+flechas): el
+     orden de la lista es el de la hoja. reordenable() ya dejó el DOM en el
+     orden nuevo; acá se pone al día el arreglo y la previa. */
+  reordenable(elItems, {
+    onMove: (desde, hasta) => {
+      const [it] = E.items.splice(desde, 1);
+      E.items.splice(hasta, 0, it);
+      pintarItems();
+    },
+  });
 
   function cablearFila(el) {
     Icons.mount(el);
