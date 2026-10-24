@@ -52,6 +52,21 @@ function filaItem(it, i) {
 }
 
 export async function vistaOrden(pacienteId = null) {
+  return editor(pacienteId, null);
+}
+
+/** Corrige una orden ya emitida: el mismo editor, con lo que se emitió
+    cargado (db.cjs, «Corregir lo emitido»). */
+export async function vistaCorregirOrden(ordenId) {
+  const original = ordenId ? await rx.ordenes.get(ordenId) : null;
+  if (!original) {
+    Toast.error('Not found', 'That test order no longer exists.');
+    return Router.go('ordenes');
+  }
+  return editor(original.paciente_id, original);
+}
+
+async function editor(pacienteId, original) {
   const [pacientes, catalogo] = await Promise.all([
     rx.pacientes.list(), rx.estudios.list(),
   ]);
@@ -69,14 +84,35 @@ export async function vistaOrden(pacienteId = null) {
     numerar: S.ajustes?.numerarOrden !== false,
     items: [itemVacio()],
   };
-  if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId);
+  /* Al corregir arranca de lo que se emitió; los ítems sin `desde`, igual que
+     en la receta: su uso ya se sumó al emitir. Una orden de antes de la 0.3.0
+     no guardaba plantilla ni encabezado: se completan como la imprime hoja.js. */
+  if (original) {
+    const s = original.snapshot || {};
+    Object.assign(E, {
+      fecha: original.fecha,
+      diagnostico: original.diagnostico || '',
+      observaciones: original.observaciones || '',
+      plantilla: PLANTILLAS_ORDEN.some(([v]) => v === s.plantilla) ? s.plantilla : 'rpe',
+      encabezado: s.encabezado ?? ENCABEZADO_ORDEN,
+      membrete: s.membrete !== false,
+      numerar: s.numerar !== false,
+      items: original.items.map((it) => ({ nombre: it.nombre, aclaracion: it.aclaracion, desde: null })),
+    });
+    if (E.items.length === 0) E.items = [itemVacio()];
+  }
+  /* Si la paciente se borró después de emitir, al corregir hay que elegirla de
+     nuevo: la orden corregida sale con los datos de una ficha que existe. */
+  if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId).catch(() => null);
 
   paint(head({
-    title: 'New test order',
-    sub: 'The sheet on the right is exactly what will be printed',
+    title: original ? 'Correct test order' : 'New test order',
+    sub: original
+      ? `Issued on ${fecha(original.fecha)}. Saving replaces it: print the corrected one and discard the old paper.`
+      : 'The sheet on the right is exactly what will be printed',
     crumbs: [{ label: 'Test orders', view: 'ordenes' }],
     actions: `<button class="op-btn op-btn--primary op-flashable" id="o-emitir">
-                <i data-icon="check"></i> Issue</button>`,
+                <i data-icon="check"></i> ${original ? 'Save correction' : 'Issue'}</button>`,
   }) + `
     <div class="rx-receta">
       <div class="op-scroll rx-receta__form op-scroll--line-bottom">
@@ -98,7 +134,7 @@ export async function vistaOrden(pacienteId = null) {
           <div class="op-field">
             <label class="op-field__label" for="o-diagnostico">Diagnosis or indication</label>
             <input class="op-input" id="o-diagnostico" spellcheck="false"
-                   placeholder="What prompts the request">
+                   placeholder="What prompts the request" value="${esc(E.diagnostico)}">
           </div>
         </div>
 
@@ -358,6 +394,8 @@ export async function vistaOrden(pacienteId = null) {
     soloRetro(campoMembrete, valor === 'retro');
     soloRetro(campoNumerar, valor === 'retro');
     pintarPrevia();
+    // Una corrección no cambia lo que viene por defecto en las órdenes nuevas.
+    if (original) return;
     opal.settings.save({ plantillaOrden: valor })
       .then((a) => { S.ajustes = a; })
       .catch(() => { /* preferencia, no dato */ });
@@ -378,7 +416,7 @@ export async function vistaOrden(pacienteId = null) {
     elMembrete.classList.toggle('is-on', E.membrete);
     elMembrete.setAttribute('aria-checked', String(E.membrete));
     pintarPrevia();
-    S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
+    if (!original) S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
   };
 
   /* Los números en el margen son opcionales: quien no los quiere los apaga
@@ -389,7 +427,7 @@ export async function vistaOrden(pacienteId = null) {
     elNumerar.classList.toggle('is-on', E.numerar);
     elNumerar.setAttribute('aria-checked', String(E.numerar));
     pintarPrevia();
-    S.ajustes = await opal.settings.save({ numerarOrden: E.numerar });
+    if (!original) S.ajustes = await opal.settings.save({ numerarOrden: E.numerar });
   };
 
   document.getElementById('o-agregar').onclick = () => {
@@ -405,20 +443,24 @@ export async function vistaOrden(pacienteId = null) {
     const items = E.items.filter((i) => i.nombre.trim());
     if (items.length === 0) return Toast.error('The test is missing', 'The test order needs at least one.');
 
-    const orden = await attempt(() => rx.ordenes.emitir({
+    const datos = {
       paciente_id: E.paciente.id,
       fecha: E.fecha,
       diagnostico: E.diagnostico,
+      observaciones: E.observaciones,
       plantilla: E.plantilla,
       encabezado: E.encabezado,
       membrete: E.membrete,
       numerar: E.numerar,
       items,
       desdeCatalogo: items.map((i) => i.desde).filter(Boolean),
-    }), { errorTitle: 'Could not issue the test order' });
+    };
+    const orden = await attempt(
+      () => (original ? rx.ordenes.corregir(original.id, datos) : rx.ordenes.emitir(datos)),
+      { errorTitle: original ? 'Could not save the correction' : 'Could not issue the test order' });
     if (!orden) return;
 
-    await ofrecerSalida(orden.id, 'Test order issued');
+    await ofrecerSalida(orden.id, original ? 'Test order corrected' : 'Test order issued');
     Router.go('ordenes');
   };
 
@@ -490,6 +532,8 @@ export async function vistaOrdenes(ordenId = null) {
           </div>
           <div class="op-listitem__aside op-num">${esc(fecha(o.fecha))}</div>
           <div class="op-rowactions">
+            <button class="op-iconbtn op-iconbtn--sm" data-corregir="${esc(o.id)}"
+                    data-tip="Edit"><i data-icon="edit"></i></button>
             <button class="op-iconbtn op-iconbtn--sm" data-imprimir="${esc(o.id)}"
                     data-tip="Print"><i data-icon="printer"></i></button>
             <button class="op-iconbtn op-iconbtn--sm" data-pdf="${esc(o.id)}"
@@ -514,6 +558,10 @@ export async function vistaOrdenes(ordenId = null) {
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ver(); }
     });
+  }
+
+  for (const b of document.querySelectorAll('[data-corregir]')) {
+    b.onclick = () => Router.go('orden-corregir', b.dataset.corregir);
   }
 
   for (const b of document.querySelectorAll('[data-imprimir]')) {
@@ -604,12 +652,15 @@ async function verOrden(id) {
 
   const val = await Modal.show({
     title: `Test order of ${fecha(o.fecha)}`,
-    sub: 'Exactly as it was issued. The details are the ones from that day, not the current ones.',
+    sub: o.snapshot?.corregida
+      ? `As it was corrected on ${fecha(o.snapshot.corregida.slice(0, 10))}, with the details of that day.`
+      : 'Exactly as it was issued. The details are the ones from that day, not the current ones.',
     body: caja,
     width: 520,
     actions: [
       { label: 'Close', value: null },
       { label: 'Delete', value: 'borrar', variant: 'danger' },
+      { label: 'Edit', value: 'corregir' },
       { label: 'Save PDF', value: 'pdf' },
       { label: 'Print', value: 'imprimir', variant: 'primary' },
     ],
@@ -617,6 +668,8 @@ async function verOrden(id) {
 
   if (val === 'borrar') {
     await borrarOrden(id);
+  } else if (val === 'corregir') {
+    Router.go('orden-corregir', id);
   } else if (val === 'pdf') {
     await attempt(async () => {
       const res = await rx.ordenes.pdf(id);

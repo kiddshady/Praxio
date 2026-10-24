@@ -515,10 +515,30 @@ const PLANTILLAS = ['clasica', 'rpe', 'retro'];
 /** Las de la orden de estudios (hoja.js, PLANTILLAS_ORDEN). */
 const PLANTILLAS_ORDEN = ['rpe', 'retro'];
 
+/* ── Corregir lo emitido ──────────────────────────────────────────────────────
+   Una receta o una orden con un error no sirve: la farmacia o el laboratorio
+   la rechazan. Corregirla es volver a emitirla en el MISMO registro, no un
+   permiso para tocar el pasado: la instantánea se vuelve a congelar entera,
+   con los datos del paciente y del profesional de hoy (que son los que van a
+   salir en el papel nuevo), y queda anotado cuándo se corrigió. Conserva su
+   id y su `creado`, así sigue en su lugar del historial en vez de aparecer
+   como una nueva. */
+
 const recetas = {
   /** Emite una receta: la congela con su instantánea y suma uso al catálogo.
       Todo en una transacción — una receta a medio guardar no puede existir. */
   emitir(datos) {
+    return recetas.guardar(datos, null);
+  },
+
+  /** Corrige una receta ya emitida (ver «Corregir lo emitido»). Pasa por las
+      mismas validaciones que emitir(): el tope de medicamentos también vale. */
+  corregir(rid, datos) {
+    if (!rid) throw new Error('That prescription no longer exists.');
+    return recetas.guardar(datos, rid);
+  },
+
+  guardar(datos, corrige) {
     const c = conexion();
     const pid = datos?.paciente_id;
     const paciente = pid ? c.prepare('SELECT * FROM paciente WHERE id = ?').get(pid) : null;
@@ -541,22 +561,35 @@ const recetas = {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('The prescription date is not valid.');
 
     const prof = medico.get();
-    const rid = id();
+    const rid = corrige || id();
     const creado = ahora();
     /* El membrete apagado se congela con la receta: reimprimirla sale sin él
        aunque después se vuelva a prender. Hoy solo lo lee la retro. */
     const membrete = datos?.membrete !== false;
-    const snapshot = JSON.stringify({ paciente, medico: prof, items, fecha, membrete });
+    const snapshot = JSON.stringify({
+      paciente, medico: prof, items, fecha, membrete,
+      ...(corrige ? { corregida: creado } : {}),
+    });
+    const fila = {
+      id: rid, paciente_id: pid, fecha, snapshot, creado,
+      plantilla: PLANTILLAS.includes(datos?.plantilla) ? datos.plantilla : 'clasica',
+      numero: String(datos?.numero ?? '').trim(),
+    };
 
     const guardar = c.transaction(() => {
-      c.prepare(
-        `INSERT INTO receta (id, paciente_id, fecha, plantilla, numero, snapshot, creado)
-         VALUES (@id, @paciente_id, @fecha, @plantilla, @numero, @snapshot, @creado)`,
-      ).run({
-        id: rid, paciente_id: pid, fecha, snapshot, creado,
-        plantilla: PLANTILLAS.includes(datos?.plantilla) ? datos.plantilla : 'clasica',
-        numero: String(datos?.numero ?? '').trim(),
-      });
+      if (corrige) {
+        const r = c.prepare(
+          `UPDATE receta SET paciente_id = @paciente_id, fecha = @fecha, plantilla = @plantilla,
+                  numero = @numero, snapshot = @snapshot WHERE id = @id`,
+        ).run(fila);
+        if (r.changes === 0) throw new Error('That prescription no longer exists.');
+        c.prepare('DELETE FROM receta_item WHERE receta_id = ?').run(rid);
+      } else {
+        c.prepare(
+          `INSERT INTO receta (id, paciente_id, fecha, plantilla, numero, snapshot, creado)
+           VALUES (@id, @paciente_id, @fecha, @plantilla, @numero, @snapshot, @creado)`,
+        ).run(fila);
+      }
 
       const insItem = c.prepare(
         `INSERT INTO receta_item (receta_id, orden, nombre, marca, dosis, envases, diagnostico, indicaciones)
@@ -663,6 +696,17 @@ const ordenes = {
       papel, "Dx: dolor abdominal" encabeza el pedido entero, y repetirlo en
       cada renglón sería ruido en una hoja donde el lugar escasea. */
   emitir(datos) {
+    return ordenes.guardar(datos, null);
+  },
+
+  /** Corrige una orden ya emitida, con la misma regla que las recetas (ver
+      «Corregir lo emitido», arriba de las recetas). */
+  corregir(oid, datos) {
+    if (!oid) throw new Error('That test order no longer exists.');
+    return ordenes.guardar(datos, oid);
+  },
+
+  guardar(datos, corrige) {
     const c = conexion();
     const pid = datos?.paciente_id;
     const paciente = pid ? c.prepare('SELECT * FROM paciente WHERE id = ?').get(pid) : null;
@@ -692,18 +736,29 @@ const ordenes = {
     const membrete = datos?.membrete !== false;
     const numerar = datos?.numerar !== false;
     const prof = medico.get();
-    const oid = id();
+    const oid = corrige || id();
     const creado = ahora();
     const snapshot = JSON.stringify({
       paciente, medico: prof, items, fecha, diagnostico, observaciones,
       plantilla, encabezado, membrete, numerar,
+      ...(corrige ? { corregida: creado } : {}),
     });
+    const fila = { id: oid, paciente_id: pid, fecha, diagnostico, observaciones, snapshot, creado };
 
     const guardar = c.transaction(() => {
-      c.prepare(
-        `INSERT INTO orden (id, paciente_id, fecha, diagnostico, observaciones, snapshot, creado)
-         VALUES (@id, @paciente_id, @fecha, @diagnostico, @observaciones, @snapshot, @creado)`,
-      ).run({ id: oid, paciente_id: pid, fecha, diagnostico, observaciones, snapshot, creado });
+      if (corrige) {
+        const r = c.prepare(
+          `UPDATE orden SET paciente_id = @paciente_id, fecha = @fecha, diagnostico = @diagnostico,
+                  observaciones = @observaciones, snapshot = @snapshot WHERE id = @id`,
+        ).run(fila);
+        if (r.changes === 0) throw new Error('That test order no longer exists.');
+        c.prepare('DELETE FROM orden_item WHERE orden_id = ?').run(oid);
+      } else {
+        c.prepare(
+          `INSERT INTO orden (id, paciente_id, fecha, diagnostico, observaciones, snapshot, creado)
+           VALUES (@id, @paciente_id, @fecha, @diagnostico, @observaciones, @snapshot, @creado)`,
+        ).run(fila);
+      }
 
       const insItem = c.prepare(
         `INSERT INTO orden_item (orden_id, posicion, nombre, aclaracion)

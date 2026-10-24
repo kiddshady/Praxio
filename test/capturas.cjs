@@ -186,6 +186,12 @@ app.whenReady().then(async () => {
 
   await js(`document.querySelector('.op-navitem[data-view="recetas"]').click()`);
   await sleep(700); await foto('7-recetas');
+  // La receta emitida abierta (con Edit en el pie) y el editor en modo corrección.
+  await js(`document.querySelector('[data-abrir]').click()`);
+  await sleep(900); await foto('7b-receta-emitida');
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
+             .find(b => b.textContent.trim() === 'Edit').click()`);
+  await sleep(1200); await foto('7c-receta-corregir');
 
   // La orden se arma desde la ficha, igual que la receta: así la captura la
   // muestra con el paciente ya puesto y la hoja llena.

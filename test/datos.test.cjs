@@ -249,6 +249,76 @@ app.whenReady().then(async () => {
     assert.equal(db.estudios.list()[0].usos, 1, 'el contador de uso no subió');
   });
 
+  /* Corregir es volver a emitir en el MISMO registro: misma id y mismo
+     `creado` (no salta al tope del historial), ítems reemplazados, instantánea
+     recongelada con los datos de hoy y marcada como corregida. */
+  await prueba('corrige una receta emitida en su lugar', () => {
+    const p = db.pacientes.list()[0];
+    const r = db.recetas.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', plantilla: 'rpe', numero: '0001',
+      items: [{ nombre: 'Sertralina 5 mg', envases: 1 }],
+    });
+    const antes = db.recetas.list().length;
+    const c = db.recetas.corregir(r.id, {
+      paciente_id: p.id, fecha: '2026-08-08', plantilla: 'retro', numero: '0002', membrete: false,
+      items: [{ nombre: 'Sertralina 50 mg', envases: 2 }, { nombre: 'Clonazepam 0,5 mg' }],
+    });
+    assert.equal(c.id, r.id, 'la corrección creó otra receta');
+    assert.equal(c.creado, r.creado, 'la corrección cambió cuándo se emitió');
+    assert.equal(db.recetas.list().length, antes, 'la corrección sumó una receta al historial');
+    assert.deepEqual(c.items.map((i) => i.nombre), ['Sertralina 50 mg', 'Clonazepam 0,5 mg']);
+    assert.equal(c.fecha, '2026-08-08');
+    assert.equal(c.plantilla, 'retro');
+    assert.equal(c.numero, '0002');
+    assert.equal(c.snapshot.membrete, false);
+    assert.deepEqual(c.snapshot.items.map((i) => i.nombre), ['Sertralina 50 mg', 'Clonazepam 0,5 mg'],
+      'la instantánea, que es de donde se imprime, quedó con lo viejo');
+    assert.ok(c.snapshot.corregida, 'no quedó anotado que se corrigió');
+    assert.equal(db.recetas.get(r.id).snapshot.corregida, c.snapshot.corregida);
+    db.recetas.remove(r.id);   // no ensucia el conteo de los tests que siguen
+  });
+
+  await prueba('corregir respeta las mismas reglas que emitir', () => {
+    const p = db.pacientes.list()[0];
+    const r = db.recetas.emitir({ paciente_id: p.id, fecha: '2026-08-07', items: [{ nombre: 'Uno' }] });
+    assert.throws(() => db.recetas.corregir(r.id, {
+      paciente_id: p.id, fecha: '2026-08-07',
+      items: [{ nombre: 'Uno' }, { nombre: 'Dos' }, { nombre: 'Tres' }],
+    }), /cannot carry more than 2/);
+    assert.throws(() => db.recetas.corregir(r.id, { paciente_id: p.id, fecha: '2026-08-07', items: [] }),
+      /at least one medication/);
+    assert.equal(db.recetas.get(r.id).items[0].nombre, 'Uno', 'una corrección rechazada tocó la receta');
+    assert.throws(() => db.recetas.corregir('no-existe', {
+      paciente_id: p.id, fecha: '2026-08-07', items: [{ nombre: 'X' }],
+    }), /no longer exists/);
+    db.recetas.remove(r.id);
+  });
+
+  await prueba('corrige una orden emitida en su lugar', () => {
+    const p = db.pacientes.list()[0];
+    const o = db.ordenes.emitir({
+      paciente_id: p.id, fecha: '2026-08-07', diagnostico: 'Astenai',
+      items: [{ nombre: 'Hemograma' }, { nombre: 'TSH' }],
+    });
+    const antes = db.ordenes.list().length;
+    const c = db.ordenes.corregir(o.id, {
+      paciente_id: p.id, fecha: '2026-08-07', diagnostico: 'Astenia', plantilla: 'retro',
+      encabezado: 'Se solicita:', items: [{ nombre: 'Hemograma completo', aclaracion: 'en ayunas' }],
+    });
+    assert.equal(c.id, o.id, 'la corrección creó otra orden');
+    assert.equal(c.creado, o.creado);
+    assert.equal(db.ordenes.list().length, antes, 'la corrección sumó una orden al historial');
+    assert.equal(c.diagnostico, 'Astenia');
+    assert.deepEqual(c.items.map((i) => i.nombre), ['Hemograma completo']);
+    assert.equal(c.snapshot.diagnostico, 'Astenia', 'la instantánea quedó con el diagnóstico viejo');
+    assert.equal(c.snapshot.plantilla, 'retro');
+    assert.equal(c.snapshot.encabezado, 'Se solicita:');
+    assert.ok(c.snapshot.corregida, 'no quedó anotado que se corrigió');
+    assert.throws(() => db.ordenes.corregir(o.id, { paciente_id: p.id, fecha: '2026-08-07', items: [] }),
+      /at least one test/);
+    db.ordenes.remove(o.id);
+  });
+
   await prueba('la orden emitida NO cambia si después cambian los datos vivos', () => {
     const p = db.pacientes.list()[0];
     const antes = db.ordenes.list({ pacienteId: p.id })[0];

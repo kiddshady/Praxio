@@ -118,6 +118,7 @@ contextBridge.exposeInMainWorld('rx', {
 
   recetas: {
     emitir: (d) => call('recetas:emitir', d),
+    corregir: (id, d) => call('recetas:corregir', id, d),
     get: (id) => call('recetas:get', id),
     list: (opts) => call('recetas:list', opts),
     remove: (id) => call('recetas:remove', id),
@@ -128,6 +129,7 @@ contextBridge.exposeInMainWorld('rx', {
 
   ordenes: {
     emitir: (d) => call('ordenes:emitir', d),
+    corregir: (id, d) => call('ordenes:corregir', id, d),
     get: (id) => call('ordenes:get', id),
     list: (opts) => call('ordenes:list', opts),
     remove: (id) => call('ordenes:remove', id),

@@ -377,6 +377,40 @@ app.whenReady().then(async () => {
              .find(b => b.textContent.trim() === 'Close')?.click()`);
   await sleep(500);
 
+  /* Una receta con un error no sirve: se corrige en el mismo editor, con lo
+     emitido cargado, y queda en su lugar del historial en vez de sumar otra. */
+  console.log('\n6b. Corregir la receta');
+  await click('[data-corregir]');
+  await sleep(900);
+  ok('el editor se abre en modo corrección',
+    (await js(`document.querySelector('.op-viewhead')?.textContent || ''`)).includes('Correct prescription'));
+  ok('trae el medicamento emitido',
+    (await js(`document.querySelector('input[data-campo="nombre"][data-i="0"]')?.value`)) === 'Sertralina 50 mg');
+  ok('y a la paciente',
+    await js(`document.getElementById('r-paciente-txt')?.textContent.includes('GÓMEZ')`));
+  await escribir('input[data-campo="nombre"][data-i="0"]', 'Sertralina 100 mg');
+  await sleep(300);
+  await click('#r-emitir');
+  await sleep(900);
+  ok('ofrece imprimir la corregida',
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Prescription corrected')`));
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
+             .find(b => b.textContent.trim() === 'Later')?.click()`);
+  await sleep(1200);
+  ok('sigue habiendo una sola receta',
+    (await js(`document.querySelectorAll('[data-abrir]').length`)) === 1);
+  ok('y el historial muestra lo corregido',
+    await js(`document.querySelector('[data-abrir]')?.textContent.includes('Sertralina 100 mg')`));
+  await click('[data-abrir]');
+  await sleep(900);
+  ok('la hoja guardada es la corregida',
+    await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Sertralina 100 mg')`));
+  ok('y avisa que se corrigió',
+    await js(`document.querySelector('.op-modal')?.textContent.includes('corrected on')`));
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
+             .find(b => b.textContent.trim() === 'Close')?.click()`);
+  await sleep(500);
+
   /* ── 7. Emitir una orden de estudios ──────────────────────────────────── */
   console.log('\n7. Orden');
   await click('.op-navitem[data-view="pacientes"]');
@@ -582,6 +616,36 @@ app.whenReady().then(async () => {
              .find(b => b.textContent.trim() === 'Close')?.click()`);
   await sleep(500);
 
+  console.log('\n7b. Corregir la orden');
+  await click('[data-corregir]');
+  await sleep(900);
+  ok('el editor de la orden se abre en modo corrección',
+    (await js(`document.querySelector('.op-viewhead')?.textContent || ''`)).includes('Correct test order'));
+  ok('trae el diagnóstico emitido',
+    (await js(`document.getElementById('o-diagnostico')?.value`)) === 'Astenia');
+  await escribir('#o-diagnostico', 'Astenia y adinamia');
+  await sleep(300);
+  await click('#o-emitir');
+  await sleep(900);
+  ok('ofrece imprimir la orden corregida',
+    await js(`document.querySelector('.op-modal')?.textContent.includes('Test order corrected')`));
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
+             .find(b => b.textContent.trim() === 'Later')?.click()`);
+  await sleep(1200);
+  ok('sigue habiendo una sola orden',
+    (await js(`document.querySelectorAll('[data-abrir]').length`)) === 1);
+  await click('[data-abrir]');
+  await sleep(900);
+  ok('la orden corregida conserva la retro y el encabezado', await js(`(() => {
+    const h = document.querySelector('.op-modal .rx-hoja');
+    return h?.classList.contains('rx-hoja--retro') && h.querySelector('.rp')?.textContent === 'Se solicita:';
+  })()`));
+  ok('y lleva el diagnóstico corregido',
+    await js(`document.querySelector('.op-modal .rx-hoja')?.textContent.includes('Astenia y adinamia')`));
+  await js(`[...document.querySelectorAll('.op-modal__foot .op-btn')]
+             .find(b => b.textContent.trim() === 'Close')?.click()`);
+  await sleep(500);
+
   /* El subtítulo de cada vista dice cuántos hay. Durante un tiempo dijo el
      número DOS veces ("1 1 receta") porque `plural()` ya lo trae adelante y las
      vistas se lo anteponían igual. No lo agarra ningún test que pregunte
@@ -651,7 +715,7 @@ app.whenReady().then(async () => {
       && previaTrasQuitar.includes('número 3'));
 
   /* ── 7b. Borrar ───────────────────────────────────────────────────────── */
-  console.log('\n7b. Borrar');
+  console.log('\n7c. Borrar');
   /* Va después del chequeo de los subtítulos a propósito: ese mira las vistas
      CON datos, y borrar antes se los sacaría. Una segunda receta y una segunda
      orden, para que quede algo que borrar de a una y algo que borrar en

@@ -187,6 +187,7 @@ function registrarDominio() {
   handle('estudios:remove', conBase((id) => db.estudios.remove(id)));
 
   handle('recetas:emitir', conBase((d) => db.recetas.emitir(d)));
+  handle('recetas:corregir', conBase((id, d) => db.recetas.corregir(id, d)));
   handle('recetas:get', conBase((id) => db.recetas.get(id)));
   handle('recetas:list', conBase((opts) => db.recetas.list(opts || {})));
   handle('recetas:remove', conBase((id) => db.recetas.remove(id)));
@@ -200,6 +201,7 @@ function registrarDominio() {
   handle('recetas:imprimir', conBase((id) => impresion.aImpresora(id)));
 
   handle('ordenes:emitir', conBase((d) => db.ordenes.emitir(d)));
+  handle('ordenes:corregir', conBase((id, d) => db.ordenes.corregir(id, d)));
   handle('ordenes:get', conBase((id) => db.ordenes.get(id)));
   handle('ordenes:list', conBase((opts) => db.ordenes.list(opts || {})));
   handle('ordenes:remove', conBase((id) => db.ordenes.remove(id)));

@@ -19,8 +19,8 @@ import { initActualizacion } from './actualizacion.js';
 
 import { vistaTablero } from './vistas/tablero.js';
 import { vistaPacientes, vistaFicha } from './vistas/pacientes.js';
-import { vistaRecetas, vistaReceta } from './vistas/recetas.js';
-import { vistaOrdenes, vistaOrden } from './vistas/ordenes.js';
+import { vistaRecetas, vistaReceta, vistaCorregirReceta } from './vistas/recetas.js';
+import { vistaOrdenes, vistaOrden, vistaCorregirOrden } from './vistas/ordenes.js';
 import { vistaMedicamentos } from './vistas/medicamentos.js';
 import { vistaEstudios } from './vistas/estudios.js';
 import { vistaAjustes } from './vistas/ajustes.js';
@@ -170,8 +170,10 @@ async function boot() {
     ficha:        { view: vistaFicha, nav: 'pacientes' },
     recetas:      { view: vistaRecetas },
     receta:       { view: vistaReceta, nav: 'recetas' },
+    'receta-corregir': { view: vistaCorregirReceta, nav: 'recetas' },
     ordenes:      { view: vistaOrdenes },
     orden:        { view: vistaOrden, nav: 'ordenes' },
+    'orden-corregir': { view: vistaCorregirOrden, nav: 'ordenes' },
     medicamentos: { view: vistaMedicamentos },
     estudios:     { view: vistaEstudios },
     ajustes:      { view: vistaAjustes },
@@ -206,7 +208,7 @@ async function boot() {
     /* Se recuerda la sección, nunca el parámetro: guardar "ficha/a3f9…" haría
        que la app abriera sola en el paciente que se estaba mirando, que es
        exactamente lo que no querés que pase si la abrís delante de otro. */
-    if (name === 'ficha' || name === 'receta' || name === 'orden') return;
+    if (['ficha', 'receta', 'orden', 'receta-corregir', 'orden-corregir'].includes(name)) return;
     api.settings.save({ ultimaVista: name }).catch(() => { /* preferencia, no dato */ });
   });
 

@@ -63,6 +63,22 @@ function filaItem(it, i) {
 }
 
 export async function vistaReceta(pacienteId = null) {
+  return editor(pacienteId, null);
+}
+
+/** Corrige una receta ya emitida: el mismo editor, con lo que se emitió
+    cargado. Guardar la vuelve a congelar en el mismo registro (db.cjs,
+    «Corregir lo emitido»). */
+export async function vistaCorregirReceta(recetaId) {
+  const original = recetaId ? await rx.recetas.get(recetaId) : null;
+  if (!original) {
+    Toast.error('Not found', 'That prescription no longer exists.');
+    return Router.go('recetas');
+  }
+  return editor(original.paciente_id, original);
+}
+
+async function editor(pacienteId, original) {
   const [pacientes, catalogo] = await Promise.all([
     rx.pacientes.list(), rx.medicamentos.list(),
   ]);
@@ -82,14 +98,34 @@ export async function vistaReceta(pacienteId = null) {
     membrete: S.ajustes?.membreteRetro !== false,
     items: [itemVacio()],
   };
-  if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId);
+  /* Al corregir arranca de lo que se emitió. Los ítems no traen `desde`: ya
+     sumaron su uso al catálogo cuando se emitieron, y solo suma lo que se
+     cargue de nuevo del catálogo durante la corrección. */
+  if (original) {
+    Object.assign(E, {
+      fecha: original.fecha,
+      plantilla: original.plantilla,
+      numero: original.numero || '',
+      membrete: original.snapshot?.membrete !== false,
+      items: original.items.map((it) => ({
+        nombre: it.nombre, marca: it.marca, dosis: it.dosis, envases: it.envases,
+        diagnostico: it.diagnostico, indicaciones: it.indicaciones, desde: null,
+      })),
+    });
+    if (E.items.length === 0) E.items = [itemVacio()];
+  }
+  /* Si la paciente se borró después de emitir, al corregir hay que elegirla de
+     nuevo: la receta corregida sale con los datos de una ficha que existe. */
+  if (pacienteId) E.paciente = await rx.pacientes.get(pacienteId).catch(() => null);
 
   paint(head({
-    title: 'New prescription',
-    sub: 'The sheet on the right is exactly what will be printed',
+    title: original ? 'Correct prescription' : 'New prescription',
+    sub: original
+      ? `Issued on ${fecha(original.fecha)}. Saving replaces it: print the corrected one and discard the old paper.`
+      : 'The sheet on the right is exactly what will be printed',
     crumbs: [{ label: 'Prescriptions', view: 'recetas' }],
     actions: `<button class="op-btn op-btn--primary op-flashable" id="r-emitir">
-                <i data-icon="check"></i> Issue</button>`,
+                <i data-icon="check"></i> ${original ? 'Save correction' : 'Issue'}</button>`,
   }) + `
     <div class="rx-receta">
       <div class="op-scroll rx-receta__form op-scroll--line-bottom">
@@ -117,7 +153,7 @@ export async function vistaReceta(pacienteId = null) {
           </div>
           <div class="op-field" id="r-numero-campo" ${CON_NUMERO.includes(E.plantilla) ? '' : 'hidden'}>
             <label class="op-field__label" for="r-numero">Prescription no.</label>
-            <input class="op-input op-input--mono" id="r-numero" spellcheck="false" value="">
+            <input class="op-input op-input--mono" id="r-numero" spellcheck="false" value="${esc(E.numero)}">
           </div>
         </div>
 
@@ -351,7 +387,8 @@ export async function vistaReceta(pacienteId = null) {
     elMembrete.classList.toggle('is-on', E.membrete);
     elMembrete.setAttribute('aria-checked', String(E.membrete));
     pintarPrevia();
-    S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
+    // Una corrección no cambia lo que viene por defecto en las recetas nuevas.
+    if (!original) S.ajustes = await opal.settings.save({ membreteRetro: E.membrete });
   };
   /* La retro imprime el número en el membrete, así que la previa lo sigue. */
   document.getElementById('r-numero').addEventListener('input', (e) => {
@@ -373,7 +410,7 @@ export async function vistaReceta(pacienteId = null) {
     const items = E.items.filter((i) => i.nombre.trim());
     if (items.length === 0) return Toast.error('The medication is missing', 'The prescription needs at least one.');
 
-    const receta = await attempt(() => rx.recetas.emitir({
+    const datos = {
       paciente_id: E.paciente.id,
       fecha: E.fecha,
       plantilla: E.plantilla,
@@ -381,10 +418,13 @@ export async function vistaReceta(pacienteId = null) {
       membrete: E.membrete,
       items,
       desdeCatalogo: items.map((i) => i.desde).filter(Boolean),
-    }), { errorTitle: 'Could not issue the prescription' });
+    };
+    const receta = await attempt(
+      () => (original ? rx.recetas.corregir(original.id, datos) : rx.recetas.emitir(datos)),
+      { errorTitle: original ? 'Could not save the correction' : 'Could not issue the prescription' });
     if (!receta) return;
 
-    await ofrecerSalida(receta.id, 'Prescription issued');
+    await ofrecerSalida(receta.id, original ? 'Prescription corrected' : 'Prescription issued');
     Router.go('recetas');
   };
 
@@ -458,6 +498,8 @@ export async function vistaRecetas(recetaId = null) {
           </div>
           <div class="op-listitem__aside op-num">${esc(fecha(r.fecha))}</div>
           <div class="op-rowactions">
+            <button class="op-iconbtn op-iconbtn--sm" data-corregir="${esc(r.id)}"
+                    data-tip="Edit"><i data-icon="edit"></i></button>
             <button class="op-iconbtn op-iconbtn--sm" data-imprimir="${esc(r.id)}"
                     data-tip="Print"><i data-icon="printer"></i></button>
             <button class="op-iconbtn op-iconbtn--sm" data-pdf="${esc(r.id)}"
@@ -482,6 +524,10 @@ export async function vistaRecetas(recetaId = null) {
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ver(); }
     });
+  }
+
+  for (const b of document.querySelectorAll('[data-corregir]')) {
+    b.onclick = () => Router.go('receta-corregir', b.dataset.corregir);
   }
 
   for (const b of document.querySelectorAll('[data-imprimir]')) {
@@ -571,12 +617,15 @@ async function verReceta(id) {
 
   const val = await Modal.show({
     title: `Prescription of ${fecha(r.fecha)}`,
-    sub: 'Exactly as it was issued. The details are the ones from that day, not the current ones.',
+    sub: r.snapshot?.corregida
+      ? `As it was corrected on ${fecha(r.snapshot.corregida.slice(0, 10))}, with the details of that day.`
+      : 'Exactly as it was issued. The details are the ones from that day, not the current ones.',
     body: caja,
     width: 520,
     actions: [
       { label: 'Close', value: null },
       { label: 'Delete', value: 'borrar', variant: 'danger' },
+      { label: 'Edit', value: 'corregir' },
       { label: 'Save PDF', value: 'pdf' },
       { label: 'Print', value: 'imprimir', variant: 'primary' },
     ],
@@ -584,6 +633,8 @@ async function verReceta(id) {
 
   if (val === 'borrar') {
     await borrarReceta(id);
+  } else if (val === 'corregir') {
+    Router.go('receta-corregir', id);
   } else if (val === 'pdf') {
     await attempt(async () => {
       const res = await rx.recetas.pdf(id);
