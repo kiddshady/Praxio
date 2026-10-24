@@ -319,6 +319,65 @@ app.whenReady().then(async () => {
     db.ordenes.remove(o.id);
   });
 
+  /* Las carpetas del catálogo de medicamentos (esquema 3): un solo nivel, y
+     cada medicamento en una sola. Borrar una carpeta no borra lo que tenía. */
+  await prueba('guarda medicamentos en carpetas, de a una por medicamento', () => {
+    const a = db.carpetas.save({ nombre: 'Antidepresivos' });
+    const b = db.carpetas.save({ nombre: 'Ansiolíticos' });
+    assert.ok(b.posicion > a.posicion, 'la carpeta nueva no fue al final');
+    const m = db.medicamentos.save({ nombre: 'Escitalopram 10 mg', carpeta_id: a.id });
+    assert.equal(m.carpeta_id, a.id, 'el nuevo no nació en la carpeta abierta');
+    assert.equal(db.carpetas.list().find((c) => c.id === a.id).n, 1);
+
+    const movido = db.medicamentos.mover(m.id, b.id);
+    assert.equal(movido.carpeta_id, b.id);
+    assert.equal(db.carpetas.list().find((c) => c.id === a.id).n, 0, 'quedó en las dos carpetas');
+    assert.equal(db.medicamentos.list().find((x) => x.id === m.id).carpeta_id, b.id);
+
+    // Editarlo no lo cambia de carpeta.
+    const editado = db.medicamentos.save({ id: m.id, nombre: 'Escitalopram 20 mg' });
+    assert.equal(editado.carpeta_id, b.id, 'editar lo sacó de su carpeta');
+
+    assert.equal(db.medicamentos.mover(m.id, null).carpeta_id, null, 'no salió de la carpeta');
+    assert.throws(() => db.medicamentos.mover(m.id, 'no-existe'), /no longer exists/);
+
+    db.medicamentos.remove(m.id);
+    db.carpetas.remove(a.id);
+    db.carpetas.remove(b.id);
+  });
+
+  await prueba('renombra, reordena y no repite nombres de carpeta', () => {
+    const a = db.carpetas.save({ nombre: 'Dolor' });
+    const b = db.carpetas.save({ nombre: '  Sueño   y   ansiedad ' });
+    assert.equal(b.nombre, 'Sueño y ansiedad', 'no limpió los espacios');
+    assert.throws(() => db.carpetas.save({ nombre: 'dolor' }), /already a folder/);
+    assert.throws(() => db.carpetas.save({ nombre: 'SUENO Y ANSIEDAD' }), /already a folder/);
+    assert.throws(() => db.carpetas.save({ nombre: '   ' }), /needs a name/);
+    // Renombrarla a sí misma (con otras mayúsculas) no choca consigo misma.
+    assert.equal(db.carpetas.save({ id: a.id, nombre: 'DOLOR' }).nombre, 'DOLOR');
+
+    db.carpetas.ordenar([b.id, a.id]);
+    const ids = db.carpetas.list().map((c) => c.id);
+    assert.ok(ids.indexOf(b.id) < ids.indexOf(a.id), 'no guardó el orden nuevo');
+    db.carpetas.remove(a.id);
+    db.carpetas.remove(b.id);
+  });
+
+  await prueba('borrar una carpeta deja sus medicamentos sin carpeta', () => {
+    const c = db.carpetas.save({ nombre: 'Para borrar' });
+    const m = db.medicamentos.save({ nombre: 'Clonazepam 0,5 mg', carpeta_id: c.id });
+    db.carpetas.remove(c.id);
+    const queda = db.medicamentos.list().find((x) => x.id === m.id);
+    assert.ok(queda, 'borrar la carpeta se llevó el medicamento');
+    assert.equal(queda.carpeta_id, null);
+    // Y al revés: borrar el medicamento no deja una pertenencia huérfana.
+    const d = db.carpetas.save({ nombre: 'Otra' });
+    db.medicamentos.mover(m.id, d.id);
+    db.medicamentos.remove(m.id);
+    assert.equal(db.carpetas.list().find((x) => x.id === d.id).n, 0);
+    db.carpetas.remove(d.id);
+  });
+
   await prueba('la orden emitida NO cambia si después cambian los datos vivos', () => {
     const p = db.pacientes.list()[0];
     const antes = db.ordenes.list({ pacienteId: p.id })[0];
@@ -431,11 +490,13 @@ app.whenReady().then(async () => {
     const buena = await llave.derivarGuardada(CLAVE_BUENA);
     db.cerrar();
 
-    /* Se la deja como estaba antes de que existiera la orden: sin sus tablas y
-       con `user_version` en 1. */
+    /* Se la deja como estaba antes de que existiera la orden: sin sus tablas
+       (ni las de las carpetas, que llegaron después) y con `user_version` en 1.
+       Así se corren las dos migraciones en cadena. */
     const cruda = new Database(rutas.base());
     cruda.pragma(`cipher='sqlcipher'`);
     cruda.pragma(`key="x'${buena.toString('hex')}'"`);
+    cruda.exec('DROP TABLE medicamento_carpeta; DROP TABLE carpeta;');
     cruda.exec('DROP TABLE orden_item; DROP TABLE orden; DROP TABLE estudio;');
     cruda.pragma('user_version = 1');
     cruda.close();
@@ -444,6 +505,8 @@ app.whenReady().then(async () => {
     assert.equal(db.estudios.list().length, 0, 'no se recreó el catálogo de estudios');
     assert.equal(db.ordenes.list().length, 0, 'no se recreó la tabla de órdenes');
     assert.equal(db.recetas.list().length, 1, 'la migración se llevó puestas las recetas');
+    assert.deepEqual(db.carpetas.list(), [], 'no se crearon las carpetas del esquema 3');
+    assert.ok(db.medicamentos.list().every((m) => m.carpeta_id === null));
 
     /* Y dejó el respaldo antes de tocar nada, que es lo que hace que migrar no
        sea una apuesta. */

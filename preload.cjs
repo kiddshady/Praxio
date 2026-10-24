@@ -108,6 +108,14 @@ contextBridge.exposeInMainWorld('rx', {
     list: (opts) => call('medicamentos:list', opts),
     save: (d) => call('medicamentos:save', d),
     remove: (id) => call('medicamentos:remove', id),
+    mover: (id, carpeta) => call('medicamentos:mover', id, carpeta),
+  },
+
+  carpetas: {
+    list: () => call('carpetas:list'),
+    save: (d) => call('carpetas:save', d),
+    ordenar: (ids) => call('carpetas:ordenar', ids),
+    remove: (id) => call('carpetas:remove', id),
   },
 
   estudios: {

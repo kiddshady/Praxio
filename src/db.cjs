@@ -32,7 +32,7 @@ const rutas = require('./rutas.cjs');
 /** @type {import('better-sqlite3-multiple-ciphers').Database | null} */
 let db = null;
 
-const ESQUEMA = 2;
+const ESQUEMA = 3;
 
 function id() { return crypto.randomBytes(8).toString('hex'); }
 function ahora() { return new Date().toISOString(); }
@@ -102,6 +102,28 @@ const ESQUEMA_2 = `
     aclaracion TEXT NOT NULL DEFAULT ''
   );
   CREATE INDEX idx_item_orden ON orden_item (orden_id, posicion);
+`;
+
+/* Las del esquema 3: las carpetas del catálogo de medicamentos, con el criterio
+   que se le ocurra a quien las arma (Fran, 23/10/2026). Un solo nivel, y cada
+   medicamento en UNA carpeta o en ninguna: lo garantiza la clave primaria de
+   `medicamento_carpeta`. Va en una tabla aparte y no como columna de
+   `medicamento` para que migrar sea solo crear tablas, como en el esquema 2:
+   un ALTER TABLE no se puede deshacer ni repetir. Borrar una carpeta suelta
+   sus medicamentos (la cascada se lleva la pertenencia, no el medicamento). */
+const ESQUEMA_3 = `
+  CREATE TABLE carpeta (
+    id       TEXT PRIMARY KEY,
+    nombre   TEXT NOT NULL,
+    posicion INTEGER NOT NULL,
+    creado   TEXT NOT NULL
+  );
+
+  CREATE TABLE medicamento_carpeta (
+    medicamento_id TEXT PRIMARY KEY REFERENCES medicamento(id) ON DELETE CASCADE,
+    carpeta_id     TEXT NOT NULL REFERENCES carpeta(id) ON DELETE CASCADE
+  );
+  CREATE INDEX idx_medicamento_carpeta ON medicamento_carpeta (carpeta_id);
 `;
 
 function esquemaInicial(conn) {
@@ -198,12 +220,14 @@ function esquemaInicial(conn) {
     CREATE INDEX idx_item_receta ON receta_item (receta_id, orden);
   `);
   conn.exec(ESQUEMA_2);
+  conn.exec(ESQUEMA_3);
 }
 
 /* Cada entrada lleva el esquema de la versión N-1 a la N. Se corren en cadena
    dentro de una transacción, con un respaldo del archivo antes de empezar. */
 const MIGRACIONES = {
   2: (conn) => conn.exec(ESQUEMA_2),
+  3: (conn) => conn.exec(ESQUEMA_3),
 };
 
 function respaldarAntesDeMigrar(version) {
@@ -450,15 +474,49 @@ const evoluciones = {
 
 const CAMPOS_MEDICAMENTO = ['nombre', 'marca', 'dosis', 'diagnostico', 'indicaciones'];
 
+/* Cada fila trae `carpeta_id` (o null): la vista de Medications agrupa con eso. */
+const CON_CARPETA = `SELECT m.*, mc.carpeta_id FROM medicamento m
+  LEFT JOIN medicamento_carpeta mc ON mc.medicamento_id = m.id`;
+
 const medicamentos = {
   list({ busqueda = '' } = {}) {
     const q = normalizar(busqueda);
-    const cond = q ? `WHERE busqueda LIKE '%' || @q || '%'` : '';
+    const cond = q ? `WHERE m.busqueda LIKE '%' || @q || '%'` : '';
     return conexion().prepare(
-      `SELECT * FROM medicamento ${cond} ORDER BY usos DESC, nombre COLLATE NOCASE`).all({ q });
+      `${CON_CARPETA} ${cond} ORDER BY m.usos DESC, m.nombre COLLATE NOCASE`).all({ q });
   },
 
+  /** Uno nuevo puede nacer ya en una carpeta (`carpeta_id`): el que se crea
+      mirando una carpeta va a parar ahí. Editar no lo cambia de carpeta. */
   save(datos) {
+    const c = conexion();
+    return c.transaction(() => {
+      const m = medicamentos.guardar(datos);
+      if (!datos?.id && datos?.carpeta_id) medicamentos.mover(m.id, datos.carpeta_id);
+      return c.prepare(`${CON_CARPETA} WHERE m.id = ?`).get(m.id);
+    })();
+  },
+
+  /** Lo guarda en la carpeta `cid`, o lo saca de la que tenga si `cid` es null.
+      Si ya estaba en otra, se muda: un medicamento está en una sola. */
+  mover(mid, cid) {
+    const c = conexion();
+    if (!c.prepare('SELECT 1 FROM medicamento WHERE id = ?').get(mid)) {
+      throw new Error('That medication no longer exists.');
+    }
+    if (!cid) {
+      c.prepare('DELETE FROM medicamento_carpeta WHERE medicamento_id = ?').run(mid);
+    } else {
+      if (!c.prepare('SELECT 1 FROM carpeta WHERE id = ?').get(cid)) {
+        throw new Error('That folder no longer exists.');
+      }
+      c.prepare(`INSERT INTO medicamento_carpeta (medicamento_id, carpeta_id) VALUES (?, ?)
+                 ON CONFLICT (medicamento_id) DO UPDATE SET carpeta_id = excluded.carpeta_id`).run(mid, cid);
+    }
+    return c.prepare(`${CON_CARPETA} WHERE m.id = ?`).get(mid);
+  },
+
+  guardar(datos) {
     const c = conexion();
     const nombre = String(datos?.nombre || '').trim();
     if (!nombre) throw new Error('The medication needs a name.');
@@ -486,6 +544,55 @@ const medicamentos = {
 
   remove(mid) {
     conexion().prepare('DELETE FROM medicamento WHERE id = ?').run(mid);
+    return true;
+  },
+};
+
+/* ── Carpetas del catálogo de medicamentos ───────────────────────────────── */
+
+const carpetas = {
+  /** En el orden en que se acomodaron, cada una con cuántos medicamentos tiene. */
+  list() {
+    return conexion().prepare(`
+      SELECT c.*, count(mc.medicamento_id) AS n FROM carpeta c
+      LEFT JOIN medicamento_carpeta mc ON mc.carpeta_id = c.id
+      GROUP BY c.id ORDER BY c.posicion, c.creado`).all();
+  },
+
+  /** Crea una (al final de la lista) o le cambia el nombre. Dos carpetas con el
+      mismo nombre no se distinguirían en la columna, así que no se permiten. */
+  save(datos) {
+    const c = conexion();
+    const nombre = String(datos?.nombre || '').trim().replace(/\s+/g, ' ');
+    if (!nombre) throw new Error('The folder needs a name.');
+    const otra = c.prepare('SELECT id, nombre FROM carpeta WHERE id IS NOT ?').all(datos?.id || null)
+      .find((x) => normalizar(x.nombre) === normalizar(nombre));
+    if (otra) throw new Error(`There is already a folder called "${otra.nombre}".`);
+
+    let cid = datos?.id;
+    if (cid) {
+      const r = c.prepare('UPDATE carpeta SET nombre = ? WHERE id = ?').run(nombre, cid);
+      if (r.changes === 0) throw new Error('That folder no longer exists.');
+    } else {
+      cid = id();
+      const ultima = c.prepare('SELECT max(posicion) AS p FROM carpeta').get().p;
+      c.prepare('INSERT INTO carpeta (id, nombre, posicion, creado) VALUES (?, ?, ?, ?)')
+        .run(cid, nombre, (ultima ?? -1) + 1, ahora());
+    }
+    return carpetas.list().find((x) => x.id === cid);
+  },
+
+  /** Las acomoda en el orden de `ids` (el de la columna después de arrastrar). */
+  ordenar(ids) {
+    const c = conexion();
+    const poner = c.prepare('UPDATE carpeta SET posicion = ? WHERE id = ?');
+    c.transaction(() => (ids || []).forEach((cid, i) => poner.run(i, cid)))();
+    return carpetas.list();
+  },
+
+  /** Borra la carpeta, no lo que tenía: sus medicamentos quedan sin carpeta. */
+  remove(cid) {
+    conexion().prepare('DELETE FROM carpeta WHERE id = ?').run(cid);
     return true;
   },
 };
@@ -863,6 +970,6 @@ function integridad() {
 
 module.exports = {
   abrir, cerrar, abierta, recifrar, respaldar, normalizar, hoyLocal, integridad,
-  medico, pacientes, evoluciones, medicamentos, recetas, estudios, ordenes, resumen,
+  medico, pacientes, evoluciones, medicamentos, carpetas, recetas, estudios, ordenes, resumen,
   ESQUEMA, MAX_MEDICAMENTOS, PLANTILLAS, PLANTILLAS_ORDEN,
 };

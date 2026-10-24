@@ -181,6 +181,12 @@ function registrarDominio() {
   handle('medicamentos:list', conBase((opts) => db.medicamentos.list(opts || {})));
   handle('medicamentos:save', conBase((d) => db.medicamentos.save(d)));
   handle('medicamentos:remove', conBase((id) => db.medicamentos.remove(id)));
+  handle('medicamentos:mover', conBase((id, carpeta) => db.medicamentos.mover(id, carpeta)));
+
+  handle('carpetas:list', conBase(() => db.carpetas.list()));
+  handle('carpetas:save', conBase((d) => db.carpetas.save(d)));
+  handle('carpetas:ordenar', conBase((ids) => db.carpetas.ordenar(ids)));
+  handle('carpetas:remove', conBase((id) => db.carpetas.remove(id)));
 
   handle('estudios:list', conBase((opts) => db.estudios.list(opts || {})));
   handle('estudios:save', conBase((d) => db.estudios.save(d)));

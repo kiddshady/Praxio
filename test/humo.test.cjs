@@ -52,7 +52,10 @@ app.whenReady().then(async () => {
   });
 
   win.webContents.on('console-message', (e) => {
-    if (e.level >= 2) errores.push(`${e.level}: ${e.message}`);
+    /* Desde Electron 33 `level` es un texto ('warning', 'error'); antes era un
+       número. Con `>= 2` sobre el texto daba siempre falso y la consola del
+       renderer nunca reportaba nada. */
+    if (e.level === 'error' || e.level === 'warning' || e.level >= 2) errores.push(`${e.level}: ${e.message}`);
   });
   win.webContents.on('render-process-gone', (_e, d) => bail('el renderer se murió: ' + JSON.stringify(d)));
 
@@ -812,6 +815,155 @@ app.whenReady().then(async () => {
   ok('el rail ya no cuenta órdenes',
     (await js(`document.getElementById('cuenta-ordenes')?.textContent`)) === '0');
 
+  /* ── 7d. Carpetas de medicamentos ────────────────────────────────────────
+     Con el mouse de verdad, como 7a: crear una carpeta, llevar un
+     medicamento arrastrándolo hasta ella, reordenar las carpetas por su
+     manija, renombrar, mover con el menú y borrar una carpeta sin perder lo
+     que tenía. Se mira la pantalla Y la base. */
+  console.log('\n7d. Carpetas de medicamentos');
+  await js(`Promise.all([
+    window.rx.medicamentos.save({ nombre: 'Litio 300 mg' }),
+    window.rx.medicamentos.save({ nombre: 'Quetiapina 25 mg' }),
+  ])`);
+  await click('.op-navitem[data-view="medicamentos"]');
+  await sleep(900);
+  const filaDe = (nombre) => `[...document.querySelectorAll('#m-lista [data-med]:not([data-state="closing"])')]
+    .find((f) => f.querySelector('.op-listitem__title')?.textContent === ${JSON.stringify(nombre)})`;
+  const carpetaDe = (nombre) => `[...document.querySelectorAll('#m-carpetas-lista .rx-carpeta:not([data-state="closing"])')]
+    .find((f) => f.querySelector('.rx-carpeta__nombre')?.textContent.trim() === ${JSON.stringify(nombre)})`;
+  const cajaJs = (expr) => js(`(() => { const el = ${expr}; if (!el) return null;
+    const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; })()`);
+  const enCarpeta = async (med) => {
+    const ms = await js(`window.rx.medicamentos.list({})`);
+    const cs = await js(`window.rx.carpetas.list()`);
+    const m = ms.find((x) => x.nombre === med);
+    return cs.find((c) => c.id === m?.carpeta_id)?.nombre ?? null;
+  };
+  const tecla = (keyCode) => {
+    win.webContents.sendInputEvent({ type: 'keyDown', keyCode });
+    win.webContents.sendInputEvent({ type: 'keyUp', keyCode });
+  };
+  ok('la vista tiene la columna de carpetas con All y No folder',
+    await js(`!!document.querySelector('#m-fijas [data-carpeta="todas"].is-activa') && !!document.querySelector('#m-fijas [data-carpeta="sin"]')`));
+
+  const crearCarpeta = async (nombre) => {
+    await click('#m-carpeta-nueva');
+    await sleep(500);
+    const foco = await js(`document.activeElement?.classList.contains('rx-carpeta__input')`);
+    await escribir('.rx-carpeta__input', nombre);
+    tecla('Enter');
+    await sleep(900);
+    return foco;
+  };
+  ok('New folder abre el nombre para escribir', await crearCarpeta('Estabilizadores'));
+  ok('la carpeta nueva queda en la columna, abierta',
+    await js(`(${carpetaDe('Estabilizadores')})?.classList.contains('is-activa') === true`));
+  ok('y la derecha dice su nombre y que está vacía',
+    (await js(`document.getElementById('m-titulo').textContent.trim()`)) === 'Estabilizadores'
+    && await js(`document.querySelector('#m-lista .op-empty')?.textContent.includes('is empty')`),
+    JSON.stringify(await js(`({ t: document.getElementById('m-titulo').textContent, l: document.getElementById('m-lista').textContent.replace(/\s+/g, ' ').slice(0, 120) })`)));
+
+  // Llevar Litio desde All hasta la carpeta.
+  await click('#m-fijas [data-carpeta="todas"]');
+  await sleep(800);
+  const asaLitio = await cajaJs(`(${filaDe('Litio 300 mg')})?.querySelector('[data-llevar]')`);
+  const destino = await cajaJs(carpetaDe('Estabilizadores'));
+  const p0 = { x: Math.round(asaLitio.x + asaLitio.w / 2), y: Math.round(asaLitio.y + asaLitio.h / 2) };
+  const p1 = { x: Math.round(destino.x + destino.w / 2), y: Math.round(destino.y + destino.h / 2) };
+  const mouse = (type, p) => win.webContents.sendInputEvent({ type, x: p.x, y: p.y, button: 'left', clickCount: 1 });
+  await mouse('mouseMove', p0);
+  await mouse('mouseDown', p0);
+  for (let k = 1; k <= 14; k++) {
+    await mouse('mouseMove', { x: Math.round(p0.x + (p1.x - p0.x) * k / 14), y: Math.round(p0.y + (p1.y - p0.y) * k / 14) });
+    await sleep(16);
+  }
+  await sleep(200);
+  const llevando = await js(`(() => ({
+    ficha: document.querySelector('.rx-ficha')?.textContent.trim(),
+    destino: (${carpetaDe('Estabilizadores')})?.classList.contains('is-destino'),
+    apagada: (${filaDe('Litio 300 mg')})?.classList.contains('is-llevada'),
+    bajo: document.elementFromPoint(${p1.x}, ${p1.y})?.outerHTML.slice(0, 120),
+    p1: ${JSON.stringify(p1)},
+  }))()`);
+  ok('lo que viaja es una ficha con el nombre, y la fila queda a media luz',
+    llevando.ficha === 'Litio 300 mg' && llevando.apagada, JSON.stringify(llevando));
+  ok('la carpeta de abajo se enciende para recibirlo', llevando.destino === true, JSON.stringify(llevando));
+  await mouse('mouseUp', p1);
+  await sleep(1000);
+  ok('al soltar, queda guardado en la carpeta', (await enCarpeta('Litio 300 mg')) === 'Estabilizadores');
+  const cuentaC = await js(`(${carpetaDe('Estabilizadores')})?.querySelector('.rx-carpeta__cuenta').outerHTML`);
+  ok('la carpeta cuenta uno', /^<[^>]*>(<[^>]*>)?1(<\/span>)?<\/span>$/.test(cuentaC || ''), cuentaC);
+  ok('en All, la fila lleva el nombre de su carpeta y se volvió a encender',
+    await js(`(() => { const f = ${filaDe('Litio 300 mg')};
+      return f?.querySelector('.rx-med__carpeta')?.textContent.includes('Estabilizadores') && !f.classList.contains('is-llevada'); })()`));
+  ok('la ficha se fue', !(await js(`!!document.querySelector('.rx-ficha')`)));
+
+  // Abierta, la carpeta muestra solo lo suyo; un medicamento nuevo nace ahí.
+  await js(`(${carpetaDe('Estabilizadores')}).click()`);
+  await sleep(800);
+  ok('abierta, muestra solo lo que tiene',
+    JSON.stringify(await js(`[...document.querySelectorAll('#m-lista [data-med]:not([data-state="closing"]) .op-listitem__title')].map((e) => e.textContent)`)) === '["Litio 300 mg"]');
+  await click('#m-nuevo');
+  await sleep(600);
+  ok('New avisa que va a la carpeta abierta',
+    await js(`document.querySelector('.op-modal')?.textContent.includes('"Estabilizadores"')`));
+  await escribir('#m-nombre', 'Valproato 500 mg');
+  await apretar('Save');
+  await sleep(1100);
+  ok('y el nuevo quedó en ella', (await enCarpeta('Valproato 500 mg')) === 'Estabilizadores'
+    && await js(`!!(${filaDe('Valproato 500 mg')})`));
+
+  // Una segunda carpeta, y reordenar arrastrándola por su manija.
+  await crearCarpeta('Antipsicóticos');
+  const ordenCarpetas = () => js(`[...document.querySelectorAll('#m-carpetas-lista .rx-carpeta:not([data-state="closing"]) .rx-carpeta__nombre')].map((e) => e.textContent.trim())`);
+  ok('la segunda va al final', JSON.stringify(await ordenCarpetas()) === '["Estabilizadores","Antipsicóticos"]', JSON.stringify(await ordenCarpetas()));
+  await js(`(${carpetaDe('Antipsicóticos')}).dispatchEvent(new MouseEvent('mouseover', { bubbles: true })); true`);
+  const asaC = await cajaJs(`(${carpetaDe('Antipsicóticos')})?.querySelector('[data-asa]')`);
+  const arriba = await cajaJs(carpetaDe('Estabilizadores'));
+  const q0 = { x: Math.round(asaC.x + asaC.w / 2), y: Math.round(asaC.y + asaC.h / 2) };
+  const q1 = { x: q0.x, y: Math.round(arriba.y + 4) };
+  await mouse('mouseMove', q0);
+  await mouse('mouseDown', q0);
+  for (let k = 1; k <= 8; k++) { await mouse('mouseMove', { x: q0.x, y: Math.round(q0.y + (q1.y - q0.y) * k / 8) }); await sleep(16); }
+  await sleep(250);
+  await mouse('mouseUp', q1);
+  await sleep(800);
+  ok('arrastrada por la manija, sube', JSON.stringify(await ordenCarpetas()) === '["Antipsicóticos","Estabilizadores"]', JSON.stringify(await ordenCarpetas()));
+  ok('y el orden quedó en la base',
+    JSON.stringify((await js(`window.rx.carpetas.list()`)).map((c) => c.nombre)) === '["Antipsicóticos","Estabilizadores"]');
+
+  // Renombrar en la fila misma.
+  await js(`(${carpetaDe('Antipsicóticos')}).querySelector('[data-renombrar]').click(); true`);
+  await sleep(300);
+  await escribir('.rx-carpeta__input', 'Antipsicóticos atípicos');
+  tecla('Enter');
+  await sleep(900);
+  ok('renombra en la fila', JSON.stringify(await ordenCarpetas()) === '["Antipsicóticos atípicos","Estabilizadores"]', JSON.stringify(await ordenCarpetas()));
+
+  // Mover con el menú de la fila, para el que no arrastra.
+  await click('#m-fijas [data-carpeta="todas"]');
+  await sleep(800);
+  await js(`(${filaDe('Quetiapina 25 mg')}).querySelector('[data-mover]').click(); true`);
+  await sleep(400);
+  await js(`[...document.querySelectorAll('.op-menuitem')].find((b) => b.textContent.includes('Antipsicóticos atípicos'))?.click(); true`);
+  await sleep(900);
+  ok('Move to folder lo guarda en la elegida', (await enCarpeta('Quetiapina 25 mg')) === 'Antipsicóticos atípicos');
+
+  // Borrar una carpeta no borra sus medicamentos.
+  const antes = (await js(`window.rx.medicamentos.list({})`)).length;
+  await js(`(${carpetaDe('Estabilizadores')}).querySelector('[data-borrar-carpeta]').click(); true`);
+  await sleep(600);
+  ok('borrar la carpeta avisa que lo suyo se queda',
+    await js(`document.querySelector('.op-modal')?.textContent.includes('stay in the catalog')`));
+  await apretar('Delete');
+  await sleep(1100);
+  ok('la carpeta se fue de la columna', JSON.stringify(await ordenCarpetas()) === '["Antipsicóticos atípicos"]', JSON.stringify(await ordenCarpetas()));
+  ok('y sus medicamentos siguen, sin carpeta',
+    (await js(`window.rx.medicamentos.list({})`)).length === antes && (await enCarpeta('Litio 300 mg')) === null);
+  await click('#m-fijas [data-carpeta="sin"]');
+  await sleep(800);
+  ok('No folder los muestra', await js(`!!(${filaDe('Litio 300 mg')}) && !!(${filaDe('Valproato 500 mg')}) && !(${filaDe('Quetiapina 25 mg')})`));
+
   /* ── 8. Bloqueo ───────────────────────────────────────────────────────── */
   console.log('\n8. Bloqueo');
   /* Se bloquea desde la ficha, que es donde hay más dato de paciente en
@@ -871,7 +1023,7 @@ app.whenReady().then(async () => {
   }
 
   /* ── Cierre ───────────────────────────────────────────────────────────── */
-  ok('la consola del renderer no tiró errores', errores.length === 0, errores.slice(0, 4).join(' | '));
+  ok('la consola del renderer no tiró errores', errores.length === 0, errores.slice(0, 40).join(' | '));
 
   console.log(`\n${pass} bien, ${fail} mal\n`);
   win.destroy();

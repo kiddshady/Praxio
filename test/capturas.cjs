@@ -61,7 +61,20 @@ app.whenReady().then(async () => {
     { nombre: 'Clonazepam 0,5 mg', marca: 'Rivotril', dosis: '1 comprimido por noche', envases: 1 },
     { nombre: 'Enalapril 10 mg', dosis: '1 comprimido por día', diagnostico: 'I10 — Hipertensión esencial' },
     { nombre: 'Quetiapina 25 mg', dosis: '1 comprimido por noche' },
+    { nombre: 'Litio 300 mg', marca: 'Ceglution', dosis: '1 comprimido cada 12 h' },
+    { nombre: 'Losartán 50 mg', dosis: '1 comprimido por día' },
   ]) db.medicamentos.save(m);
+
+  /* Carpetas del catálogo, con algo adentro de cada una y un par sin carpeta. */
+  {
+    const psico = db.carpetas.save({ nombre: 'Psicofármacos' });
+    const cardio = db.carpetas.save({ nombre: 'Cardiovascular' });
+    db.carpetas.save({ nombre: 'Dolor crónico' });
+    const cat = db.medicamentos.list();
+    const de = (n) => cat.find((m) => m.nombre === n).id;
+    for (const n of ['Sertralina 50 mg', 'Clonazepam 0,5 mg', 'Quetiapina 25 mg']) db.medicamentos.mover(de(n), psico.id);
+    db.medicamentos.mover(de('Enalapril 10 mg'), cardio.id);
+  }
 
   db.evoluciones.save({
     paciente_id: gomez.id, fecha: '2026-06-18', motivo: 'Control de tratamiento',
@@ -180,6 +193,27 @@ app.whenReady().then(async () => {
 
   await js(`document.querySelector('.op-navitem[data-view="medicamentos"]').click()`);
   await sleep(700); await foto('5-medicamentos');
+  await js(`[...document.querySelectorAll('#m-carpetas-lista .rx-carpeta')].find((f) => f.textContent.includes('Psicofármacos')).click()`);
+  await sleep(900); await foto('5b-medicamentos-carpeta');
+  // A mitad de un arrastre: Litio, desde No folder, sobre Psicofármacos.
+  await js(`document.querySelector('#m-fijas [data-carpeta="sin"]').click()`);
+  await sleep(900);
+  {
+    const r = (sel) => js(`(() => { const el = ${sel}; const b = el.getBoundingClientRect(); return { x: Math.round(b.x + b.width / 2), y: Math.round(b.y + b.height / 2) }; })()`);
+    const a0 = await r(`[...document.querySelectorAll('#m-lista [data-med]')].find((f) => f.textContent.includes('Litio')).querySelector('[data-llevar]')`);
+    const a1 = await r(`[...document.querySelectorAll('#m-carpetas-lista .rx-carpeta')].find((f) => f.textContent.includes('Psicofármacos'))`);
+    const mouse = (type, p) => win.webContents.sendInputEvent({ type, x: p.x, y: p.y, button: 'left', clickCount: 1 });
+    await mouse('mouseMove', a0); await mouse('mouseDown', a0);
+    for (let k = 1; k <= 12; k++) { await mouse('mouseMove', { x: Math.round(a0.x + (a1.x - a0.x) * k / 12), y: Math.round(a0.y + (a1.y - a0.y) * k / 12) }); await sleep(16); }
+    await sleep(400); await foto('5c-medicamentos-arrastre');
+    win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+    await mouse('mouseUp', a1);
+    await sleep(600);
+  }
+  await js(`document.getElementById('m-carpeta-nueva').click()`);
+  await sleep(600); await foto('5d-medicamentos-nueva-carpeta');
+  win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+  await sleep(400);
 
   await js(`document.querySelector('.op-navitem[data-view="ajustes"]').click()`);
   await sleep(700); await foto('6-ajustes');

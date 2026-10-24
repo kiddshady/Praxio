@@ -553,3 +553,232 @@ html.rx-agarrando, html.rx-agarrando * { cursor: grabbing !important; user-selec
 @media (max-width: 1100px) {
   .rx-doble { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ── Medications: carpetas ──────────────────────────────────────────────────
+   Las carpetas a la izquierda y lo que tiene la abierta a la derecha
+   (vistas/medicamentos.js). La columna corta contra una línea, no al aire: el
+   lado que ya tiene línea no lleva esfumado. */
+.rx-catalogo {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--op-5);
+  min-height: 0;
+}
+.rx-carpetas {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-right: var(--op-4);
+  box-shadow: inset -1px 0 0 var(--op-line);
+}
+.rx-carpetas__fijas { display: flex; flex-direction: column; gap: 2px; }
+.rx-carpetas__rotulo {
+  padding: var(--op-4) var(--op-2) var(--op-1);
+  font-size: var(--op-fs-10);
+  font-weight: var(--op-w-semi);
+  letter-spacing: var(--op-track-caps);
+  text-transform: uppercase;
+  color: var(--op-text-3);
+}
+.rx-carpetas__scroll { flex: 0 1 auto; min-height: 0; --op-fade: 10px; }
+.rx-carpetas__lista { display: flex; flex-direction: column; gap: 2px; }
+
+/* Una carpeta. La manija, el ícono, el nombre y al final la cuenta, que con
+   el hover le deja su lugar a renombrar y borrar (se cruzan en la misma celda:
+   la fila no cambia de ancho). */
+.rx-carpeta {
+  position: relative;
+  display: grid;
+  /* Manija, ícono, nombre, cuenta. All y No folder no se reordenan pero
+     guardan la columna de la manija: así los íconos van todos alineados. */
+  grid-template-columns: 14px 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--op-2);
+  min-height: 32px;
+  padding: 0 var(--op-2) 0 var(--op-1);
+  border: 0;
+  border-radius: var(--op-r-sm);
+  background: transparent;
+  color: var(--op-text-2);
+  font: inherit;
+  font-size: var(--op-fs-13);
+  text-align: left;
+  cursor: default;
+  transition: var(--tr-surface), var(--tr-color);
+}
+.rx-carpeta:hover { background: var(--op-wash-1); color: var(--op-text); }
+.rx-carpeta.is-activa {
+  background: var(--op-wash-2);
+  color: var(--op-text);
+  font-weight: var(--op-w-medium);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .06);
+}
+.rx-carpeta__icono { display: grid; place-items: center; color: var(--op-text-3); transition: color var(--op-t-1) var(--op-ease-soft); }
+.rx-carpeta__icono .op-icon { width: 15px; height: 15px; }
+.rx-carpeta:hover .rx-carpeta__icono { color: var(--op-text-2); }
+.rx-carpeta.is-activa .rx-carpeta__icono { color: var(--op-accent); }
+.rx-carpeta__nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.rx-carpeta__fin { display: grid; justify-items: end; align-items: center; }
+.rx-carpeta__fin > * { grid-area: 1 / 1; }
+.rx-carpeta__cuenta {
+  font-size: var(--op-fs-11);
+  font-variant-numeric: tabular-nums;
+  color: var(--op-text-3);
+  transition: opacity var(--op-t-2) var(--op-ease-soft), color var(--op-t-1) var(--op-ease-soft);
+}
+.rx-carpeta:hover .rx-carpeta__cuenta,
+.rx-carpeta.is-activa .rx-carpeta__cuenta { color: var(--op-text-2); }
+.rx-carpeta__acciones {
+  display: flex;
+  gap: 1px;
+  margin-right: calc(var(--op-1) * -1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--op-t-2) var(--op-ease-soft);
+}
+.rx-carpeta--propia:is(:hover, :focus-within) .rx-carpeta__acciones { opacity: 1; pointer-events: auto; }
+.rx-carpeta--propia:is(:hover, :focus-within) .rx-carpeta__cuenta { opacity: 0; }
+
+/* La manija aparece con el hover, como las acciones: diez manijas quietas en
+   la columna eran ruido. Es un botón (base.css le saca el padding). */
+.rx-carpeta__asa {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  width: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--op-r-xs);
+  background: transparent;
+  color: var(--op-text-3);
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity var(--op-t-2) var(--op-ease-soft), color var(--op-t-1) var(--op-ease-soft);
+}
+.rx-carpeta__asa .op-icon { width: 12px; height: 12px; }
+.rx-carpeta--propia:hover .rx-carpeta__asa,
+.rx-carpeta.is-arrastrada .rx-carpeta__asa { opacity: 1; }
+.rx-carpeta__asa:hover { color: var(--op-text); }
+.rx-carpeta.is-nueva .rx-carpeta__asa { visibility: hidden; }
+
+/* Reordenar (reordenar.js): la que se arrastra va sólida y levantada; las
+   demás le hacen lugar con la transición de transform. */
+.rx-carpetas__lista .rx-carpeta { transition: var(--tr-surface), var(--tr-color), transform var(--op-t-3) var(--op-ease); }
+.rx-carpeta.is-arrastrada {
+  z-index: 3;
+  background: var(--qt-flota);
+  color: var(--op-text);
+  box-shadow: var(--op-hairline), var(--op-e3);
+  transition: background-color var(--op-t-2) var(--op-ease-soft), box-shadow var(--op-t-2) var(--op-ease);
+}
+
+/* El nombre se edita en la fila misma: el campo ocupa la celda del nombre. */
+.rx-carpeta.is-editando .rx-carpeta__nombre { display: none; }
+.rx-carpeta__input {
+  min-width: 0;
+  width: 100%;
+  height: 24px;
+  margin-left: calc(var(--op-1) * -1);
+  padding: 0 var(--op-1);
+  border: 0;
+  border-radius: var(--op-r-xs);
+  background: var(--op-sunken-2);
+  box-shadow: inset 0 0 0 1px var(--op-line-2);
+  color: var(--op-text);
+  font: inherit;
+  outline: none;
+  user-select: text;
+}
+.rx-carpeta__input::placeholder { color: var(--op-text-4); font-weight: var(--op-w-regular, 400); }
+/* Mientras se escribe, el campo llega hasta el borde: la cuenta y las acciones
+   (ocultas) le comían media fila. */
+.rx-carpeta.is-editando .rx-carpeta__fin { display: none; }
+.rx-carpeta__input { grid-column: 3 / -1; }
+
+.rx-carpeta--nueva { width: 100%; margin-top: var(--op-1); color: var(--op-text-3); }
+.rx-carpeta--nueva .op-icon { grid-column: 2; width: 14px; height: 14px; justify-self: center; }
+
+/* Mientras se lleva un medicamento: las carpetas que lo pueden recibir se
+   encienden al pasar por encima; All no recibe nada y se apaga un poco. */
+.rx-carpetas.is-recibiendo .rx-carpeta[data-destino=""] { opacity: .45; }
+.rx-carpetas .rx-carpeta[data-destino=""] { transition: var(--tr-surface), var(--tr-color), opacity var(--op-t-2) var(--op-ease-soft); }
+.rx-carpeta.is-destino {
+  background: var(--op-wash-2);
+  color: var(--op-text);
+  box-shadow: inset 0 0 0 1px rgb(var(--op-accent-rgb) / .55), 0 0 14px rgb(var(--op-accent-rgb) / .14);
+}
+.rx-carpeta.is-destino .rx-carpeta__icono { color: var(--op-accent); }
+
+/* La columna de la derecha: el nombre de la carpeta abierta y el buscador. */
+.rx-catalogo__main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.rx-catalogo__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--op-4);
+  margin-bottom: var(--op-2);
+}
+/* El esfumado de arriba es el aire entre el buscador y la primera fila: con
+   el de la vista (28 px) la lista quedaba despegada de su título. */
+.rx-catalogo__main > .op-scroll { --op-fade: 12px; }
+.rx-catalogo__titulo {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--op-fs-15, 15px);
+  font-weight: var(--op-w-semi);
+  color: var(--op-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rx-catalogo__cabeza .rx-buscador { flex: 0 1 280px; }
+.rx-meds { min-height: 100%; }
+.rx-meds__vacio { flex: 1 1 auto; display: grid; padding-block: var(--op-6); }
+.rx-med__carpeta { max-width: 160px; }
+.rx-med__carpeta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* La manija de un medicamento, a la izquierda de la fila. */
+.rx-med__asa {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  width: 14px;
+  margin: calc(var(--op-2) * -1) calc(var(--op-1) * -1) calc(var(--op-2) * -1) calc(var(--op-2) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--op-r-xs);
+  background: transparent;
+  color: var(--op-text-4, var(--op-text-3));
+  cursor: grab;
+  touch-action: none;
+  transition: color var(--op-t-1) var(--op-ease-soft);
+}
+.rx-med__asa .op-icon { width: 12px; height: 12px; }
+.rx-med:hover .rx-med__asa { color: var(--op-text-3); }
+.rx-med__asa:hover { color: var(--op-text); }
+.rx-med { transition: var(--tr-color), opacity var(--op-t-2) var(--op-ease-soft); }
+.rx-med.is-llevada { opacity: .4; }
+
+/* Lo que viaja con el mouse: una ficha sólida con el nombre, como todo lo
+   que flota. No recibe el puntero: debajo se busca la carpeta. */
+.rx-ficha {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: var(--op-2);
+  max-width: 260px;
+  height: 30px;
+  padding: 0 var(--op-3);
+  border-radius: var(--op-r-sm);
+  background: var(--qt-flota);
+  box-shadow: var(--op-hairline), var(--op-e3);
+  color: var(--op-text);
+  font-size: var(--op-fs-12);
+  white-space: nowrap;
+  pointer-events: none;
+  will-change: transform;
+}
+.rx-ficha .op-icon { width: 13px; height: 13px; flex: 0 0 auto; color: var(--op-accent); }
+.rx-ficha span { overflow: hidden; text-overflow: ellipsis; }

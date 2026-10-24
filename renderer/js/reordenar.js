@@ -9,7 +9,10 @@
    No usa el drag and drop nativo de Chromium: su fantasma translúcido no se
    puede estilar, y lo que se arrastra tiene que ser la fila misma.
 
-     reordenable(box, { onMove(desde, hasta) })
+     reordenable(box, { onMove(desde, hasta), fila = '.rx-item' })
+
+   `fila` es el selector de las filas: las carpetas de Medications también se
+   acomodan con esto.
 
    onMove cambia el arreglo de la vista y repinta con reconcile(). Cuando llega,
    el DOM ya está en el orden nuevo, así que reconcile() no encuentra nada que
@@ -19,7 +22,6 @@
 
 import { Tooltip } from './overlays.js';
 
-const FILA = '.rx-item';
 const ZONA = 48;          // px desde el borde del scroll donde empieza el auto-scroll
 const VEL = 14;           // px por cuadro en el borde mismo
 
@@ -39,7 +41,7 @@ function T() {
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Las filas que cuentan: las que se están yendo (reconcile) ya no son de la lista. */
-const vivas = (box) => [...box.children].filter((el) => el.matches(FILA) && el.dataset.state !== 'closing');
+const vivas = (box, fila) => [...box.children].filter((el) => el.matches(fila) && el.dataset.state !== 'closing');
 
 /* Mover un nodo le reinicia las animaciones de CSS: la entrada de la fila
    (rx-item-entra) se volvería a ver. Lo mismo que hace quiet() en reconcile. */
@@ -69,7 +71,7 @@ function guardarFoco() {
   };
 }
 
-export function reordenable(box, { onMove, scroller = box.closest('.op-scroll') } = {}) {
+export function reordenable(box, { onMove, scroller = box.closest('.op-scroll'), fila: FILA = '.rx-item' } = {}) {
   let d = null;   // el arrastre en curso
 
   /* Mueve `fila` de `desde` a `hasta` y hace viajar a todas desde `vistos`
@@ -168,7 +170,7 @@ export function reordenable(box, { onMove, scroller = box.closest('.op-scroll') 
     const asa = e.target.closest('[data-asa]');
     if (!asa || !box.contains(asa) || e.button !== 0 || d) return;
     const fila = asa.closest(FILA);
-    const filas = vivas(box);
+    const filas = vivas(box, FILA);
     if (filas.length < 2 || !filas.includes(fila)) return;
     e.preventDefault();
     for (const f of filas) { f.__move?.cancel(); f.__move = null; }
@@ -207,7 +209,7 @@ export function reordenable(box, { onMove, scroller = box.closest('.op-scroll') 
   box.addEventListener('keydown', (e) => {
     if (!e.altKey || e.ctrlKey || e.shiftKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') || d) return;
     const fila = e.target.closest?.(FILA);
-    const filas = vivas(box);
+    const filas = vivas(box, FILA);
     const desde = filas.indexOf(fila);
     if (desde < 0) return;
     e.preventDefault();
