@@ -124,9 +124,9 @@ export async function vistaAjustes() {
           <div class="op-field" style="max-width:320px">
             <label class="op-field__label">Default template</label>
             <div class="op-segmented" id="a-plantilla">
-              ${PLANTILLAS.map(([v, n], i) => {
+              ${PLANTILLAS.map(([v, n]) => {
                 const activa = PLANTILLAS.some(([x]) => x === ajustes.plantillaPorDefecto)
-                  ? ajustes.plantillaPorDefecto === v : i === 0;
+                  ? ajustes.plantillaPorDefecto === v : v === 'retro';
                 return `<button class="op-segmented__opt${activa ? ' is-active' : ''}"
                       data-value="${v}">${n}</button>`;
               }).join('')}

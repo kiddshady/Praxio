@@ -75,6 +75,13 @@ await store.writeJSON(store.SETTINGS_FILE, { schema: store.SCHEMA, bloqueoInacti
 const completado = await store.loadSettings();
 ok('las claves nuevas se completan solas',
   'plantillaPorDefecto' in completado && completado.bloqueoInactividad === 5);
+// Las instalaciones de antes tienen 'clasica' grabado: pasan a la retro una vez.
+await store.writeJSON(store.SETTINGS_FILE, { schema: 1, plantillaPorDefecto: 'clasica' });
+ok('una instalación vieja pasa a la retro', (await store.loadSettings()).plantillaPorDefecto === 'retro');
+await store.writeJSON(store.SETTINGS_FILE, { schema: 1, plantillaPorDefecto: 'rpe' });
+ok('la que eligió otra la conserva', (await store.loadSettings()).plantillaPorDefecto === 'rpe');
+await store.saveSettings({ plantillaPorDefecto: 'clasica' });
+ok('la clásica elegida después ya no se toca', (await store.loadSettings()).plantillaPorDefecto === 'clasica');
 
 console.log('\n5. Colección');
 const col = store.collection('items');

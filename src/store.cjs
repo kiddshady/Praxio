@@ -60,7 +60,7 @@ const SETTINGS_FILE = path.join(ROOT, 'settings.json');
 /* ── Ajustes de tu app ───────────────────────────────────────────────────────
    Editá esto: es el único lugar donde se declara qué guarda tu app. Lo que
    agregues acá aparece solo en instalaciones viejas gracias a withDefaults. */
-const SCHEMA = 1;
+const SCHEMA = 2;
 
 /* OJO: acá NO va nada clínico. Este archivo es JSON en claro; todo lo que sea
    dato de paciente vive en la base cifrada. Esto son preferencias de la
@@ -70,7 +70,7 @@ const DEFAULT_SETTINGS = {
   /** Minutos de inactividad antes de bloquear solo. 0 lo desactiva. */
   bloqueoInactividad: 15,
   /** Con cuál de las plantillas arranca una receta nueva. */
-  plantillaPorDefecto: 'clasica',
+  plantillaPorDefecto: 'retro',
   /** Si la retro lleva el membrete del profesional. Lo deja la última receta
       u orden retro. */
   membreteRetro: true,
@@ -85,6 +85,14 @@ const DEFAULT_SETTINGS = {
     Se ejecutan en cadena, así que un archivo de v0 llega a la actual solo. */
 const MIGRATIONS = {
   // 0: (data) => ({ ...data, campoNuevo: valorDerivado(data), schema: 1 }),
+  /* La receta nueva pasó a arrancar en la retro (25/10/2026). El primer
+     arranque escribe los defaults enteros, así que toda instalación vieja
+     tiene 'clasica' grabado aunque nadie lo haya elegido: se pasa una vez. */
+  1: (data) => ({
+    ...data,
+    plantillaPorDefecto: data.plantillaPorDefecto === 'clasica' ? 'retro' : data.plantillaPorDefecto,
+    schema: 2,
+  }),
 };
 
 /* ── Primitivas ──────────────────────────────────────────────────────────── */

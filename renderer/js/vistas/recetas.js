@@ -93,7 +93,7 @@ async function editor(pacienteId, original) {
     paciente: null,
     fecha: hoyISO(),
     plantilla: PLANTILLAS.some(([v]) => v === S.ajustes?.plantillaPorDefecto)
-      ? S.ajustes.plantillaPorDefecto : 'clasica',
+      ? S.ajustes.plantillaPorDefecto : 'retro',
     numero: '',
     membrete: S.ajustes?.membreteRetro !== false,
     items: [itemVacio()],
