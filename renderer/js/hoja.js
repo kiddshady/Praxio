@@ -48,6 +48,14 @@ function encabezadoOrden(o) {
   return o.encabezado == null ? ENCABEZADO_ORDEN : String(o.encabezado);
 }
 
+/** El texto libre que va debajo del encabezado y antes de los estudios. Es
+    opcional: vacío (o una orden de antes, sin el campo) no deja ni el hueco.
+    Los saltos de línea se respetan con `white-space: pre-line` (hoja.css). */
+function textoOrden(o) {
+  const t = String(o.texto ?? '').trim();
+  return t ? `<div class="texto-pedido">${esc(t)}</div>` : '';
+}
+
 export function nombrePlantilla(p) {
   return (PLANTILLAS.find(([v]) => v === p) || PLANTILLAS[0])[1];
 }
@@ -342,6 +350,7 @@ function orden(o) {
   let h = `<section class="rx-hoja rx-hoja--rpe rx-hoja--orden">`;
   h += cabeceraRpe(p);
   h += `<div class="encabezado-rp"><div>${esc(encabezadoOrden(o))}</div></div>`;
+  h += textoOrden(o);
 
   items.forEach((it) => {
     h += `<div class="item estudio"><div class="principal">`;
@@ -386,6 +395,7 @@ function ordenRetro(o) {
   h += cajasRetro(p);
 
   h += `<div class="encabezado-rp"><div class="rp">${esc(encabezadoOrden(o))}</div></div>`;
+  h += textoOrden(o);
 
   items.forEach((it, i) => {
     h += `<div class="item estudio">${numerar ? `<div class="num">${i + 1}.</div>` : ''}<div class="principal">`;
@@ -417,7 +427,8 @@ function ordenRetro(o) {
  * @param {object} d  receta {paciente, medico, items, fecha, plantilla, numero,
  *                            membrete}
  *                    u orden {tipo:'orden', paciente, medico, items, fecha,
- *                             diagnostico, plantilla, encabezado, membrete}
+ *                             diagnostico, plantilla, encabezado, texto,
+ *                             membrete, numerar}
  * @param {{duplicado?: boolean}} opts
  */
 export function hoja(d, { duplicado = false } = {}) {

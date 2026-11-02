@@ -246,8 +246,13 @@ app.whenReady().then(async () => {
     document.getElementById('o-agregar').click();
     poner('input[data-campo="nombre"][data-i="2"]', 'TSH y T4 libre');
     poner('#o-diagnostico', 'F32 — Control previo al ajuste de dosis');
+    poner('#o-texto', 'Se solicita realizar los siguientes estudios\\nen el mismo laboratorio:');
   })()`);
   await sleep(800); await foto('8-orden');
+  await js(`document.querySelector('#o-plantilla [data-value="retro"]').click()`);
+  await sleep(800); await foto('8b-orden-retro');
+  await js(`document.querySelector('#o-plantilla [data-value="rpe"]').click()`);
+  await sleep(400);
 
   await js(`document.querySelector('.op-navitem[data-view="ordenes"]').click()`);
   await sleep(700); await foto('9-ordenes');

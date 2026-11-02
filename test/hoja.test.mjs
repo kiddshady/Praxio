@@ -70,6 +70,20 @@ console.log('\n2b. La orden retro');
   ok('la RPE también respeta el encabezado', rpe.includes('>Pedido de estudios<') && !rpe.includes('Solicito:'));
   const vacio = juego({ ...base, plantilla: 'retro', encabezado: '' });
   ok('vaciado a propósito, no imprime nada', vacio.includes('class="rp"></div>') && !vacio.includes('Solicito:'));
+
+  /* El texto libre debajo del encabezado (nov 2026): opcional, escapado, y
+     entre el encabezado y el primer estudio en las dos plantillas. */
+  ok('sin texto no deja el bloque', !r.includes('texto-pedido') && !vieja.includes('texto-pedido'));
+  for (const plantilla of ['rpe', 'retro']) {
+    const t = juego({ ...base, plantilla, texto: 'Se solicitan <con urgencia>\nlos siguientes:' });
+    const iEnc = t.indexOf('encabezado-rp'), iTxt = t.indexOf('texto-pedido'), iItem = t.indexOf('Hemograma completo');
+    ok(`${plantilla}: el texto va entre el encabezado y los estudios`, iEnc > 0 && iEnc < iTxt && iTxt < iItem,
+      `${iEnc} ${iTxt} ${iItem}`);
+    ok(`${plantilla}: el texto sale escapado y con su salto de línea`,
+      t.includes('Se solicitan &lt;con urgencia&gt;\nlos siguientes:'));
+  }
+  ok('un texto de puros espacios no imprime nada',
+    !juego({ ...base, plantilla: 'retro', texto: '  \n ' }).includes('texto-pedido'));
   const sinMembrete = juego({ ...base, plantilla: 'retro', membrete: false });
   ok('con el membrete apagado no lo imprime', !sinMembrete.includes('class="membrete"'));
   const sinNumeros = juego({ ...base, plantilla: 'retro', numerar: false });

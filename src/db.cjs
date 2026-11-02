@@ -840,6 +840,10 @@ const ordenes = {
     const plantilla = PLANTILLAS_ORDEN.includes(datos?.plantilla) ? datos.plantilla : 'rpe';
     const encabezado = datos?.encabezado == null
       ? 'Solicito:' : String(datos.encabezado).trim().slice(0, 80);
+    /* El texto del pedido es opcional y va entre el encabezado y los estudios
+       («Se solicita realizar los siguientes estudios…»). Respeta los saltos de
+       línea; solo se recortan los bordes. Sin el campo, la hoja no lo imprime. */
+    const texto = String(datos?.texto ?? '').replace(/\r\n?/g, '\n').trim().slice(0, 600);
     const membrete = datos?.membrete !== false;
     const numerar = datos?.numerar !== false;
     const prof = medico.get();
@@ -847,7 +851,7 @@ const ordenes = {
     const creado = ahora();
     const snapshot = JSON.stringify({
       paciente, medico: prof, items, fecha, diagnostico, observaciones,
-      plantilla, encabezado, membrete, numerar,
+      plantilla, encabezado, texto, membrete, numerar,
       ...(corrige ? { corregida: creado } : {}),
     });
     const fila = { id: oid, paciente_id: pid, fecha, diagnostico, observaciones, snapshot, creado };

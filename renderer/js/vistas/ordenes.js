@@ -80,6 +80,7 @@ async function editor(pacienteId, original) {
     plantilla: PLANTILLAS_ORDEN.some(([v]) => v === S.ajustes?.plantillaOrden)
       ? S.ajustes.plantillaOrden : 'rpe',
     encabezado: ENCABEZADO_ORDEN,
+    texto: '',
     membrete: S.ajustes?.membreteRetro !== false,
     numerar: S.ajustes?.numerarOrden !== false,
     items: [itemVacio()],
@@ -95,6 +96,7 @@ async function editor(pacienteId, original) {
       observaciones: original.observaciones || '',
       plantilla: PLANTILLAS_ORDEN.some(([v]) => v === s.plantilla) ? s.plantilla : 'rpe',
       encabezado: s.encabezado ?? ENCABEZADO_ORDEN,
+      texto: s.texto || '',
       membrete: s.membrete !== false,
       numerar: s.numerar !== false,
       items: original.items.map((it) => ({ nombre: it.nombre, aclaracion: it.aclaracion, desde: null })),
@@ -151,6 +153,12 @@ async function editor(pacienteId, original) {
             <input class="op-input" id="o-encabezado" spellcheck="false" maxlength="80"
                    value="${esc(E.encabezado)}" placeholder="Empty, the sheet leaves it out">
           </div>
+        </div>
+
+        <div class="op-field">
+          <label class="op-field__label" for="o-texto">Text under the heading</label>
+          <textarea class="op-textarea" id="o-texto" rows="2" maxlength="600" spellcheck="false"
+                    placeholder="Optional. Printed between the heading and the tests">${esc(E.texto)}</textarea>
         </div>
 
         <div class="op-row rx-solo-retro${E.plantilla === 'retro' ? '' : ' is-apagada'}" id="o-membrete-campo"
@@ -216,6 +224,7 @@ async function editor(pacienteId, original) {
       diagnostico: E.diagnostico,
       plantilla: E.plantilla,
       encabezado: E.encabezado,
+      texto: E.texto,
       membrete: E.membrete,
       numerar: E.numerar,
     };
@@ -408,6 +417,12 @@ async function editor(pacienteId, original) {
     pintarPrevia();
   });
 
+  /* Y debajo, opcional, un texto libre antes de los estudios. */
+  document.getElementById('o-texto').addEventListener('input', (e) => {
+    E.texto = e.target.value;
+    pintarPrevia();
+  });
+
   /* El mismo ajuste que el membrete de la receta retro: quien no lo quiere lo
      apaga una vez. */
   const elMembrete = document.getElementById('o-membrete');
@@ -450,6 +465,7 @@ async function editor(pacienteId, original) {
       observaciones: E.observaciones,
       plantilla: E.plantilla,
       encabezado: E.encabezado,
+      texto: E.texto,
       membrete: E.membrete,
       numerar: E.numerar,
       items,
@@ -642,6 +658,7 @@ async function verOrden(id) {
     diagnostico: o.diagnostico,
     plantilla: o.snapshot?.plantilla,
     encabezado: o.snapshot?.encabezado,
+    texto: o.snapshot?.texto,
     membrete: o.snapshot?.membrete,
     numerar: o.snapshot?.numerar,
   };

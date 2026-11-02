@@ -313,7 +313,13 @@ app.whenReady().then(async () => {
     assert.equal(c.snapshot.diagnostico, 'Astenia', 'la instantánea quedó con el diagnóstico viejo');
     assert.equal(c.snapshot.plantilla, 'retro');
     assert.equal(c.snapshot.encabezado, 'Se solicita:');
+    assert.equal(c.snapshot.texto, '', 'una orden sin texto lo inventó');
     assert.ok(c.snapshot.corregida, 'no quedó anotado que se corrigió');
+    const conTexto = db.ordenes.corregir(o.id, {
+      paciente_id: p.id, fecha: '2026-08-07', texto: '  Se solicitan:\r\nlos siguientes  ',
+      items: [{ nombre: 'TSH' }],
+    });
+    assert.equal(conTexto.snapshot.texto, 'Se solicitan:\nlos siguientes', 'el texto no quedó limpio en la instantánea');
     assert.throws(() => db.ordenes.corregir(o.id, { paciente_id: p.id, fecha: '2026-08-07', items: [] }),
       /at least one test/);
     db.ordenes.remove(o.id);

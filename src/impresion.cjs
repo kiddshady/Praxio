@@ -57,6 +57,7 @@ function datosDeOrden(o) {
     diagnostico: o.diagnostico,
     plantilla: s.plantilla,
     encabezado: s.encabezado,
+    texto: s.texto,
     membrete: s.membrete,
     numerar: s.numerar,
   };

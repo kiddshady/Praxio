@@ -510,6 +510,16 @@ app.whenReady().then(async () => {
   await sleep(400);
   ok('el encabezado editado llega a la hoja',
     (await js(`document.querySelector('#o-previa .encabezado-rp .rp')?.textContent`)) === 'Se solicita:');
+  ok('el texto debajo del encabezado arranca vacío y la hoja no lo dibuja',
+    (await js(`document.getElementById('o-texto')?.value`)) === ''
+    && !(await js(`!!document.querySelector('#o-previa .texto-pedido')`)));
+  await escribir('#o-texto', 'Realizar los siguientes estudios:');
+  await sleep(400);
+  ok('el texto llega a la hoja entre el encabezado y los estudios', await js(`(() => {
+    const t = document.querySelector('#o-previa .encabezado-rp + .texto-pedido');
+    return t?.textContent === 'Realizar los siguientes estudios:'
+      && t.nextElementSibling?.classList.contains('item');
+  })()`));
 
   /* ── 7a. Reordenar los estudios ──────────────────────────────────────────
      Con el mouse de verdad (sendInputEvent, no eventos sintéticos: la manija
@@ -614,6 +624,9 @@ app.whenReady().then(async () => {
     const h = document.querySelector('.op-modal .rx-hoja');
     return h?.classList.contains('rx-hoja--retro') && h.querySelector('.rp')?.textContent === 'Se solicita:';
   })()`));
+  ok('y el texto debajo del encabezado',
+    (await js(`document.querySelector('.op-modal .rx-hoja .texto-pedido')?.textContent`))
+      === 'Realizar los siguientes estudios:');
   const centradaOrden = await hojaCentrada();
   ok('la hoja de la orden queda centrada en el modal',
     Math.abs(centradaOrden.cuerpo - centradaOrden.hoja) <= 2, JSON.stringify(centradaOrden));
@@ -628,6 +641,8 @@ app.whenReady().then(async () => {
     (await js(`document.querySelector('.op-viewhead')?.textContent || ''`)).includes('Correct test order'));
   ok('trae el diagnóstico emitido',
     (await js(`document.getElementById('o-diagnostico')?.value`)) === 'Astenia');
+  ok('y el texto debajo del encabezado',
+    (await js(`document.getElementById('o-texto')?.value`)) === 'Realizar los siguientes estudios:');
   await escribir('#o-diagnostico', 'Astenia y adinamia');
   await sleep(300);
   await click('#o-emitir');
