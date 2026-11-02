@@ -316,8 +316,10 @@ app.whenReady().then(async () => {
   ok('la previa dibuja original y duplicado', hojas === 2, `hojas=${hojas}`);
   ok('la previa muestra el medicamento tipeado',
     await js(`document.getElementById('r-previa').textContent.includes('Sertralina 50 mg')`));
+  /* Sin distinguir mayúsculas: la clásica dice «Duplicado» y la retro (la de
+     arranque desde la 1.3.1) «DUPLICADO». */
   ok('la previa marca el duplicado',
-    await js(`document.getElementById('r-previa').textContent.includes('Duplicado')`));
+    await js(`/duplicado/i.test(document.getElementById('r-previa').textContent)`));
 
   const contenida = await previaContenida('r-previa');
   ok('el panel de la previa termina dentro de la ventana',
